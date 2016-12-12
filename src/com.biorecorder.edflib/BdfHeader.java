@@ -10,7 +10,7 @@ public class BdfHeader  {
     private int numberOfDataRecords = -1;
     private double durationOfDataRecord;
     private SignalConfig[]  signals;
-    private boolean isBdf;
+    private boolean isBdf;  // BDF or EDF file
 
     public boolean isBdf() {
         return isBdf;
@@ -77,11 +77,11 @@ public class BdfHeader  {
         resultingBdfHeader.setDurationOfDataRecord(getDurationOfDataRecord());
         SignalConfig[] originalSignalConfigs = getSignals();
         int length = originalSignalConfigs.length;
-        SignalConfig[] resultingSignalsConfigs = new SignalConfig[length];
+        SignalConfig[] resultingSignalConfigs = new SignalConfig[length];
         for(int i = 0; i < length; i++) {
-            resultingSignalsConfigs[i]  = originalSignalConfigs[i].copy();
+            resultingSignalConfigs[i]  = originalSignalConfigs[i].copy();
         }
-        resultingBdfHeader.setSignals(resultingSignalsConfigs);
+        resultingBdfHeader.setSignals(resultingSignalConfigs);
         return resultingBdfHeader;
     }
 

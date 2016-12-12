@@ -57,7 +57,7 @@ public class BdfWriter  {
 
 
     private byte getFirstByte(){
-        byte firstByte = (byte) 255;
+        byte firstByte = (byte) 255; //bdf
 
         if (!bdfHeader.isBdf()) {   // edf
             String zeroString = "0";
@@ -162,18 +162,13 @@ public class BdfWriter  {
     }
 
     // TODO: 11/12/16 setStartTime должно делаться только когда bdfHeader.getStartTime == -1
-    public synchronized void writeDataRecord(byte[] bdfDataRecord) {
+    public synchronized void writeDataRecord(byte[] bdfDataRecord) throws IOException {
         if (!stopWritingRequest) {
             if (numberOfDataRecords == 0) {
                 startRecordingTime = System.currentTimeMillis() - (long) bdfHeader.getDurationOfDataRecord()*1000; //1 second (1000 msec) duration of a data record
                 bdfHeader.setStartTime(startRecordingTime);
                 bdfHeader.setNumberOfDataRecords(-1);
-                try {
-                    fileToSave.write(createHeader());
-                } catch (IOException e) {
-                    LOG.error(e);
-                    throw new RuntimeException(e);
-                }
+                fileToSave.write(createHeader());
             }
             numberOfDataRecords++;
             stopRecordingTime = System.currentTimeMillis();
@@ -191,7 +186,7 @@ public class BdfWriter  {
         stopWritingRequest = true;
         bdfHeader.setStartTime(startRecordingTime);
         bdfHeader.setNumberOfDataRecords(numberOfDataRecords);
-        // if BdfProvide(device) don't have quartz we should calculate actualDurationOfDataRecord
+        // calculate actualDurationOfDataRecord
         double actualDurationOfDataRecord = (stopRecordingTime - startRecordingTime) * 0.001 / numberOfDataRecords;
         try {
             fileToSave.seek(0);

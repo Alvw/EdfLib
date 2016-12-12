@@ -8,11 +8,11 @@ public class SignalConfig {
     private String prefiltering = "None";
     private String transducerType = "Unknown";
     private String label = "";
-    private int digitalMin = Integer.MIN_VALUE;
-    private int digitalMax = Integer.MAX_VALUE;
-    private double physicalMin = Integer.MIN_VALUE;
-    private double physicalMax = Integer.MAX_VALUE;
-    private String physicalDimension = "";  // uV or degreeC
+    private int digitalMin = -8388608;
+    private int digitalMax = 8388607;
+    private double physicalMin = -8388608;
+    private double physicalMax = 8388607;
+    private String physicalDimension = "";  // uV or Ohm
 
 
     public int getDigitalMin() {
@@ -101,4 +101,6 @@ public class SignalConfig {
         resultingSignalConfig.setNumberOfSamplesInEachDataRecord(getNumberOfSamplesInEachDataRecord());
         return resultingSignalConfig;
     }
+
+
 }

@@ -181,6 +181,11 @@ public class BdfWriter  {
         }
     }
 
+    public synchronized void writeDataRecord(int[] bdfDataRecord) throws IOException {
+        int numberOfBytesInDataFormat = bdfHeader.isBdf() ? 3 : 2;
+        writeDataRecord(BdfParser.intArrayToByteArray(bdfDataRecord, numberOfBytesInDataFormat));
+    }
+
     public synchronized void stopWriting(boolean isAdjustFrequency) {
         if (stopWritingRequest) return;
         stopWritingRequest = true;

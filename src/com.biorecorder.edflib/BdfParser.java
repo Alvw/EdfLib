@@ -13,19 +13,6 @@ public class BdfParser {
         this.signalNumberOfSamplesInEachDataRecords = signalNumberOfSamplesInEachDataRecords;
     }
 
-    public static byte[] intArrayToByteArray(int[] intData, int numberOfBytesPerInt) {
-        if(numberOfBytesPerInt > 4) {
-            numberOfBytesPerInt = 4;
-        }
-        byte[] result = new byte[intData.length * numberOfBytesPerInt];
-        for (int i = 0; i < intData.length; i++) {
-            byte[] intBytes = intToBytes(intData[i]);
-            for(int byteNumber = 0; byteNumber < numberOfBytesPerInt; byteNumber++) {
-                result[i*numberOfBytesPerInt + byteNumber] = intBytes[byteNumber];
-            }
-        }
-        return result;
-    }
 
     public static int[] byteArrayToIntArray(byte[] byteData, int numberOfBytesPerInt) {
         if(numberOfBytesPerInt > 4) {
@@ -47,6 +34,20 @@ public class BdfParser {
                 default:
                     result[index] = bytesToSignedInt(byteData[i], byteData[i + 1],  byteData[i + 2], byteData[i + 3]);
 
+            }
+        }
+        return result;
+    }
+
+    public static byte[] intArrayToByteArray(int[] intData, int numberOfBytesPerInt) {
+        if(numberOfBytesPerInt > 4) {
+            numberOfBytesPerInt = 4;
+        }
+        byte[] result = new byte[intData.length * numberOfBytesPerInt];
+        for (int i = 0; i < intData.length; i++) {
+            byte[] intBytes = intToLittleEndianByteArray(intData[i]);
+            for(int byteNumber = 0; byteNumber < numberOfBytesPerInt; byteNumber++) {
+                result[i*numberOfBytesPerInt + byteNumber] = intBytes[byteNumber];
             }
         }
         return result;
@@ -133,7 +134,10 @@ public class BdfParser {
         }
     }
 
-    public static  byte[] intToBytes(int value) {
+    /**
+     * convert Big_endian int (java)  to Little_endian  byte array (for bdf)
+     */
+    public static  byte[] intToLittleEndianByteArray(int value) {
         return new byte[]{
                 (byte) value,
                 (byte) (value >>> 8),

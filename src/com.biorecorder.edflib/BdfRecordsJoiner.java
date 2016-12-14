@@ -46,7 +46,11 @@ public class BdfRecordsJoiner {
         } else {
             return false;
         }
+    }
 
+    public boolean addDataRecord(int[] bdfDataRecord) {
+        int numberOfBytesInDataFormat = bdfHeader.isBdf() ? 3 : 2;
+        return addDataRecord(BdfParser.intArrayToByteArray(bdfDataRecord, numberOfBytesInDataFormat));
     }
 
     public byte[] getResultingDataRecord() {

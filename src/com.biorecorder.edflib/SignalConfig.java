@@ -10,8 +10,8 @@ public class SignalConfig {
     private String label = "";
     private int digitalMin = -8388608;
     private int digitalMax = 8388607;
-    private double physicalMin = -8388608;
-    private double physicalMax = 8388607;
+    private int physicalMin = -8388608;
+    private int physicalMax = 8388607;
     private String physicalDimension = "";  // uV or Ohm
 
 
@@ -23,11 +23,11 @@ public class SignalConfig {
         return digitalMax;
     }
 
-    public double getPhysicalMin() {
+    public int getPhysicalMin() {
         return physicalMin;
     }
 
-    public double getPhysicalMax() {
+    public int getPhysicalMax() {
         return physicalMax;
     }
 
@@ -47,11 +47,11 @@ public class SignalConfig {
         this.digitalMax = digitalMax;
     }
 
-    public void setPhysicalMin(double physicalMin) {
+    public void setPhysicalMin(int physicalMin) {
         this.physicalMin = physicalMin;
     }
 
-    public void setPhysicalMax(double physicalMax) {
+    public void setPhysicalMax(int physicalMax) {
         this.physicalMax = physicalMax;
     }
 

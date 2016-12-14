@@ -52,10 +52,15 @@ public class BdfWriter  {
         this.bdfHeader = bdfHeader;
         file.createNewFile();
         fileToSave = new RandomAccessFile(file, "rw");
-        fileToSave.write(createHeader());
     }
 
-
+    private String getVersion(){
+        if(bdfHeader.isBdf()){
+            return "BIOSEMI";
+        }else {
+            return "";
+        }
+    }
     private byte getFirstByte(){
         byte firstByte = (byte) 255; //bdf
 
@@ -86,7 +91,7 @@ public class BdfWriter  {
         int numberOfBytesInHeaderRecord = 256 * (1 + numberOfSignals);
 
         StringBuilder headerBuilder = new StringBuilder();
-        headerBuilder.append(adjustLength("", 7));  //7 not 8 because first non ascii byte (or "0" for edf) we will add later
+        headerBuilder.append(adjustLength(getVersion(), 7));  //7 not 8 because first non ascii byte (or "0" for edf) we will add later
         headerBuilder.append(adjustLength(bdfHeader.getPatientId(), 80));
         headerBuilder.append(adjustLength(bdfHeader.getRecordingId(), 80));
         headerBuilder.append(startDateOfRecording);
@@ -114,8 +119,8 @@ public class BdfWriter  {
             labels.append(adjustLength(signalConfig.getLabel(), 16));
             transducerTypes.append(adjustLength(signalConfig.getTransducerType(), 80));
             physicalDimensions.append(adjustLength(signalConfig.getPhysicalDimension(), 8));
-            physicalMinimums.append(adjustLength(double2String(signalConfig.getPhysicalMin()), 8));
-            physicalMaximums.append(adjustLength(double2String(signalConfig.getPhysicalMax()), 8));
+            physicalMinimums.append(adjustLength(String.valueOf(signalConfig.getPhysicalMin()), 8));
+            physicalMaximums.append(adjustLength(String.valueOf(signalConfig.getPhysicalMax()), 8));
             digitalMinimums.append(adjustLength(String.valueOf(signalConfig.getDigitalMin()), 8));
             digitalMaximums.append(adjustLength(String.valueOf(signalConfig.getDigitalMax()), 8));
             preFilterings.append(adjustLength(signalConfig.getPrefiltering(), 80));
@@ -158,7 +163,7 @@ public class BdfWriter  {
     }
 
     private static String double2String(double value ) {
-        return String.format("%f", value).replace(",", ".");
+        return String.format("%.6f", value).replace(",", ".");
     }
 
     // TODO: 11/12/16 setStartTime должно делаться только когда bdfHeader.getStartTime == -1

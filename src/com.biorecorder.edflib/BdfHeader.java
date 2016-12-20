@@ -68,6 +68,18 @@ public class BdfHeader  {
         this.signals = signals;
     }
 
+    public int getNumberOfSignals() {
+        int numberOfSignals = 0;
+        if(getSignals() != null) {
+            numberOfSignals = getSignals().length;
+        }
+        return numberOfSignals;
+    }
+
+    public int getNumberOfBytesInHeader() {
+        return 256 + (getNumberOfSignals() * 256);
+    }
+
     public BdfHeader copy() {
         BdfHeader resultingBdfHeader = new BdfHeader();
         resultingBdfHeader.setBdf(isBdf());

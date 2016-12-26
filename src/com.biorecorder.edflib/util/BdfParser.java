@@ -1,4 +1,4 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.util;
 
 /**
  * Created by mac on 06/11/14.

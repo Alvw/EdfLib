@@ -14,6 +14,23 @@ public class SignalConfig {
     private int physicalMax = 8388607;
     private String physicalDimension = "";  // uV or Ohm
 
+    public SignalConfig() {
+    }
+
+    /**
+     * Constructor to make a copy of given SignalConfig
+     */
+    public SignalConfig(SignalConfig signalConfig) {
+        this.numberOfSamplesInEachDataRecord = signalConfig.getNumberOfSamplesInEachDataRecord();
+        this.prefiltering = signalConfig.getPrefiltering();
+        this.transducerType = signalConfig.getTransducerType();
+        this.label = signalConfig.getLabel();
+        this.digitalMin = signalConfig.getDigitalMin();
+        this.digitalMax = signalConfig.getDigitalMax();
+        this.physicalMin = signalConfig.getPhysicalMin();
+        this.physicalMax = signalConfig.getPhysicalMax();
+        this.physicalDimension = signalConfig.getPhysicalDimension();
+    }
 
     public int getDigitalMin() {
         return digitalMin;
@@ -87,20 +104,4 @@ public class SignalConfig {
     public void setLabel(String label) {
         this.label = label;
     }
-
-    public SignalConfig copy() {
-        SignalConfig resultingSignalConfig = new SignalConfig();
-        resultingSignalConfig.setDigitalMax(getDigitalMax());
-        resultingSignalConfig.setDigitalMin(getDigitalMin());
-        resultingSignalConfig.setPhysicalMax(getPhysicalMax());
-        resultingSignalConfig.setPhysicalMin(getPhysicalMin());
-        resultingSignalConfig.setLabel(getLabel());
-        resultingSignalConfig.setPrefiltering(getPrefiltering());
-        resultingSignalConfig.setTransducerType(getTransducerType());
-        resultingSignalConfig.setPhysicalDimension(getPhysicalDimension());
-        resultingSignalConfig.setNumberOfSamplesInEachDataRecord(getNumberOfSamplesInEachDataRecord());
-        return resultingSignalConfig;
-    }
-
-
 }

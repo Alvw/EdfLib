@@ -8,23 +8,22 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 /**
- *
+ * Created by gala on 25/12/16.
  */
-public class BdfWriter extends  DataRecordsFileWriter {
-
-    public BdfWriter(File file) throws FileNotFoundException {
+public class EdfWriter extends DataRecordsFileWriter {
+    public EdfWriter(File file) throws FileNotFoundException {
         super(file);
     }
 
     @Override
     protected int getNumberOfBytesInSample() {
-        return 3;
+        return 2;
     }
 
     @Override
     protected void writeHeader() throws IOException {
         FileChannel fileChannel = fileStream.getChannel();
         fileChannel.position(0);
-        fileStream.write(HeaderUtility.createBdfHeader(headerConfig));
+        fileStream.write(HeaderUtility.createEdfHeader(headerConfig));
     }
 }

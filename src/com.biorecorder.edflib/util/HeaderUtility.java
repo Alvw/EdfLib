@@ -1,8 +1,8 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.SignalConfig;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -34,21 +34,17 @@ import java.util.Date;
  *  EDF specification   http://www.edfplus.info/specs/edf.html
  *  EDF/BDF difference  http://www.biosemi.com/faq/file_format.htm
  */
-public class BdfHeaderUtility {
+public class HeaderUtility {
     private static Charset ASCII = Charset.forName("US-ASCII");
 
-    public static void writeHeader(RandomAccessFile randomAccessFile, BdfHeader bdfHeader) throws IOException {
-        randomAccessFile.seek(0);
-        randomAccessFile.write(createHeader(bdfHeader));
+    public static  byte[] createEdfHeader(HeaderConfig headerConfig) {
+        return createHeader(headerConfig, false);
+
     }
 
-    public static void writeHeader(File file, BdfHeader bdfHeader) throws IOException {
-        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "w");
-        writeHeader(randomAccessFile, bdfHeader);
-        randomAccessFile.close();
+    public static  byte[] createBdfHeader(HeaderConfig headerConfig) {
+        return createHeader(headerConfig, true);
     }
-
-
 
     private static String getVersion(boolean isBdf){
         if(isBdf){
@@ -76,23 +72,22 @@ public class BdfHeaderUtility {
         }
     }
 
-    private static  byte[] createHeader(BdfHeader bdfHeader) {
-        SignalConfig[] signalList = bdfHeader.getSignals();
+    private static  byte[] createHeader(HeaderConfig headerConfig, boolean isBdf) {
 
-        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(bdfHeader.getStartTime()));
-        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(bdfHeader.getStartTime()));
+        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(headerConfig.getStartTime()));
+        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(headerConfig.getStartTime()));
 
         StringBuilder headerBuilder = new StringBuilder();
-        headerBuilder.append(adjustLength(getVersion(bdfHeader.isBdf()), 7));  //7 not 8 because first non ascii byte (or "0" for edf) we will add later
-        headerBuilder.append(adjustLength(bdfHeader.getPatientId(), 80));
-        headerBuilder.append(adjustLength(bdfHeader.getRecordingId(), 80));
+        headerBuilder.append(adjustLength(getVersion(isBdf), 7));  //7 not 8 because first non ascii byte (or "0" for edf) we will add later
+        headerBuilder.append(adjustLength(headerConfig.getPatientId(), 80));
+        headerBuilder.append(adjustLength(headerConfig.getRecordingId(), 80));
         headerBuilder.append(startDateOfRecording);
         headerBuilder.append(startTimeOfRecording);
-        headerBuilder.append(adjustLength(Integer.toString(bdfHeader.getNumberOfBytesInHeader()), 8));
-        headerBuilder.append(adjustLength(getFirstReserved(bdfHeader.isBdf()), 44));
-        headerBuilder.append(adjustLength(Integer.toString(bdfHeader.getNumberOfDataRecords()), 8));
-        headerBuilder.append(adjustLength(double2String(bdfHeader.getDurationOfDataRecord()), 8));
-        headerBuilder.append(adjustLength(Integer.toString(bdfHeader.getNumberOfSignals()), 4));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfBytesInHeader()), 8));
+        headerBuilder.append(adjustLength(getFirstReserved(isBdf), 44));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfDataRecords()), 8));
+        headerBuilder.append(adjustLength(double2String(headerConfig.getDurationOfDataRecord()), 8));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfSignals()), 4));
 
 
         StringBuilder labels = new StringBuilder();
@@ -106,8 +101,8 @@ public class BdfHeaderUtility {
         StringBuilder samplesNumbers = new StringBuilder();
         StringBuilder reservedForChannels = new StringBuilder();
 
-        for (int i = 0; i < bdfHeader.getNumberOfSignals(); i++) {
-            SignalConfig signalConfig = signalList[i];
+        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
+            SignalConfig signalConfig = headerConfig.getSignalConfig(i);
             labels.append(adjustLength(signalConfig.getLabel(), 16));
             transducerTypes.append(adjustLength(signalConfig.getTransducerType(), 80));
             physicalDimensions.append(adjustLength(signalConfig.getPhysicalDimension(), 8));
@@ -132,7 +127,7 @@ public class BdfHeaderUtility {
         headerBuilder.append(reservedForChannels);
         // reserve space for first byte
         ByteBuffer byteBuffer = ByteBuffer.allocate(headerBuilder.length() + 1);
-        byteBuffer.put(getFirstByte(bdfHeader.isBdf()));
+        byteBuffer.put(getFirstByte(isBdf));
         byteBuffer.put(headerBuilder.toString().getBytes(ASCII));
         return byteBuffer.array();
     }

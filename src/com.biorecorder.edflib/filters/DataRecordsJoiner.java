@@ -38,6 +38,9 @@ public class DataRecordsJoiner extends DataRecordsFilter {
     }
 
     private void addDataRecord(int[] data, int offset) throws IOException {
+        if(recordsCounter == 0) {
+            resultingDataRecord = new int[headerConfig.getRecordLength() * numberOfRecordsToJoin];
+        }
         recordsCounter++;
         int signalPosition = 0;
         int resultingSignalPosition;
@@ -51,7 +54,6 @@ public class DataRecordsJoiner extends DataRecordsFilter {
 
         if (recordsCounter == numberOfRecordsToJoin) {  // when resulting data record is ready
             out.writeDigitalDataRecords(resultingDataRecord);
-            resultingDataRecord = new int[headerConfig.getRecordLength() * numberOfRecordsToJoin];
             recordsCounter = 0;
         }
     }

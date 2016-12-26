@@ -11,7 +11,7 @@ public class HeaderConfig {
     private long startTime = -1;
     private int numberOfDataRecords = -1;
     private double durationOfDataRecord;
-    private ArrayList<SignalConfig> signals = new ArrayList<>();
+    private ArrayList<SignalConfig> signals = new ArrayList<SignalConfig>();
 
     public HeaderConfig() {
 

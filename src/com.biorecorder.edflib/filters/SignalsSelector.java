@@ -2,9 +2,9 @@ package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
 import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.SignalConfig;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  *
@@ -14,21 +14,26 @@ public class SignalsSelector extends DataRecordsFilter {
 
     public SignalsSelector(DataRecordsWriter out, boolean[] signalsMask) {
         super(out);
-        this.signalsMask = new boolean[headerConfig.getNumberOfSignals()];
-        for(int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            this.signalsMask[i] = true;
+        this.signalsMask = signalsMask;
+    }
+
+    @Override
+    public void setHeaderConfig(HeaderConfig headerConfig) {
+        if(signalsMask.length < headerConfig.getNumberOfSignals()) {
+            boolean[]  newSignalsMask = new boolean[headerConfig.getNumberOfSignals()];
+            System.arraycopy(signalsMask, 0, newSignalsMask, 0, signalsMask.length);
+            signalsMask = newSignalsMask;
         }
-        for(int i = 0; i < Math.min(headerConfig.getNumberOfSignals(), signalsMask.length); i++) {
-            this.signalsMask[i] = signalsMask[i];
-        }
+        super.setHeaderConfig(headerConfig);
     }
 
     @Override
     protected HeaderConfig createOutHeaderConfig() {
         HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig);
+        outHeaderConfig.removeAllSignalConfig();
         for (int i = 0; i < headerConfig.getNumberOfSignals();  i++) {
-            if(! signalsMask[i]) {
-                outHeaderConfig.removeSignalConfig(i);
+            if(signalsMask[i]) {
+                outHeaderConfig.addSignalConfig(new SignalConfig(headerConfig.getSignalConfig(i)));
             }
         }
         return outHeaderConfig;

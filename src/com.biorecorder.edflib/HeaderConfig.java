@@ -79,6 +79,10 @@ public class HeaderConfig {
         signals.remove(number);
     }
 
+    public void removeAllSignalConfig() {
+        signals = new ArrayList<SignalConfig>();
+    }
+
     public SignalConfig getSignalConfig(int number) {
         return signals.get(number);
     }

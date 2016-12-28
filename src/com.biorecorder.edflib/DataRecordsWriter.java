@@ -17,7 +17,7 @@ public abstract class DataRecordsWriter {
     }
 
     public void writeDigitalDataRecords(int[] data, int offset, int numberOfDataRecords) throws IOException {
-        if(headerConfig == null) {
+        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
         for(int i = 0; i < numberOfDataRecords; i++) {
@@ -26,7 +26,7 @@ public abstract class DataRecordsWriter {
     }
 
     public void writePhysicalDataRecords(double[] physData, int offset, int numberOfDataRecords) throws IOException  {
-        if(headerConfig == null) {
+        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
         writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData), offset, numberOfDataRecords);
@@ -34,14 +34,14 @@ public abstract class DataRecordsWriter {
 
 
     public void writePhysicalDataRecords(double[] physData) throws IOException  {
-        if(headerConfig == null) {
+        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
         writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData));
     }
 
     public void writeDigitalDataRecords(int[] data) throws IOException {
-        if(headerConfig == null) {
+        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
         if(data.length % headerConfig.getRecordLength() != 0) {

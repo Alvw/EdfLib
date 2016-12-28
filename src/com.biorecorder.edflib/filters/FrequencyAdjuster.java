@@ -45,9 +45,9 @@ public class FrequencyAdjuster extends DataRecordsFilter {
     @Override
     public String toString() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SS");
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + "\n");
-        stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + "\n");
+        StringBuilder stringBuilder = new StringBuilder("\n");
+        stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
+        stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
         stringBuilder.append("Number of data records = " + dataRecordsCounter + "\n");
         stringBuilder.append("Duration of a data record = " + actualDurationOfDataRecord);
         return stringBuilder.toString();

@@ -10,7 +10,7 @@ import java.io.IOException;
 public class DataRecordsJoiner extends DataRecordsFilter {
     private int numberOfRecordsToJoin;
     private int recordsCounter;
-    private int[] resultingDataRecord;
+    private int[] outDataRecord;
 
     public DataRecordsJoiner(int numberOfRecordsToJoin, DataRecordsWriter out) {
         super(out);
@@ -28,32 +28,25 @@ public class DataRecordsJoiner extends DataRecordsFilter {
     }
 
 
+
     @Override
-    protected void write(int[] data) throws IOException {
-        int numberOfDataRecords = data.length / headerConfig.getRecordLength();
-        for(int i = 0; i < numberOfDataRecords; i++) {
-            addDataRecord(data, i * headerConfig.getRecordLength());
-        }
-
-    }
-
-    private void addDataRecord(int[] data, int offset) throws IOException {
+    protected void writeOneDataRecord(int[] data, int offset) throws IOException {
         if(recordsCounter == 0) {
-            resultingDataRecord = new int[headerConfig.getRecordLength() * numberOfRecordsToJoin];
+            outDataRecord = new int[headerConfig.getRecordLength() * numberOfRecordsToJoin];
         }
         recordsCounter++;
         int signalPosition = 0;
-        int resultingSignalPosition;
+        int outSignalPosition;
         for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
             int numberOfSignalSamples = headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();
-            resultingSignalPosition = signalPosition * numberOfRecordsToJoin + (recordsCounter - 1) * numberOfSignalSamples;
-            System.arraycopy(data, offset + signalPosition, resultingDataRecord, resultingSignalPosition, numberOfSignalSamples);
+            outSignalPosition = signalPosition * numberOfRecordsToJoin + (recordsCounter - 1) * numberOfSignalSamples;
+            System.arraycopy(data, offset + signalPosition, outDataRecord, outSignalPosition, numberOfSignalSamples);
             signalPosition += numberOfSignalSamples;
 
         }
 
         if (recordsCounter == numberOfRecordsToJoin) {  // when resulting data record is ready
-            out.writeDigitalDataRecords(resultingDataRecord);
+            out.writeDigitalDataRecords(outDataRecord);
             recordsCounter = 0;
         }
     }

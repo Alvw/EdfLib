@@ -16,7 +16,27 @@ public abstract class DataRecordsWriter {
         physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
+    public void writeDigitalDataRecords(int[] data, int offset, int numberOfDataRecords) throws IOException {
+        if(headerConfig == null) {
+            return;
+        }
+        for(int i = 0; i < numberOfDataRecords; i++) {
+            writeOneDataRecord(data, offset + i * headerConfig.getRecordLength());
+        }
+    }
+
+    public void writePhysicalDataRecords(double[] physData, int offset, int numberOfDataRecords) throws IOException  {
+        if(headerConfig == null) {
+            return;
+        }
+        writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData), offset, numberOfDataRecords);
+    }
+
+
     public void writePhysicalDataRecords(double[] physData) throws IOException  {
+        if(headerConfig == null) {
+            return;
+        }
         writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData));
     }
 
@@ -29,10 +49,11 @@ public abstract class DataRecordsWriter {
                     + data.length + " DataRecord length = " + headerConfig.getRecordLength();
             throw new IllegalArgumentException(errMsg);
         }
-        write(data);
+
+        writeDigitalDataRecords(data, 0, data.length / headerConfig.getRecordLength());
     }
 
-    protected abstract void write(int[] data) throws IOException;
+    protected abstract void writeOneDataRecord(int[] data, int offset) throws IOException;
 
     public abstract void close() throws IOException;
 }

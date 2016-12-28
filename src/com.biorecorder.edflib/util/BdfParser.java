@@ -39,18 +39,22 @@ public class BdfParser {
         return result;
     }
 
-    public static byte[] intArrayToByteArray(int[] intData, int numberOfBytesPerInt) {
+    public static byte[] intArrayToByteArray(int[] intData, int offset, int length, int numberOfBytesPerInt) {
         if(numberOfBytesPerInt > 4) {
             numberOfBytesPerInt = 4;
         }
-        byte[] result = new byte[intData.length * numberOfBytesPerInt];
-        for (int i = 0; i < intData.length; i++) {
-            byte[] intBytes = intToLittleEndianByteArray(intData[i]);
+        byte[] result = new byte[length * numberOfBytesPerInt];
+        for (int i = 0; i < length; i++) {
+            byte[] intBytes = intToLittleEndianByteArray(intData[i + offset]);
             for(int byteNumber = 0; byteNumber < numberOfBytesPerInt; byteNumber++) {
                 result[i*numberOfBytesPerInt + byteNumber] = intBytes[byteNumber];
             }
         }
         return result;
+    }
+
+    public static byte[] intArrayToByteArray(int[] intData, int numberOfBytesPerInt) {
+       return intArrayToByteArray(intData, 0, intData.length, numberOfBytesPerInt);
     }
 
 

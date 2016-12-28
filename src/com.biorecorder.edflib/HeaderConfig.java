@@ -75,6 +75,9 @@ public class HeaderConfig {
     public void addSignalConfig(SignalConfig signalConfig) {
         signals.add(signalConfig);
     }
+    public void removeSignalConfig(int number) {
+        signals.remove(number);
+    }
 
     public SignalConfig getSignalConfig(int number) {
         return signals.get(number);

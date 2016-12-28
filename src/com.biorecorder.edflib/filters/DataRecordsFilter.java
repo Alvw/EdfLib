@@ -27,14 +27,12 @@ public class DataRecordsFilter extends DataRecordsWriter {
     }
 
     @Override
-    protected void write(int[] data) throws IOException {
-        out.writeDigitalDataRecords(data);
-
+    protected void writeOneDataRecord(int[] data, int offset) throws IOException {
+        out.writeDigitalDataRecords(data, offset, 1);
     }
 
     @Override
     public void close() throws IOException {
         out.close();
-
     }
 }

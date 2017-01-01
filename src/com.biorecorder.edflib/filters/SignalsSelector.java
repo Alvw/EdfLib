@@ -5,26 +5,32 @@ import com.biorecorder.edflib.HeaderConfig;
 import com.biorecorder.edflib.SignalConfig;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  */
 public class SignalsSelector extends DataRecordsFilter {
-    private boolean[] signalsMask;
+    private List<Boolean> signalsMask = new ArrayList<Boolean>();
 
-    public SignalsSelector(DataRecordsWriter out, boolean[] signalsMask) {
+    public SignalsSelector(DataRecordsWriter out) {
         super(out);
-        this.signalsMask = signalsMask;
+    }
+
+    public void excludeSignal(int signalNumber) {
+        for(int i = signalsMask.size(); i <= signalNumber; i++) {
+            signalsMask.add(true);
+        }
+        signalsMask.set(signalNumber, false);
     }
 
     @Override
     public void setHeaderConfig(HeaderConfig headerConfig) {
-        if(signalsMask.length < headerConfig.getNumberOfSignals()) {
-            boolean[]  newSignalsMask = new boolean[headerConfig.getNumberOfSignals()];
-            System.arraycopy(signalsMask, 0, newSignalsMask, 0, signalsMask.length);
-            signalsMask = newSignalsMask;
-        }
         super.setHeaderConfig(headerConfig);
+        for(int i = signalsMask.size(); i < headerConfig.getNumberOfSignals(); i++) {
+            signalsMask.add(true);
+        }
     }
 
     @Override
@@ -32,7 +38,7 @@ public class SignalsSelector extends DataRecordsFilter {
         HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig);
         outHeaderConfig.removeAllSignalConfig();
         for (int i = 0; i < headerConfig.getNumberOfSignals();  i++) {
-            if(signalsMask[i]) {
+            if(signalsMask.get(i)) {
                 outHeaderConfig.addSignalConfig(new SignalConfig(headerConfig.getSignalConfig(i)));
             }
         }
@@ -45,7 +51,7 @@ public class SignalsSelector extends DataRecordsFilter {
         int signalPosition = 0;
         int outSignalPosition = 0;
         for (int i = 0; i <  headerConfig.getNumberOfSignals(); i++) {
-            if(signalsMask[i]) {
+            if(signalsMask.get(i)) {
                 System.arraycopy(data, offset + signalPosition, outDataRecord, outSignalPosition,
                         headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord());
                 outSignalPosition += headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();

@@ -4,7 +4,7 @@ package com.biorecorder.edflib.filters;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SignalAveragingFilter {
+public class SignalAveragingFilter implements SignalFilter{
 
     private List<Integer> buffer = new ArrayList<Integer>();
     private int bufferSize;
@@ -13,6 +13,7 @@ public class SignalAveragingFilter {
             this.bufferSize = bufferSize;
     }
 
+    @Override
     public int getFilteredValue(int value) {
         buffer.add(value);
         if (buffer.size() < bufferSize) {

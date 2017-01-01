@@ -1,6 +1,7 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

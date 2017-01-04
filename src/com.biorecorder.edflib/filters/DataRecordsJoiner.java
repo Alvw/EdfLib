@@ -46,7 +46,7 @@ public class DataRecordsJoiner extends DataRecordsFilter {
         }
 
         if (recordsCounter == numberOfRecordsToJoin) {  // when resulting data record is ready
-            out.writeDigitalDataRecords(outDataRecord);
+            out.writeDigitalDataRecord(outDataRecord);
             recordsCounter = 0;
         }
     }

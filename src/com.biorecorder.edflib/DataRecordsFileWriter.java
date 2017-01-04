@@ -11,10 +11,22 @@ abstract class DataRecordsFileWriter extends DataRecordsWriter {
 
     private long startTime;
     private int dataRecordsCounter = 0;
-    protected FileOutputStream fileStream;
+    protected FileOutputStream fileOutputStream;
+    protected OutputStream outputStream;
+
 
     public DataRecordsFileWriter(File file) throws FileNotFoundException  {
-        fileStream = new FileOutputStream(file);
+         fileOutputStream = new FileOutputStream(file);
+         outputStream = fileOutputStream;
+    }
+
+    public void setBuffered(boolean isBuffered) {
+        if(isBuffered) {
+            outputStream = new BufferedOutputStream(fileOutputStream);
+        }
+        else {
+            outputStream = fileOutputStream;
+        }
     }
 
 
@@ -23,10 +35,7 @@ abstract class DataRecordsFileWriter extends DataRecordsWriter {
     protected abstract void writeHeader() throws IOException;
 
     @Override
-    public void writeDigitalDataRecords(int[] data, int offset, int numberOfDataRecords) throws IOException {
-        if(headerConfig == null) {
-            return;
-        }
+    protected synchronized void writeOneDataRecord(int[] data, int offset) throws IOException {
         if (dataRecordsCounter == 0) {
             // 1 second = 1000 msec
             startTime = System.currentTimeMillis() - (long) headerConfig.getDurationOfDataRecord()*1000;
@@ -39,12 +48,8 @@ abstract class DataRecordsFileWriter extends DataRecordsWriter {
             writeHeader();
         }
 
-        fileStream.write(BdfParser.intArrayToByteArray(data, offset, numberOfDataRecords * headerConfig.getRecordLength(), getNumberOfBytesInSample()));
-        dataRecordsCounter += numberOfDataRecords;
-    }
-
-    @Override
-    protected void writeOneDataRecord(int[] data, int offset) throws IOException {
+        outputStream.write(BdfParser.intArrayToByteArray(data, offset, headerConfig.getRecordLength(), getNumberOfBytesInSample()));
+        dataRecordsCounter++;
 
     }
 
@@ -53,6 +58,6 @@ abstract class DataRecordsFileWriter extends DataRecordsWriter {
     public synchronized void close() throws IOException {
         headerConfig.setNumberOfDataRecords(dataRecordsCounter);
         writeHeader();
-        fileStream.close();
+        outputStream.close();
     }
 }

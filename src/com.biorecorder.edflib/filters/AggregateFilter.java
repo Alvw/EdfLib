@@ -1,6 +1,7 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
+import com.biorecorder.edflib.filters.signal_filters.SignalFilter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class AggregateFilter extends DataRecordsFilter {
             }
             signalPosition += numberOfSamples;
         }
-        out.writeDigitalDataRecords(filteredDataRecord);
+        out.writeDigitalDataRecord(filteredDataRecord);
     }
 
 }

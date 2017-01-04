@@ -22,9 +22,10 @@ public class BdfWriter extends  DataRecordsFileWriter {
     }
 
     @Override
-    protected void writeHeader() throws IOException {
-        FileChannel fileChannel = fileStream.getChannel();
+    protected synchronized void writeHeader() throws IOException {
+        outputStream.flush();
+        FileChannel fileChannel = fileOutputStream.getChannel();
         fileChannel.position(0);
-        fileStream.write(HeaderUtility.createBdfHeader(headerConfig));
+        fileOutputStream.write(HeaderUtility.createBdfHeader(headerConfig));
     }
 }

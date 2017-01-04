@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.filters;
+package com.biorecorder.edflib.filters.signal_filters;
 
 
 import java.util.ArrayList;

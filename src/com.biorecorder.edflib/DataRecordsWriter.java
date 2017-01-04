@@ -16,44 +16,31 @@ public abstract class DataRecordsWriter {
         physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
-    public void writeDigitalDataRecords(int[] data, int offset, int numberOfDataRecords) throws IOException {
+    public void writeDigitalDataRecord(int[] data, int offset) throws IOException {
         if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
-        for(int i = 0; i < numberOfDataRecords; i++) {
-            writeOneDataRecord(data, offset + i * headerConfig.getRecordLength());
-        }
+        writeOneDataRecord(data, offset);
     }
 
-    public void writePhysicalDataRecords(double[] physData, int offset, int numberOfDataRecords) throws IOException  {
+    public void writePhysicalDataRecord(double[] physData, int offset) throws IOException  {
         if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
             return;
         }
-        writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData), offset, numberOfDataRecords);
+        writeDigitalDataRecord(physicalDigitalConverter.physicalArrayToDigital(physData), offset);
     }
 
-
-    public void writePhysicalDataRecords(double[] physData) throws IOException  {
-        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
-            return;
-        }
-        writeDigitalDataRecords(physicalDigitalConverter.physicalArrayToDigital(physData));
+    public void writeDigitalDataRecord(int[] data) throws IOException {
+        writeOneDataRecord(data, 0);
     }
 
-    public void writeDigitalDataRecords(int[] data) throws IOException {
-        if(headerConfig == null ||  headerConfig.getRecordLength() == 0) {
-            return;
-        }
-        if(data.length % headerConfig.getRecordLength() != 0) {
-            String errMsg = "The input array must contain an integer number of DataRecords. Input array length = "
-                    + data.length + " DataRecord length = " + headerConfig.getRecordLength();
-            throw new IllegalArgumentException(errMsg);
-        }
-
-        writeDigitalDataRecords(data, 0, data.length / headerConfig.getRecordLength());
+    public void writePhysicalDataRecord(double[] physData) throws IOException  {
+       writePhysicalDataRecord(physData, 0);
     }
 
     protected abstract void writeOneDataRecord(int[] data, int offset) throws IOException;
+
+
 
     public abstract void close() throws IOException;
 }

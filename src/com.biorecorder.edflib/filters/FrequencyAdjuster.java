@@ -27,7 +27,7 @@ public class FrequencyAdjuster extends DataRecordsFilter {
             startTime = System.currentTimeMillis() - (long) headerConfig.getDurationOfDataRecord() * 1000;
         }
         stopTime = System.currentTimeMillis();
-        out.writeDigitalDataRecords(data, offset, 1);
+        out.writeDigitalDataRecord(data, offset);
         dataRecordsCounter++;
     }
 
@@ -38,6 +38,7 @@ public class FrequencyAdjuster extends DataRecordsFilter {
         HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig); // copy header config
         outHeaderConfig.setDurationOfDataRecord(actualDurationOfDataRecord);
         outHeaderConfig.setStartTime(startTime);
+        outHeaderConfig.setNumberOfDataRecords(dataRecordsCounter);
         out.setHeaderConfig(outHeaderConfig);
         out.close();
     }

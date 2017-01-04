@@ -58,6 +58,6 @@ public class SignalsSelector extends DataRecordsFilter {
             }
             signalPosition += headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();
         }
-        out.writeDigitalDataRecords(outDataRecord);
+        out.writeDigitalDataRecord(outDataRecord);
     }
 }

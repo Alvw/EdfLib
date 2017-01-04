@@ -26,9 +26,10 @@ public class DataRecordsFilter extends DataRecordsWriter {
         out.setHeaderConfig(createOutHeaderConfig());
     }
 
+
     @Override
     protected void writeOneDataRecord(int[] data, int offset) throws IOException {
-        out.writeDigitalDataRecords(data, offset, 1);
+        out.writeDigitalDataRecord(data, offset);
     }
 
     @Override

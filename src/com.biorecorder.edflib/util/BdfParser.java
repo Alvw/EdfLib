@@ -4,14 +4,6 @@ package com.biorecorder.edflib.util;
  * Created by mac on 06/11/14.
  */
 public class BdfParser {
-    private int numberOfBytesInDataFormat;
-    private int[] signalNumberOfSamplesInEachDataRecords;
-
-
-    public BdfParser(int numberOfBytesInDataFormat, int[] signalNumberOfSamplesInEachDataRecords) {
-        this.numberOfBytesInDataFormat = numberOfBytesInDataFormat;
-        this.signalNumberOfSamplesInEachDataRecords = signalNumberOfSamplesInEachDataRecords;
-    }
 
 
     public static int[] byteArrayToIntArray(byte[] byteData, int numberOfBytesPerInt) {
@@ -58,58 +50,6 @@ public class BdfParser {
     }
 
 
-    public int parseDataRecordSample(byte[] bdfDataRecord, int sampleNumber) {
-        if (numberOfBytesInDataFormat == 3) {  //bdf format
-            return bytesToSignedInt(bdfDataRecord[sampleNumber * 3],
-                    bdfDataRecord[sampleNumber * 3 + 1], bdfDataRecord[sampleNumber * 3 + 2]);
-        }
-        if (numberOfBytesInDataFormat == 2) {   // edf format
-            return bytesToSignedInt(bdfDataRecord[sampleNumber * 2], bdfDataRecord[sampleNumber * 2 + 1]);
-        }
-        return 0;
-    }
-
-    public int[][] parseDataRecord(byte[] bdfDataRecord) {
-        int numberOfSignals = signalNumberOfSamplesInEachDataRecords.length;
-        int[][] result = new int[numberOfSignals][];
-        for (int i = 0; i < numberOfSignals; i++) {
-            result[i] = parseDataRecordSignal(bdfDataRecord, i);
-        }
-        return result;
-    }
-
-    public int[] parseDataRecordSignal(byte[] bdfDataRecord, int signalNumber) {
-        int numberOfSamples = signalNumberOfSamplesInEachDataRecords[signalNumber];
-        int startIndex = getSignalStartIndexInDataRecord(signalNumber);
-        int[] result = new int[numberOfSamples];
-        for (int i = 0; i < numberOfSamples; i++) {
-            result[i] = parseDataRecordSample(bdfDataRecord, startIndex + i);
-        }
-        return result;
-    }
-
-    private int getSignalStartIndexInDataRecord(int signalNumber) {
-        int startIndex = 0;
-        for (int i = 0; i < signalNumber; i++) {
-            startIndex += signalNumberOfSamplesInEachDataRecords[i];
-        }
-        return startIndex;
-    }
-
-
-    private static byte[] addInt3ToByteArray(int value, byte[] array, int startIndex) {
-        array[startIndex] = (byte) (value & 0xff);
-        array[startIndex + 1] = (byte) (value >> 8 & 0xff);
-        array[startIndex + 2] = (byte) (value >> 16);
-        return array;
-    }
-
-    private static byte[] addInt2ToByteArray(int value, byte[] array, int startIndex) {
-        array[startIndex] = (byte) (value & 0xff);
-        array[startIndex + 1] = (byte) (value >> 8);
-        return array;
-    }
-
 
     /* Java int BIG_ENDIAN, Byte order: LITTLE_ENDIAN  */
     public static int bytesToSignedInt(byte... b) {
@@ -147,6 +87,19 @@ public class BdfParser {
                 (byte) (value >>> 8),
                 (byte) (value >>> 16),
                 (byte) (value >>> 24) };
+    }
+
+    private static byte[] addInt3ToByteArray(int value, byte[] array, int startIndex) {
+        array[startIndex] = (byte) (value & 0xff);
+        array[startIndex + 1] = (byte) (value >> 8 & 0xff);
+        array[startIndex + 2] = (byte) (value >> 16);
+        return array;
+    }
+
+    private static byte[] addInt2ToByteArray(int value, byte[] array, int startIndex) {
+        array[startIndex] = (byte) (value & 0xff);
+        array[startIndex + 1] = (byte) (value >> 8);
+        return array;
     }
 
 }

@@ -194,24 +194,24 @@ public class HeaderUtility {
 
         char[] buffer;
         buffer = new char[VERSION_LENGTH];
-        reader.read(buffer, 0, VERSION_LENGTH);
+        reader.read(buffer);
 
         buffer = new char[PATIENT_LENGTH];
-        reader.read(buffer, 0, PATIENT_LENGTH);
+        reader.read(buffer);
         String patientIdentification = new String(buffer).trim();
         headerConfig.setPatientId(patientIdentification);
 
         buffer = new char[RECORD_LENGTH];
-        reader.read(buffer, 0, RECORD_LENGTH);
+        reader.read(buffer);
         String recordIdentification = new String(buffer).trim();
         headerConfig.setRecordingId(recordIdentification);
 
         buffer = new char[STARTDATE_LENGTH];
-        reader.read(buffer, 0, STARTDATE_LENGTH);
+        reader.read(buffer);
         String startDateStr = new String(buffer);
 
         buffer = new char[STARTTIME_LENGTH];
-        reader.read(buffer, 0, STARTTIME_LENGTH);
+        reader.read(buffer);
         String startTimeStr = new String(buffer);
         String dateFormat = "dd.MM.yy HH.mm.ss";
         String startDateTimeStr = startDateStr + " " + startTimeStr;
@@ -225,23 +225,24 @@ public class HeaderUtility {
         headerConfig.setStartTime(startTime);
 
         buffer = new char[NUMBER_OF_BYTES_IN_HEADER_LENGTH];
-        reader.read(buffer, 0, NUMBER_OF_BYTES_IN_HEADER_LENGTH);
+        reader.read(buffer);
+
 
         buffer = new char[FIRST_RESERVED_LENGTH];
-        reader.read(buffer, 0, FIRST_RESERVED_LENGTH);
+        reader.read(buffer);
 
         buffer = new char[NUMBER_Of_DATARECORDS_LENGTH];
-        reader.read(buffer, 0, NUMBER_Of_DATARECORDS_LENGTH);
+        reader.read(buffer);
         int numberOfDataRecords = stringToInt(new String(buffer));
         headerConfig.setNumberOfDataRecords(numberOfDataRecords);
 
         buffer = new char[DURATION_OF_DATARECORD_LENGTH];
-        reader.read(buffer, 0, DURATION_OF_DATARECORD_LENGTH);
+        reader.read(buffer);
         Double durationOfDataRecord = stringToDouble(new String(buffer));
         headerConfig.setDurationOfDataRecord(durationOfDataRecord);
 
         buffer = new char[NUMBER_OF_SIGNALS_LENGTH];
-        reader.read(buffer, 0, NUMBER_OF_SIGNALS_LENGTH);
+        reader.read(buffer);
         int numberOfSignals =  stringToInt(new String(buffer));
 
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
@@ -251,57 +252,57 @@ public class HeaderUtility {
 
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_LABEL_LENGTH];
-            reader.read(buffer, 0, SIGNAL_LABEL_LENGTH);
+            reader.read(buffer);
             headerConfig.getSignalConfig(signalNumber).setLabel(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_TRANSDUCER_TYPE_LENGTH];
-            reader.read(buffer, 0, SIGNAL_TRANSDUCER_TYPE_LENGTH);
+            reader.read(buffer);
             headerConfig.getSignalConfig(signalNumber).setTransducerType(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_DIMENSION_LENGTH];
-            reader.read(buffer, 0, SIGNAL_PHYSICAL_DIMENSION_LENGTH);
+            reader.read(buffer);
             headerConfig.getSignalConfig(signalNumber).setPhysicalDimension(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MIN_LENGTH];
-            reader.read(buffer, 0, SIGNAL_PHYSICAL_MIN_LENGTH);
+            reader.read(buffer);
             int physicalMin =  stringToInt(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MAX_LENGTH];
-            reader.read(buffer, 0, SIGNAL_PHYSICAL_MAX_LENGTH);
+            reader.read(buffer);
             int physicalMax =  stringToInt(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MIN_LENGTH];
-            reader.read(buffer, 0, SIGNAL_DIGITAL_MIN_LENGTH);
+            reader.read(buffer);
             int digitalMin =  stringToInt(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setDigitalMin(digitalMin);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MAX_LENGTH];
-            reader.read(buffer, 0, SIGNAL_DIGITAL_MAX_LENGTH);
+            reader.read(buffer);
             int digitalMax =  stringToInt(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setDigitalMax(digitalMax);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PREFILTERING_LENGTH];
-            reader.read(buffer, 0, SIGNAL_PREFILTERING_LENGTH);
+            reader.read(buffer);
             headerConfig.getSignalConfig(signalNumber).setPrefiltering(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_NUMBER_OF_SAMPLES_LENGTH];
-            reader.read(buffer, 0, SIGNAL_NUMBER_OF_SAMPLES_LENGTH);
+            reader.read(buffer);
             int numberOfSamplesInDataRecord =  stringToInt(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInDataRecord);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_RESERVED_LENGTH];
-            reader.read(buffer, 0, SIGNAL_RESERVED_LENGTH);
+            reader.read(buffer);
         }
 
         reader.close();

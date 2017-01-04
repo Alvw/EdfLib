@@ -56,8 +56,10 @@ abstract class DataRecordsFileWriter extends DataRecordsWriter {
 
     @Override
     public synchronized void close() throws IOException {
-        headerConfig.setNumberOfDataRecords(dataRecordsCounter);
-        writeHeader();
+        if(headerConfig!= null) {
+            headerConfig.setNumberOfDataRecords(dataRecordsCounter);
+            writeHeader();
+        }
         outputStream.close();
     }
 }

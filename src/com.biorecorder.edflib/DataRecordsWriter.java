@@ -12,7 +12,7 @@ public abstract class DataRecordsWriter {
     protected PhysicalDigitalConverter physicalDigitalConverter;
 
     public void setHeaderConfig (HeaderConfig headerConfig)  {
-        this.headerConfig = headerConfig;
+        this.headerConfig = new HeaderConfig(headerConfig);
         physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
@@ -31,7 +31,7 @@ public abstract class DataRecordsWriter {
     }
 
     public void writeDigitalDataRecord(int[] data) throws IOException {
-        writeOneDataRecord(data, 0);
+        writeDigitalDataRecord(data, 0);
     }
 
     public void writePhysicalDataRecord(double[] physData) throws IOException  {

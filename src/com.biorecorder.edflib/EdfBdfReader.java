@@ -60,4 +60,8 @@ public class EdfBdfReader {
 
         }
     }
+
+    public void close() throws IOException {
+        bufferedInputStream.close();
+    }
 }

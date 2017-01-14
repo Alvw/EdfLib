@@ -1,6 +1,16 @@
 package com.biorecorder.edflib;
 
 /**
+ *  Class (data-structure) that allows to store information about measuring channel (signal)
+ *  required to create EDF/BDF file header and correctly extract data from DataRecords.
+ *  It contains number of samples from the channel in each data record, phisical and digital max and min
+ *  (to convert physical values into digital and backward),
+ *  physical dimension (uV or Ohm), signal label and so on and has
+ *  getter and setter methods to set and get that information
+ *
+ * <p>Detailed information about all parameters required for EDF/BDF file header:
+ * <br><a href="http://www.teuniz.net/edfbrowser/edf%20format%20description.html">The EDF format</a>
+ * <br><a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
  *
  */
 public class SignalConfig {
@@ -18,7 +28,7 @@ public class SignalConfig {
     }
 
     /**
-     * Constructor to make a copy of given SignalConfig
+     * Constructor to make a copy of given SignalConfig instance
      */
     public SignalConfig(SignalConfig signalConfig) {
         this.numberOfSamplesInEachDataRecord = signalConfig.getNumberOfSamplesInEachDataRecord();

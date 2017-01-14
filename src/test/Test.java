@@ -1,9 +1,8 @@
 package test;
 
-import com.biorecorder.edflib.BdfWriter;
-import com.biorecorder.edflib.EdfBdfReader;
-import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.*;
 import com.biorecorder.edflib.filters.AggregateFilter;
+import com.biorecorder.edflib.filters.SignalsRemoval;
 import com.biorecorder.edflib.filters.signal_filters.SignalAveragingFilter;
 
 import java.io.File;
@@ -14,21 +13,23 @@ import java.io.File;
  */
 public class Test {
     public static void main(String[] args) {
-        File file = new File(System.getProperty("user.dir")+"/records", "01-01-2017_19-51.bdf");
+        File file = new File(System.getProperty("user.dir")+"/records", "30-12-2016_12-17.bdf");
         try {
+
+
 
             EdfBdfReader reader = new EdfBdfReader(file);
             BdfWriter writer = new BdfWriter(new File(System.getProperty("user.dir")+"/records", "copy.bdf"));
-            writer.setBuffered(true);
-            HeaderConfig headerConfig = reader.getHeaderConfig();
+            RecordConfig recordConfig = reader.getRecordConfig();
 
             AggregateFilter filteredWriter = new AggregateFilter(writer);
             filteredWriter.addSignalFilter(0, new SignalAveragingFilter(10));
-            filteredWriter.setHeaderConfig(headerConfig);
+            filteredWriter.open(recordConfig);
+            System.out.println(recordConfig.getNumberOfDataRecords()+"  records number "+reader.availableDataRecords());
             int numberOfRecords = 0;
             long startTime = System.currentTimeMillis();
-            for(int i = 0; i < headerConfig.getNumberOfDataRecords(); i++) {
-                filteredWriter.writeDigitalDataRecord(reader.readDataRecord());
+            for(int i = 0; i < recordConfig.getNumberOfDataRecords(); i++) {
+               // filteredWriter.writeDigitalDataRecord(reader.readDataRecord());
                 numberOfRecords++;
             }
             long endTime = System.currentTimeMillis();

@@ -1,6 +1,6 @@
 package com.biorecorder.edflib.util;
 
-import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.RecordConfig;
 
 /**
  *  EDF format assumes that:
@@ -12,20 +12,23 @@ import com.biorecorder.edflib.HeaderConfig;
  *  where:
  *  gain = (physMax - physMin) / (digMax - digMin)
  *  offset = (physMin - digMin * gain);
+ *
+ *  @see <a href="http://www.edfplus.info/specs/edffloat.html">EDF. How to store longintegers and floats</a>
+ *
  */
 
 public class PhysicalDigitalConverter {
-    private HeaderConfig headerConfig;
+    private RecordConfig recordConfig;
 
-    public PhysicalDigitalConverter(HeaderConfig headerConfig) {
-        this.headerConfig = headerConfig;
+    public PhysicalDigitalConverter(RecordConfig recordConfig) {
+        this.recordConfig = recordConfig;
     }
 
 
     public void digitalRecordToPhysical(int[] digArray, int digArrayOffset, double[] physArray, int physArrayOffset) {
         int counter = 0;
-        for(int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
-            for(int sampleNumber = 0; sampleNumber < headerConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord(); sampleNumber++) {
+        for(int signalNumber = 0; signalNumber < recordConfig.getNumberOfSignals(); signalNumber++) {
+            for(int sampleNumber = 0; sampleNumber < recordConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord(); sampleNumber++) {
                 physArray[physArrayOffset + counter] = digitalValueToPhysical(digArray[digArrayOffset + counter], signalNumber);
                 counter++;
             }
@@ -34,50 +37,33 @@ public class PhysicalDigitalConverter {
 
     public void physicalRecordToDigital(double[] physArray, int physArrayOffset, int[] digArray, int digArrayOffset) {
         int counter = 0;
-        for(int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
-            for(int sampleNumber = 0; sampleNumber < headerConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord(); sampleNumber++) {
+        for(int signalNumber = 0; signalNumber < recordConfig.getNumberOfSignals(); signalNumber++) {
+            for(int sampleNumber = 0; sampleNumber < recordConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord(); sampleNumber++) {
                 digArray[digArrayOffset + counter]  = physicalValueToDigital(physArray[physArrayOffset + counter], signalNumber);
                 counter++;
             }
         }
     }
 
-    public void digitalArrayToPhysical(int[] digArray, int digArrayOffset, double[] physArray, int physArrayOffset, int numberOfRecords) {
-        int recordLength = headerConfig.getRecordLength();
-        for(int i = 0; i < numberOfRecords; i++) {
-            digitalRecordToPhysical(digArray, digArrayOffset + recordLength * i, physArray, physArrayOffset + recordLength * i);
-        }
-    }
-
-    public void physicalArrayToDigital(double[] physArray, int physArrayOffset, int[] digArray, int digArrayOffset, int numberOfRecords) {
-        int recordLength = headerConfig.getRecordLength();
-        for(int i = 0; i < numberOfRecords; i++) {
-            physicalRecordToDigital(physArray, physArrayOffset + recordLength * i, digArray, digArrayOffset + recordLength * i);
-        }
-    }
-
-
-    public int[] physicalArrayToDigital(double[] physArray) {
-        if(physArray.length % headerConfig.getRecordLength() != 0) {
-            String errMsg = "The input array must contain an integer number of DataRecords. Input array length = "
-                    + physArray.length + " DataRecord length = " + headerConfig.getRecordLength();
+    public int[] physicalRecordToDigital(double[] physArray) {
+        if(physArray.length != recordConfig.getRecordLength()) {
+            String errMsg = "The input array length must be equal DataRecord length. Input array length = "
+                    + physArray.length + " DataRecord length = " + recordConfig.getRecordLength();
             throw new IllegalArgumentException(errMsg);
         }
-        int numberOfRecords = physArray.length / headerConfig.getRecordLength();
         int[] digArray = new int[physArray.length];
-        physicalArrayToDigital(physArray, 0, digArray, 0, numberOfRecords);
+        physicalRecordToDigital(physArray, 0, digArray, 0);
         return digArray;
     }
 
-    public double[] digitalArrayToPhysical(int[] digArray) {
-        if(digArray.length % headerConfig.getRecordLength() != 0) {
-            String errMsg = "The input array must contain an integer number of DataRecords. Input array length = "
-                    + digArray.length + " DataRecord length = " + headerConfig.getRecordLength();
+    public double[] digitalRecordToPhysical(int[] digArray) {
+        if(digArray.length != recordConfig.getRecordLength()) {
+            String errMsg = "The input array length must be equal DataRecord length. Input array length = "
+                    + digArray.length + " DataRecord length = " + recordConfig.getRecordLength();
             throw new IllegalArgumentException(errMsg);
         }
-        int numberOfRecords = digArray.length / headerConfig.getRecordLength();
         double[] physArray = new double[digArray.length];
-        digitalArrayToPhysical(digArray, 0, physArray, 0,  numberOfRecords);
+        digitalRecordToPhysical(digArray, 0, physArray, 0);
         return physArray;
     }
 
@@ -85,18 +71,18 @@ public class PhysicalDigitalConverter {
 
     public int physicalValueToDigital(double physValue, int signalNumber) {
         return PhysicalDigitalConverter.physicalValueToDigital(physValue,
-                headerConfig.getSignalConfig(signalNumber).getPhysicalMax(),
-                headerConfig.getSignalConfig(signalNumber).getPhysicalMin(),
-                headerConfig.getSignalConfig(signalNumber).getDigitalMax(),
-                headerConfig.getSignalConfig(signalNumber).getDigitalMin());
+                recordConfig.getSignalConfig(signalNumber).getPhysicalMax(),
+                recordConfig.getSignalConfig(signalNumber).getPhysicalMin(),
+                recordConfig.getSignalConfig(signalNumber).getDigitalMax(),
+                recordConfig.getSignalConfig(signalNumber).getDigitalMin());
     }
 
     public  double digitalValueToPhysical(int digValue, int signalNumber) {
         return PhysicalDigitalConverter.digitalValueToPhysical(digValue,
-                headerConfig.getSignalConfig(signalNumber).getPhysicalMax(),
-                headerConfig.getSignalConfig(signalNumber).getPhysicalMin(),
-                headerConfig.getSignalConfig(signalNumber).getDigitalMax(),
-                headerConfig.getSignalConfig(signalNumber).getDigitalMin());
+                recordConfig.getSignalConfig(signalNumber).getPhysicalMax(),
+                recordConfig.getSignalConfig(signalNumber).getPhysicalMin(),
+                recordConfig.getSignalConfig(signalNumber).getDigitalMax(),
+                recordConfig.getSignalConfig(signalNumber).getDigitalMin());
     }
 
     public static int physicalValueToDigital(double physValue, double physMax, double physMin, int digMax, int digMin) {

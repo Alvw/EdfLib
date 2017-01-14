@@ -1,6 +1,6 @@
 package com.biorecorder.edflib.util;
 
-import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.RecordConfig;
 import com.biorecorder.edflib.SignalConfig;
 
 import java.io.*;
@@ -60,13 +60,13 @@ public class HeaderUtility {
     private static final int SIGNAL_NUMBER_OF_SAMPLES_LENGTH = 8;
     private static final int SIGNAL_RESERVED_LENGTH = 32;
 
-    public static  byte[] createEdfHeader(HeaderConfig headerConfig) {
-        return createHeader(headerConfig, false);
+    public static  byte[] createEdfHeader(RecordConfig recordConfig) {
+        return createHeader(recordConfig, false);
 
     }
 
-    public static  byte[] createBdfHeader(HeaderConfig headerConfig) {
-        return createHeader(headerConfig, true);
+    public static  byte[] createBdfHeader(RecordConfig recordConfig) {
+        return createHeader(recordConfig, true);
     }
 
     private static String getVersion(boolean isBdf){
@@ -95,22 +95,22 @@ public class HeaderUtility {
         }
     }
 
-    private static  byte[] createHeader(HeaderConfig headerConfig, boolean isBdf) {
+    private static  byte[] createHeader(RecordConfig recordConfig, boolean isBdf) {
 
-        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(headerConfig.getStartTime()));
-        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(headerConfig.getStartTime()));
+        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(recordConfig.getStartTime()));
+        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(recordConfig.getStartTime()));
 
         StringBuilder headerBuilder = new StringBuilder();
         headerBuilder.append(adjustLength(getVersion(isBdf), VERSION_LENGTH - 1));  // -1 because first non ascii byte (or "0" for edf) we will add later
-        headerBuilder.append(adjustLength(headerConfig.getPatientId(), PATIENT_LENGTH));
-        headerBuilder.append(adjustLength(headerConfig.getRecordingId(), RECORD_LENGTH));
+        headerBuilder.append(adjustLength(recordConfig.getPatientId(), PATIENT_LENGTH));
+        headerBuilder.append(adjustLength(recordConfig.getRecordingId(), RECORD_LENGTH));
         headerBuilder.append(startDateOfRecording);
         headerBuilder.append(startTimeOfRecording);
-        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfBytesInHeader()), NUMBER_OF_BYTES_IN_HEADER_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(recordConfig.getNumberOfBytesInHeader()), NUMBER_OF_BYTES_IN_HEADER_LENGTH));
         headerBuilder.append(adjustLength(getFirstReserved(isBdf), FIRST_RESERVED_LENGTH));
-        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfDataRecords()), NUMBER_Of_DATARECORDS_LENGTH));
-        headerBuilder.append(adjustLength(double2String(headerConfig.getDurationOfDataRecord()), DURATION_OF_DATARECORD_LENGTH));
-        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfSignals()), NUMBER_OF_SIGNALS_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(recordConfig.getNumberOfDataRecords()), NUMBER_Of_DATARECORDS_LENGTH));
+        headerBuilder.append(adjustLength(double2String(recordConfig.getDurationOfDataRecord()), DURATION_OF_DATARECORD_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(recordConfig.getNumberOfSignals()), NUMBER_OF_SIGNALS_LENGTH));
 
 
         StringBuilder labels = new StringBuilder();
@@ -124,8 +124,8 @@ public class HeaderUtility {
         StringBuilder samplesNumbers = new StringBuilder();
         StringBuilder reservedForChannels = new StringBuilder();
 
-        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            SignalConfig signalConfig = headerConfig.getSignalConfig(i);
+        for (int i = 0; i < recordConfig.getNumberOfSignals(); i++) {
+            SignalConfig signalConfig = recordConfig.getSignalConfig(i);
             labels.append(adjustLength(signalConfig.getLabel(), SIGNAL_LABEL_LENGTH));
             transducerTypes.append(adjustLength(signalConfig.getTransducerType(), SIGNAL_TRANSDUCER_TYPE_LENGTH));
             physicalDimensions.append(adjustLength(signalConfig.getPhysicalDimension(), SIGNAL_PHYSICAL_DIMENSION_LENGTH));
@@ -188,9 +188,9 @@ public class HeaderUtility {
         throw new HeaderParsingException("Invalid Edf/Bdf file header. First byte should be equal '0' or 255");
     }
 
-    public static HeaderConfig readHeader(File file) throws IOException, HeaderParsingException {
+    public static RecordConfig readHeader(File file) throws IOException, HeaderParsingException {
         Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), ASCII));
-        HeaderConfig headerConfig = new HeaderConfig();
+        RecordConfig recordConfig = new RecordConfig();
 
         char[] buffer;
         buffer = new char[VERSION_LENGTH];
@@ -199,12 +199,12 @@ public class HeaderUtility {
         buffer = new char[PATIENT_LENGTH];
         reader.read(buffer);
         String patientIdentification = new String(buffer).trim();
-        headerConfig.setPatientId(patientIdentification);
+        recordConfig.setPatientId(patientIdentification);
 
         buffer = new char[RECORD_LENGTH];
         reader.read(buffer);
         String recordIdentification = new String(buffer).trim();
-        headerConfig.setRecordingId(recordIdentification);
+        recordConfig.setRecordingId(recordIdentification);
 
         buffer = new char[STARTDATE_LENGTH];
         reader.read(buffer);
@@ -222,7 +222,7 @@ public class HeaderUtility {
         } catch (Exception e) {
             throw new HeaderParsingException("Invalid Edf/Bdf file header. Error while parsing header Date-Time: " + startDateTimeStr);
         }
-        headerConfig.setStartTime(startTime);
+        recordConfig.setStartTime(startTime);
 
         buffer = new char[NUMBER_OF_BYTES_IN_HEADER_LENGTH];
         reader.read(buffer);
@@ -234,71 +234,71 @@ public class HeaderUtility {
         buffer = new char[NUMBER_Of_DATARECORDS_LENGTH];
         reader.read(buffer);
         int numberOfDataRecords = stringToInt(new String(buffer));
-        headerConfig.setNumberOfDataRecords(numberOfDataRecords);
+        recordConfig.setNumberOfDataRecords(numberOfDataRecords);
 
         buffer = new char[DURATION_OF_DATARECORD_LENGTH];
         reader.read(buffer);
         Double durationOfDataRecord = stringToDouble(new String(buffer));
-        headerConfig.setDurationOfDataRecord(durationOfDataRecord);
+        recordConfig.setDurationOfDataRecord(durationOfDataRecord);
 
         buffer = new char[NUMBER_OF_SIGNALS_LENGTH];
         reader.read(buffer);
         int numberOfSignals =  stringToInt(new String(buffer));
 
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
-           headerConfig.addSignalConfig(new SignalConfig());
+           recordConfig.addSignalConfig(new SignalConfig());
         }
 
 
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_LABEL_LENGTH];
             reader.read(buffer);
-            headerConfig.getSignalConfig(signalNumber).setLabel(new String(buffer).trim());
+            recordConfig.getSignalConfig(signalNumber).setLabel(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_TRANSDUCER_TYPE_LENGTH];
             reader.read(buffer);
-            headerConfig.getSignalConfig(signalNumber).setTransducerType(new String(buffer).trim());
+            recordConfig.getSignalConfig(signalNumber).setTransducerType(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_DIMENSION_LENGTH];
             reader.read(buffer);
-            headerConfig.getSignalConfig(signalNumber).setPhysicalDimension(new String(buffer).trim());
+            recordConfig.getSignalConfig(signalNumber).setPhysicalDimension(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MIN_LENGTH];
             reader.read(buffer);
             int physicalMin =  stringToInt(new String(buffer));
-            headerConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
+            recordConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MAX_LENGTH];
             reader.read(buffer);
             int physicalMax =  stringToInt(new String(buffer));
-            headerConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
+            recordConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MIN_LENGTH];
             reader.read(buffer);
             int digitalMin =  stringToInt(new String(buffer));
-            headerConfig.getSignalConfig(signalNumber).setDigitalMin(digitalMin);
+            recordConfig.getSignalConfig(signalNumber).setDigitalMin(digitalMin);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MAX_LENGTH];
             reader.read(buffer);
             int digitalMax =  stringToInt(new String(buffer));
-            headerConfig.getSignalConfig(signalNumber).setDigitalMax(digitalMax);
+            recordConfig.getSignalConfig(signalNumber).setDigitalMax(digitalMax);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PREFILTERING_LENGTH];
             reader.read(buffer);
-            headerConfig.getSignalConfig(signalNumber).setPrefiltering(new String(buffer).trim());
+            recordConfig.getSignalConfig(signalNumber).setPrefiltering(new String(buffer).trim());
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_NUMBER_OF_SAMPLES_LENGTH];
             reader.read(buffer);
             int numberOfSamplesInDataRecord =  stringToInt(new String(buffer));
-            headerConfig.getSignalConfig(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInDataRecord);
+            recordConfig.getSignalConfig(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInDataRecord);
         }
         for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_RESERVED_LENGTH];
@@ -306,7 +306,7 @@ public class HeaderUtility {
         }
 
         reader.close();
-        return headerConfig;
+        return recordConfig;
 
     }
 

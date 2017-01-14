@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gala on 29/12/16.
+ *
  */
 public class AggregateFilter extends DataRecordsFilter {
     private Map<Integer, SignalFilter> filters = new HashMap<Integer, SignalFilter>();
@@ -22,18 +22,18 @@ public class AggregateFilter extends DataRecordsFilter {
     }
 
     @Override
-    protected void writeOneDataRecord(int[] data, int offset) throws IOException {
-        int[] filteredDataRecord = new int[headerConfig.getRecordLength()];
+    public void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException {
+        int[] filteredDataRecord = new int[recordConfig.getRecordLength()];
         int signalPosition = 0;
-        for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
-            int numberOfSamples = headerConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord();
+        for (int signalNumber = 0; signalNumber < recordConfig.getNumberOfSignals(); signalNumber++) {
+            int numberOfSamples = recordConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord();
             SignalFilter signalFilter = filters.get(signalNumber);
             if(signalFilter != null) {
                 for (int sampleNumber = 0; sampleNumber < numberOfSamples; sampleNumber++) {
-                    filteredDataRecord[signalPosition + sampleNumber] = signalFilter.getFilteredValue(data[offset + signalPosition + sampleNumber]);
+                    filteredDataRecord[signalPosition + sampleNumber] = signalFilter.getFilteredValue(digitalData[offset + signalPosition + sampleNumber]);
                 }
             } else {
-                System.arraycopy(data, offset + signalPosition, filteredDataRecord, signalPosition, numberOfSamples);
+                System.arraycopy(digitalData, offset + signalPosition, filteredDataRecord, signalPosition, numberOfSamples);
             }
             signalPosition += numberOfSamples;
         }

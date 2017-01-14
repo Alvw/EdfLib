@@ -1,6 +1,6 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.util.BdfParser;
+import com.biorecorder.edflib.util.EndianBitConverter;
 import com.biorecorder.edflib.util.HeaderParsingException;
 import com.biorecorder.edflib.util.HeaderUtility;
 
@@ -13,16 +13,20 @@ public class EdfBdfReader {
     private FileInputStream fileInputStream;
     private BufferedInputStream bufferedInputStream;
     private boolean isBdf;
-    private HeaderConfig headerConfig;
+    private RecordConfig recordConfig;
 
     public EdfBdfReader(File file) throws IOException, HeaderParsingException {
         isBdf = HeaderUtility.isBdf(file);
-        headerConfig = HeaderUtility.readHeader(file);
+        recordConfig = HeaderUtility.readHeader(file);
         fileInputStream = new FileInputStream(file);
     }
 
-    public HeaderConfig getHeaderConfig() {
-        return headerConfig;
+    public RecordConfig getRecordConfig() {
+        return recordConfig;
+    }
+
+    public boolean isBdf() {
+        return isBdf;
     }
 
     private int getNumberOfBytesInDataSample() {
@@ -37,18 +41,23 @@ public class EdfBdfReader {
     public int availableDataRecords() throws IOException {
         if(bufferedInputStream == null) {
             bufferedInputStream = new BufferedInputStream(fileInputStream);
-            bufferedInputStream.skip(headerConfig.getNumberOfBytesInHeader());
+            bufferedInputStream.skip(recordConfig.getNumberOfBytesInHeader());
         }
-        return bufferedInputStream.available() / (headerConfig.getRecordLength() * getNumberOfBytesInDataSample());
+        return bufferedInputStream.available() / (recordConfig.getRecordLength() * getNumberOfBytesInDataSample());
     }
 
-
+    /**
+     * Read ONE data record from file
+     * @return data record or null if the end of file has been reached or
+     * the rest of the file contains insufficient data to form entire data record
+     * @throws IOException
+     */
     public int[] readDataRecord() throws IOException {
         if(bufferedInputStream == null) {
             bufferedInputStream = new BufferedInputStream(fileInputStream);
-            bufferedInputStream.skip(headerConfig.getNumberOfBytesInHeader());
+            bufferedInputStream.skip(recordConfig.getNumberOfBytesInHeader());
         }
-        int rowLength = headerConfig.getRecordLength() * getNumberOfBytesInDataSample();
+        int rowLength = recordConfig.getRecordLength() * getNumberOfBytesInDataSample();
         byte[] rowData = new byte[rowLength];
         bufferedInputStream.mark(rowLength);
         if(bufferedInputStream.read(rowData) < rowLength) { // returns numOfBytesRead or -1 at EOF
@@ -56,12 +65,20 @@ public class EdfBdfReader {
             return null;
         }
         else{
-            return BdfParser.byteArrayToIntArray(rowData, getNumberOfBytesInDataSample());
+            return EndianBitConverter.littleEndianByteArrayToIntArray(rowData, getNumberOfBytesInDataSample());
 
         }
     }
 
+
+
     public void close() throws IOException {
-        bufferedInputStream.close();
+        if(bufferedInputStream != null) {
+            bufferedInputStream.close();
+        }
+        else {
+            fileInputStream.close();
+        }
+
     }
 }

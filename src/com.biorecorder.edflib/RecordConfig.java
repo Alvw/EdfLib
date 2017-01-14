@@ -3,9 +3,20 @@ package com.biorecorder.edflib;
 import java.util.ArrayList;
 
 /**
- * Created by gala on 21/12/16.
+ *  Class (data-structure) that allows to store information required to create EDF/BDF file header and
+ *  correctly extract data from DataRecords.
+ *  It describes DataRecords structure (duration of DataRecords,
+ *  number of channels or signals,  signals configuration) and other
+ *  significant data  about the experiment (patient info, startTime and so on) and has
+ *  getter and setter methods to set and get that information
+ *
+ * <p>Detailed information about EDF/BDF file header:
+ * <br><a href="http://www.teuniz.net/edfbrowser/edf%20format%20description.html">The EDF format</a>
+ * <br><a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
+ *
+ * @see SignalConfig
  */
-public class HeaderConfig {
+public class RecordConfig {
     private String patientId = "Default patient";
     private String recordingId = "Default record";
     private long startTime = -1;
@@ -13,21 +24,23 @@ public class HeaderConfig {
     private double durationOfDataRecord;
     private ArrayList<SignalConfig> signals = new ArrayList<SignalConfig>();
 
-    public HeaderConfig() {
+    public RecordConfig() {
 
     }
 
     /**
-     * Constructor to make a copy of given HeaderConfig
+     * Constructor to make a copy of given RecordConfig instance
+     *
+     * @param recordConfig RecordConfig instance that will be copied
      */
-    public HeaderConfig(HeaderConfig headerConfig) {
-        patientId = headerConfig.getPatientId();
-        recordingId = headerConfig.getRecordingId();
-        startTime = headerConfig.getStartTime();
-        durationOfDataRecord = headerConfig.getDurationOfDataRecord();
-        numberOfDataRecords = headerConfig.getNumberOfDataRecords();
-        for(int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            signals.add(new SignalConfig(headerConfig.getSignalConfig(i)));
+    public RecordConfig(RecordConfig recordConfig) {
+        patientId = recordConfig.getPatientId();
+        recordingId = recordConfig.getRecordingId();
+        startTime = recordConfig.getStartTime();
+        durationOfDataRecord = recordConfig.getDurationOfDataRecord();
+        numberOfDataRecords = recordConfig.getNumberOfDataRecords();
+        for(int i = 0; i < recordConfig.getNumberOfSignals(); i++) {
+            signals.add(new SignalConfig(recordConfig.getSignalConfig(i)));
         }
     }
 
@@ -72,16 +85,23 @@ public class HeaderConfig {
         this.durationOfDataRecord = durationOfDataRecord;
     }
 
+    /**
+     *
+     * RecordConfig must include SignalConfigs describing all measuring channels (signals).
+     * And we have to add them successively.
+     *
+     * @param signalConfig  SignalConfig instance describing parameters of the measuring channel
+     *
+     */
     public void addSignalConfig(SignalConfig signalConfig) {
         signals.add(signalConfig);
-    }
-    public void removeSignalConfig(int number) {
-        signals.remove(number);
     }
 
     public void removeAllSignalConfig() {
         signals = new ArrayList<SignalConfig>();
     }
+
+
 
     public SignalConfig getSignalConfig(int number) {
         return signals.get(number);
@@ -94,7 +114,9 @@ public class HeaderConfig {
 
 
     /**
-     *  get number of samples in each data record
+     *  calculate total number of samples from all channels (signals) in each data record
+     *
+     *  @return  sum of samples from all channels
      */
     public int getRecordLength() {
         int totalNumberOfSamplesInRecord = 0;
@@ -104,6 +126,11 @@ public class HeaderConfig {
         return totalNumberOfSamplesInRecord;
     }
 
+    /**
+     * calculate number of bytes in EDF/BDF header that will be created on the base of this RecordConfig
+     *
+     * @return number of bytes in EDF/BDF header = (number of signals + 1) * 256
+     */
     public int getNumberOfBytesInHeader() {
         return 256 + (getNumberOfSignals() * 256);
     }

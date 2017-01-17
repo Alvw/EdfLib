@@ -1,9 +1,8 @@
 package test;
 
 import com.biorecorder.edflib.*;
-import com.biorecorder.edflib.filters.AggregateFilter;
-import com.biorecorder.edflib.filters.SignalsRemoval;
-import com.biorecorder.edflib.filters.signal_filters.SignalAveragingFilter;
+import com.biorecorder.edflib.filters.DataRecordsSignalsManager;
+import com.biorecorder.edflib.filters.SignalMovingAverageFilter;
 
 import java.io.File;
 
@@ -16,26 +15,27 @@ public class Test {
         File file = new File(System.getProperty("user.dir")+"/records", "30-12-2016_12-17.bdf");
         try {
 
-
+            BdfWriter writer = new BdfWriter(new File(System.getProperty("user.dir")+"/records", "copy.bdf"));
+            System.out.println("writer = "+ writer);
 
             EdfBdfReader reader = new EdfBdfReader(file);
-            BdfWriter writer = new BdfWriter(new File(System.getProperty("user.dir")+"/records", "copy.bdf"));
-            RecordConfig recordConfig = reader.getRecordConfig();
+            RecordingConfig recordingConfig = reader.getRecordingConfig();
+            DataRecordsSignalsManager filteredWriter = new DataRecordsSignalsManager(writer);
+            filteredWriter.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
+            //filteredWriter.open(recordingConfig);
 
-            AggregateFilter filteredWriter = new AggregateFilter(writer);
-            filteredWriter.addSignalFilter(0, new SignalAveragingFilter(10));
-            filteredWriter.open(recordConfig);
-            System.out.println(recordConfig.getNumberOfDataRecords()+"  records number "+reader.availableDataRecords());
+            System.out.println(recordingConfig.getNumberOfDataRecords()+"  records number "+reader.availableDataRecords());
             int numberOfRecords = 0;
             long startTime = System.currentTimeMillis();
-            for(int i = 0; i < recordConfig.getNumberOfDataRecords(); i++) {
-               // filteredWriter.writeDigitalDataRecord(reader.readDataRecord());
+            for(int i = 0; i < recordingConfig.getNumberOfDataRecords(); i++) {
+                filteredWriter.writeDigitalDataRecord(reader.readDigitalDataRecord());
                 numberOfRecords++;
             }
             long endTime = System.currentTimeMillis();
             System.out.println(endTime-startTime+"ms,  records number "+numberOfRecords);
             writer.close();
             reader.close();
+            System.out.println(writer.getWritingInfo());
 
 
         } catch (Exception e) {

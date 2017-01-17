@@ -1,7 +1,9 @@
 package com.biorecorder.edflib.util;
 
 /**
- * Created by gala on 02/01/17.
+ * Signals that during parsing of EDF/BDF file header some sort of error has occurred
+ * and appropriate data can not be extracted from the header
+ *
  */
 public class HeaderParsingException extends Exception {
     public HeaderParsingException() { super(); }

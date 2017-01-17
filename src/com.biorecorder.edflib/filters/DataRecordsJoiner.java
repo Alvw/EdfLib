@@ -1,13 +1,13 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
-import com.biorecorder.edflib.RecordConfig;
+import com.biorecorder.edflib.RecordingConfig;
 
 import java.io.IOException;
 
 /**
- * This filter permits to join (piece together) given number of incoming DataRecords.
- * Resultant DataRecords (that will be written to underlying DataRecordsWriter) have the following structure:
+ * Permits to join (piece together) given number of incoming DataRecords.
+ * Resultant output DataRecords (that will be written to underlying DataRecordsWriter) have the following structure:
  * <br>[ resultant number of samples from channel_1 ,
  * <br>  resultant number of samples from channel_2,
  * <br>  ...
@@ -18,31 +18,31 @@ import java.io.IOException;
  * <br>duration of resulting DataRecord = duration of original DataRecord * numberOfRecordsToJoin
  *
  */
-public class RecordsJoiner extends DataRecordsFilter {
+public class DataRecordsJoiner extends DataRecordsFilter {
     private int numberOfRecordsToJoin;
     private int recordsCounter;
     private int[] outDataRecord;
 
     /**
-     * Creates a new RecordsJoiner to join given numbers of incoming DataRecords and write the resultant
+     * Creates a new DataRecordsJoiner to join given numbers of incoming DataRecords and write the resultant
      * DataRecords to the specified underlying DataRecordsWriter
      *
      * @param numberOfRecordsToJoin - number of DataRecords to join in one resultant DataRecord
      * @param out - the underlying DataRecords writer where resultant DataRecords are written
      */
-    public RecordsJoiner(int numberOfRecordsToJoin, DataRecordsWriter out) {
+    public DataRecordsJoiner(int numberOfRecordsToJoin, DataRecordsWriter out) {
         super(out);
         this.numberOfRecordsToJoin = numberOfRecordsToJoin;
     }
 
     @Override
-    protected RecordConfig createOutDataRecordConfig() {
-        RecordConfig outRecordConfig = new RecordConfig(recordConfig); // copy header config
-        outRecordConfig.setDurationOfDataRecord(recordConfig.getDurationOfDataRecord() * numberOfRecordsToJoin);
-        for (int i = 0; i < recordConfig.getNumberOfSignals(); i++) {
-            outRecordConfig.getSignalConfig(i).setNumberOfSamplesInEachDataRecord(recordConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord() * numberOfRecordsToJoin);
+    protected RecordingConfig createOutputRecordingConfig() {
+        RecordingConfig outRecordingConfig = new RecordingConfig(recordingConfig); // copy header config
+        outRecordingConfig.setDurationOfDataRecord(recordingConfig.getDurationOfDataRecord() * numberOfRecordsToJoin);
+        for (int i = 0; i < recordingConfig.getNumberOfSignals(); i++) {
+            outRecordingConfig.getSignalConfig(i).setNumberOfSamplesInEachDataRecord(recordingConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord() * numberOfRecordsToJoin);
         }
-        return outRecordConfig;
+        return outRecordingConfig;
     }
 
     /**
@@ -58,13 +58,13 @@ public class RecordsJoiner extends DataRecordsFilter {
     @Override
     public void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException {
         if(recordsCounter == 0) {
-            outDataRecord = new int[recordConfig.getRecordLength() * numberOfRecordsToJoin];
+            outDataRecord = new int[recordingConfig.getRecordLength() * numberOfRecordsToJoin];
         }
         recordsCounter++;
         int signalPosition = 0;
         int outSignalPosition;
-        for (int i = 0; i < recordConfig.getNumberOfSignals(); i++) {
-            int numberOfSignalSamples = recordConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();
+        for (int i = 0; i < recordingConfig.getNumberOfSignals(); i++) {
+            int numberOfSignalSamples = recordingConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();
             outSignalPosition = signalPosition * numberOfRecordsToJoin + (recordsCounter - 1) * numberOfSignalSamples;
             System.arraycopy(digitalData, offset + signalPosition, outDataRecord, outSignalPosition, numberOfSignalSamples);
             signalPosition += numberOfSignalSamples;

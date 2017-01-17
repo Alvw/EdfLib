@@ -8,10 +8,7 @@ package com.biorecorder.edflib;
  *  physical dimension (uV or Ohm), signal label and so on and has
  *  getter and setter methods to set and get that information
  *
- * <p>Detailed information about all parameters required for EDF/BDF file header:
- * <br><a href="http://www.teuniz.net/edfbrowser/edf%20format%20description.html">The EDF format</a>
- * <br><a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
- *
+ * @see RecordingConfig
  */
 public class SignalConfig {
     private  int numberOfSamplesInEachDataRecord;

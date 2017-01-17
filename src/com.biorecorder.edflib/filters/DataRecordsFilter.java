@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
-import com.biorecorder.edflib.RecordConfig;
+import com.biorecorder.edflib.RecordingConfig;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ public class DataRecordsFilter extends DataRecordsWriter {
     protected DataRecordsWriter out;
 
     /**
-     * Creates an DataRecords filter built on top of the specified underlying DataRecords writer.
+     * Creates an DataRecordsFilter built on top of the specified underlying DataRecords writer.
      *
      * @param out - the underlying DataRecords writer, to be assigned to the field this.out for later use
      */
@@ -33,34 +33,38 @@ public class DataRecordsFilter extends DataRecordsWriter {
 
 
     /**
-     * Create RecordConfig describing the structure of resulting DataRecords
-     * (after filtering transformations).
+     * Create RecordingConfig describing the structure of resulting output DataRecords
+     * (after filtering transformations). In the base class it simply returns the copy
+     * of the configuration set for input DataRecords.
+     * This method should be overwritten in all subclasses.
      *
-     * @return resulting DataRecords configuration
+     * @return resulting output DataRecords configuration
      */
-    protected RecordConfig createOutDataRecordConfig() {
-        return new RecordConfig(recordConfig);
+    protected RecordingConfig createOutputRecordingConfig() {
+        return new RecordingConfig(recordingConfig);
 
     }
 
+
     /**
      * The open method of DataRecordsFilter calls the same method of its
-     * underlying DataRecordsWriter. That is, it performs out.open(recordConfig).
+     * underlying DataRecordsWriter but with RecordingConfiguration returned by the
+     * method createOutputRecordingConfig.
      *
-     * @param recordConfig object with the information about DataRecords structure
+     * @param recordingConfig - object with the information about input DataRecords structure
      *
      * @throws IOException
      */
     @Override
-    public void open(RecordConfig recordConfig) throws IOException {
-        super.open(recordConfig);
-        out.open(createOutDataRecordConfig());
+    public void open(RecordingConfig recordingConfig) throws IOException {
+        super.open(recordingConfig);
+        out.open(createOutputRecordingConfig());
     }
 
 
     /**
-     * The writeDigitalDataRecord method of DataRecordsFilter calls the same method of its
-     * underlying DataRecordsWriter. That is, it performs out.writeDigitalDataRecord(dataRecord, offset).
+     * Calls the same method of its underlying DataRecordsWriter.
+     * That is, it performs out.writeDigitalDataRecord(dataRecord, offset).
      *
      * @param digitalData - array with digital data
      * @param offset - offset within the array at which the DataRecord starts
@@ -73,7 +77,7 @@ public class DataRecordsFilter extends DataRecordsWriter {
     }
 
     /**
-     * The close method of DataRecordsFilter calls the same method of its
+     * Calls the same method of its
      * underlying DataRecordsWriter. That is, it performs out.close().
      *
      * @throws IOException

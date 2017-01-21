@@ -64,7 +64,7 @@ public class DataRecordsFilter extends DataRecordsWriter {
 
     /**
      * Calls the same method of its underlying DataRecordsWriter.
-     * That is, it performs out.writeDigitalDataRecord(dataRecord, offset).
+     * That is, it performs out.writeDigitalDataRecord(digitalDataRecord, offset).
      *
      * @param digitalData - array with digital data
      * @param offset - offset within the array at which the DataRecord starts

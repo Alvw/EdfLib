@@ -1,10 +1,13 @@
 package test;
 
 import com.biorecorder.edflib.*;
+import com.biorecorder.edflib.filters.DataRecordsJoiner;
 import com.biorecorder.edflib.filters.DataRecordsSignalsManager;
 import com.biorecorder.edflib.filters.SignalMovingAverageFilter;
 
-import java.io.File;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 
 /**
@@ -12,35 +15,66 @@ import java.io.File;
  */
 public class Test {
     public static void main(String[] args) {
-        File file = new File(System.getProperty("user.dir")+"/records", "30-12-2016_12-17.bdf");
+        edfReaderWriterTest();
+
+
+    }
+
+    public static void byteBufferTest() {
+        File file =  new File(System.getProperty("user.dir"), "Testfile.txt");
         try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            FileWriter fileWriter = new FileWriter(file);
+            FileChannel inChannel = fileInputStream.getChannel();
+            fileWriter.write("hello world my darling baby!");
+            fileWriter.close();
 
-            BdfWriter writer = new BdfWriter(new File(System.getProperty("user.dir")+"/records", "copy.bdf"));
-            System.out.println("writer = "+ writer);
+            byte[] array = new byte[5];
 
-            EdfBdfReader reader = new EdfBdfReader(file);
-            RecordingConfig recordingConfig = reader.getRecordingConfig();
-            DataRecordsSignalsManager filteredWriter = new DataRecordsSignalsManager(writer);
-            filteredWriter.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
-            //filteredWriter.open(recordingConfig);
-
-            System.out.println(recordingConfig.getNumberOfDataRecords()+"  records number "+reader.availableDataRecords());
-            int numberOfRecords = 0;
-            long startTime = System.currentTimeMillis();
-            for(int i = 0; i < recordingConfig.getNumberOfDataRecords(); i++) {
-                filteredWriter.writeDigitalDataRecord(reader.readDigitalDataRecord());
-                numberOfRecords++;
+            ByteBuffer byteBuffer = ByteBuffer.wrap(array);
+            int n= 0;
+            while((n=inChannel.read(byteBuffer)) > 0) {
+                byteBuffer.flip();
+                for(int i = 0; i < array.length; i++)
+                    System.out.println(n +"  result  "+ (char) (array[i] & 0xFF));
+                byteBuffer.clear();
             }
-            long endTime = System.currentTimeMillis();
-            System.out.println(endTime-startTime+"ms,  records number "+numberOfRecords);
-            writer.close();
+            System.out.println("end of file " + n);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void edfReaderWriterTest() {
+        File originalFile = new File(System.getProperty("user.dir")+"/records", "30-12-2016_12-17.bdf");
+        File copyFile = new File(System.getProperty("user.dir")+"/records", "copy.bdf");
+        try {
+            EdfBdfReader reader = new EdfBdfReader(originalFile);
+            RecordingConfig recordingConfig = reader.getRecordingConfig();
+
+            BdfWriter bdfWriter = new BdfWriter(copyFile);
+
+            DataRecordsJoiner joiner = new DataRecordsJoiner(10, bdfWriter);
+
+            DataRecordsSignalsManager filteredWriter = new DataRecordsSignalsManager(joiner);
+            filteredWriter.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
+
+            System.out.println("Simple copy");
+            bdfWriter.open(recordingConfig);
+            for(int i = 0; i < reader.getNumberOfDataRecords(); i++) {
+                bdfWriter.writeDigitalDataRecord(reader.readDigitalDataRecord());
+            }
+            System.out.println(bdfWriter.getWritingInfo());
+
+            bdfWriter.close();
             reader.close();
-            System.out.println(writer.getWritingInfo());
+
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

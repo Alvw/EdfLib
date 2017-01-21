@@ -37,7 +37,7 @@ public class SignalMovingAverageFilter implements SignalFilter{
     public int getFilteredValue(int value) {
         buffer.add(value);
         if (buffer.size() < bufferSize) {
-                 return  0;
+                 return  value;
         }
         if (buffer.size() == bufferSize + 1) {
             buffer.remove(0);

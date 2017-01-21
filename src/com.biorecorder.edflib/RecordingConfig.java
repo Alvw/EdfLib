@@ -1,7 +1,8 @@
 package com.biorecorder.edflib;
 
-import java.util.ArrayList;
 import com.biorecorder.edflib.util.PhysicalDigitalConverter;
+
+import java.util.ArrayList;
 
 /**
  *  Class (data-structure) that allows to store information required to create EDF/BDF file header
@@ -132,6 +133,10 @@ public class RecordingConfig {
      */
     public void addSignalConfig(SignalConfig signalConfig) {
         signals.add(signalConfig);
+    }
+
+    public void removeSignalConfig(int signalNumber) {
+        signals.remove(signalNumber);
     }
 
     public void removeAllSignalConfig() {

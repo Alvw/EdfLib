@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
  */
 public class Test {
     public static void main(String[] args) {
-        edfReaderWriterTest();
+        edfReaderWriterTest1();
 
 
     }
@@ -48,7 +48,38 @@ public class Test {
     }
 
     public static void edfReaderWriterTest() {
-        File originalFile = new File(System.getProperty("user.dir")+"/records", "30-12-2016_12-17.bdf");
+        File originalFile = new File(System.getProperty("user.dir")+"/records", "01-01-2017_19-51.bdf");
+        File copyFile = new File(System.getProperty("user.dir")+"/records", "copy.bdf");
+        try {
+            EdfBdfReader reader = new EdfBdfReader(originalFile);
+            RecordingConfig recordingConfig = reader.getRecordingConfig();
+
+            BdfWriter bdfWriter = new BdfWriter(copyFile);
+
+            RecordingConfig recordingConfigNew = new RecordingConfig(recordingConfig);
+            recordingConfigNew.removeSignalConfig(0);
+            System.out.println("one signal");
+            bdfWriter.open(recordingConfigNew);
+
+            while(reader.availableSignalSamples(1) > 0) {
+
+                bdfWriter.writePhysicalSamples(reader.readPhysicalSamples(1, 13));
+            }
+
+            System.out.println(bdfWriter.getWritingInfo());
+
+            bdfWriter.close();
+            reader.close();
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void edfReaderWriterTest1() {
+        File originalFile = new File(System.getProperty("user.dir")+"/records", "01-01-2017_19-51.bdf");
         File copyFile = new File(System.getProperty("user.dir")+"/records", "copy.bdf");
         try {
             EdfBdfReader reader = new EdfBdfReader(originalFile);
@@ -61,11 +92,13 @@ public class Test {
             DataRecordsSignalsManager filteredWriter = new DataRecordsSignalsManager(joiner);
             filteredWriter.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
 
-            System.out.println("Simple copy");
-            bdfWriter.open(recordingConfig);
-            for(int i = 0; i < reader.getNumberOfDataRecords(); i++) {
-                bdfWriter.writeDigitalDataRecord(reader.readDigitalDataRecord());
+            System.out.println("filtered copy + physical_digital conversion");
+            filteredWriter.open(recordingConfig);
+            reader.setRecordPosition(50);
+            while(reader.availableDataRecords() > 0) {
+                filteredWriter.writePhysicalDataRecord(reader.readPhysycalDataRecord());
             }
+
             System.out.println(bdfWriter.getWritingInfo());
 
             bdfWriter.close();

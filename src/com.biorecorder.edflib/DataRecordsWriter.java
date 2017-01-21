@@ -25,7 +25,7 @@ import java.io.IOException;
  */
 public abstract class DataRecordsWriter {
     protected RecordingConfig recordingConfig = new RecordingConfig();
-    protected PhysicalDigitalConverter physicalDigitalConverter;
+    protected PhysicalDigitalConverter physicalDigitalConverter = new PhysicalDigitalConverter(recordingConfig);
     protected int[] digitalDataRecord = new int[0];
     protected int digitalDataRecordOffset;
     protected double[] physicalDataRecord = new double[0];
@@ -67,7 +67,7 @@ public abstract class DataRecordsWriter {
      */
 
     public void writeDigitalSamples(int[] digitalSamples) throws IOException {
-        if(digitalDataRecord.length == 0) {
+       if(digitalDataRecord.length == 0) {
             digitalDataRecord = new int[recordingConfig.getRecordLength()];
         }
         System.arraycopy(digitalSamples, 0, digitalDataRecord, digitalDataRecordOffset, digitalSamples.length);
@@ -76,6 +76,7 @@ public abstract class DataRecordsWriter {
             writeDigitalDataRecord(digitalDataRecord);
             digitalDataRecordOffset = 0;
         }
+
     }
 
     /**
@@ -106,6 +107,7 @@ public abstract class DataRecordsWriter {
             writePhysicalDataRecord(physicalDataRecord);
             digitalDataRecordOffset = 0;
         }
+
     }
 
     /**

@@ -26,6 +26,7 @@ import java.util.List;
  * <br><a href="http://www.edfplus.info/specs/edffloat.html">EDF. How to store longintegers and floats</a>
  */
 public class EdfBdfReader {
+    private PhysicalDigitalConverter physicalDigitalConverter;
     private boolean isBdf;
     private RecordingConfig recordingConfig;
     private FileInputStream fileInputStream;
@@ -43,6 +44,7 @@ public class EdfBdfReader {
     public EdfBdfReader(File file) throws IOException, HeaderParsingException {
         isBdf = HeaderUtility.isBdf(file);
         recordingConfig = HeaderUtility.readHeader(file);
+        physicalDigitalConverter = new PhysicalDigitalConverter(recordingConfig);
         this.file = file;
         fileInputStream = new FileInputStream(file);
         for(int i = 0; i < recordingConfig.getNumberOfSignals(); i++) {
@@ -88,6 +90,10 @@ public class EdfBdfReader {
           }
     }
 
+    public double[] readPhysycalDataRecord() throws IOException {
+        return physicalDigitalConverter.digitalRecordToPhysical(readDigitalDataRecord());
+    }
+
     private int readSamplesFromRecord(int signalNumber, long recordNumber, ByteBuffer buffer) throws IOException {
         long signalPosition = recordingConfig.getRecordLength() * recordNumber;
         for(int i = 0; i < signalNumber; i++) {
@@ -95,6 +101,26 @@ public class EdfBdfReader {
         }
         signalPosition = signalPosition * getNumberOfBytesPerSample() + recordingConfig.getNumberOfBytesInHeader();
         return fileInputStream.getChannel().read(buffer, signalPosition);
+    }
+
+
+    public double[] readPhysicalSamples (int signalNumber, int numberOfSamples) throws IOException {
+        int[] digSamples = readDigitalSamples(signalNumber, numberOfSamples);
+        double[] physSamples = new double[digSamples.length];
+        for(int i = 0; i < digSamples.length; i++) {
+           physSamples[i] = physicalDigitalConverter.digitalValueToPhysical(digSamples[i], signalNumber);
+        }
+        return physSamples;
+
+    }
+
+    public int[] readDigitalSamples(int signalNumber, int numberOfSamples) throws IOException {
+        if(numberOfSamples > availableSignalSamples(signalNumber)) {
+            numberOfSamples = (int)availableSignalSamples(signalNumber);
+        }
+        int[] digSamples = new int[numberOfSamples];
+        readDigitalSamples(signalNumber, digSamples, 0, numberOfSamples) ;
+        return digSamples;
     }
 
     public int readDigitalSamples(int signalNumber, int[] digArray, int offset, int numberOfSamples) throws IOException {

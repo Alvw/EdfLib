@@ -9,7 +9,7 @@ public interface SignalFilter {
     /**
      * Do filter transformation with input value and return the resultant value
      *
-     * @param value - input value
+     * @param value input value
      * @return filtered value
      */
     int getFilteredValue(int value);

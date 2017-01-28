@@ -2,64 +2,63 @@ package com.biorecorder.edflib;
 
 import com.biorecorder.edflib.util.PhysicalDigitalConverter;
 import com.biorecorder.edflib.filters.DataRecordsFilter;
+
 import java.io.IOException;
 
 /**
  * This abstract class is the superclass of all classes representing an output stream of DataRecords.
  * An output stream accepts a digital DataRecord and send (write) it to some sink.
+ * <p>
+ * To write DataRecords to the stream we must open this stream first and pass
+ * a {@link HeaderConfig} object with the configuration information.
+ * That is, call the method {@link #open(HeaderConfig)}.
+ * Only after that DataRecords and samples could be written correctly.
+ * <p>
+ * We may write <b>digital</b> or <b>physical</b> DataRecords and samples. Every physical (floating point) value
+ * will be converted to the corresponding digital (int) value
+ * using physical maximum, physical minimum, digital maximum and digital minimum of the signal.
+ * <p>
+ * Every subclass of DataRecordsWriter must implement the
+ * method that writes one digital DataRecord - {@link #writeDigitalDataRecord(int[], int)}
  *
- * <p>In the case if DataRecord contains not digital (int) but real physical (floating point) values
- * they should be converted to ints first.  The physical samples will be converted to digital samples
- * using the values of physical maximum, physical minimum, digital maximum and digital minimum
- * for every signal. See {@link PhysicalDigitalConverter}.
- *
- * <p>The special {@link RecordingConfig} object contains all information about
- * DataRecords structure and its signals configurations and permits correctly extract
- * data from DataRecords and convert every physical DataRecord to digital DataRecord and vice versa.
- *
- * <p>Every subclass of DataRecordsWriter must implement the
- * method that writes one digital DataRecord - writeDigitalDataRecord(int[] digitalData, int offset).
- *
- * @see DataRecordsFileWriter
+ * @see EdfWriter
  * @see DataRecordsFilter
  */
 public abstract class DataRecordsWriter {
-    protected RecordingConfig recordingConfig = new RecordingConfig();
-    protected PhysicalDigitalConverter physicalDigitalConverter = new PhysicalDigitalConverter(recordingConfig);
-    protected int[] digitalDataRecord = new int[0];
-    protected int digitalDataRecordOffset;
-    protected double[] physicalDataRecord = new double[0];
-    protected int physicalDataRecordOffset;
+    protected HeaderConfig headerConfig = new HeaderConfig();
+    protected PhysicalDigitalConverter physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
+    protected int[] dataRecord = new int[0];
+    protected int dataRecordOffset;
+
 
     /**
      * Prepare the DataRecords writer for correct work.
      * This function MUST be called before writing any data.
      * After opening the configuration of the writer SHOULD NOT be changed.
      *
-     * @param recordingConfig - object with the information about DataRecords structure
-     *
+     * @param headerConfig - object with the information about DataRecords structure
      * @throws IOException
      */
-    public void open(RecordingConfig recordingConfig) throws IOException {
-        this.recordingConfig = new RecordingConfig(recordingConfig);
-        physicalDigitalConverter = new PhysicalDigitalConverter(recordingConfig);
+    public void open(HeaderConfig headerConfig) throws IOException {
+        this.headerConfig = new HeaderConfig(headerConfig);
+        physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
 
     /**
-     * Write digital samples from the given array to the inner digital DataRecord.
+     * Write the given digital samples to the inner DataRecord.
      * The input array should contain n samples belonging to one signal
      * where n = (samplefrequency of that signal) * (duration of DataRecord).
-     *
-     * <p>Call this function for every signal in the file. The order is important!
+     * <p>
+     * Call this function for every signal (channel) in the file. The order is important!
      * When there are 4 signals in the file,  the order of calling this function
      * must be:
      * <br>signal 0, signal 1, signal 2, signal 3,
      * <br>signal 0, signal 1, signal 2, signal 3,
      * <br> ... etc.
-     *
-     * Every time when the inner digital DataRecord is formed the method
-     * writeDigitalDataRecord(DataRecord) will be called.
+     * <p>
+     * Every time when the inner digital DataRecord is completely formed the method
+     * {@link #writeDigitalDataRecord(int[])} is called.
      *
      * @param digitalSamples digital samples belonging to one signal obtained during
      *                       the time = duration of DataRecord (usually 1 sec)
@@ -67,97 +66,105 @@ public abstract class DataRecordsWriter {
      */
 
     public void writeDigitalSamples(int[] digitalSamples) throws IOException {
-       if(digitalDataRecord.length == 0) {
-            digitalDataRecord = new int[recordingConfig.getRecordLength()];
+        if (dataRecord.length == 0) {
+            dataRecord = new int[headerConfig.getRecordLength()];
         }
-        System.arraycopy(digitalSamples, 0, digitalDataRecord, digitalDataRecordOffset, digitalSamples.length);
-        digitalDataRecordOffset += digitalSamples.length;
-        if(digitalDataRecordOffset >= recordingConfig.getRecordLength()) {
-            writeDigitalDataRecord(digitalDataRecord);
-            digitalDataRecordOffset = 0;
+        int length = Math.min(headerConfig.getRecordLength() - dataRecordOffset, digitalSamples.length);
+        System.arraycopy(digitalSamples, 0, dataRecord, dataRecordOffset, length);
+        dataRecordOffset += digitalSamples.length;
+        if (dataRecordOffset >= headerConfig.getRecordLength()) {
+            writeDigitalDataRecord(dataRecord);
+            dataRecordOffset = 0;
         }
-
     }
 
     /**
-     * Write physical samples from the given array to the inner physical DataRecord.
+     * Convert the given physical samples to digital
+     * and call the method {@link #writeDigitalSamples(int[])}.
+     * <p>
      * The input array should contain n samples belonging to one signal
      * where n = (samplefrequency of that signal) * (duration of DataRecord).
-     *
-     * <p>Call this function for every signal in the file. The order is important!
+     * <p>
+     * Call this function for every signal (channel) in the file. The order is important!
      * When there are 4 signals in the file,  the order of calling this function
      * must be:
      * <br>signal 0, signal 1, signal 2, signal 3,
      * <br>signal 0, signal 1, signal 2, signal 3,
      * <br> ... etc.
+     * <p>
+     * Every time when the inner digital DataRecord is completely formed the method
+     * {@link #writeDigitalDataRecord(int[])} is called.
      *
-     * Every time when the inner physical DataRecord is formed the method
-     * writePhysicalDataRecord(DataRecord) will be called.
-     *
-     * @param physicalSamples
+     * @param physicalSamples array with physical samples to write
      * @throws IOException
      */
     public void writePhysicalSamples(double[] physicalSamples) throws IOException {
-        if(physicalDataRecord.length == 0) {
-            physicalDataRecord= new double[recordingConfig.getRecordLength()];
-        }
-        System.arraycopy(physicalSamples, 0, physicalDataRecord, physicalDataRecordOffset, physicalSamples.length);
-        digitalDataRecordOffset += physicalSamples.length;
-        if(digitalDataRecordOffset >= recordingConfig.getRecordLength()) {
-            writePhysicalDataRecord(physicalDataRecord);
-            digitalDataRecordOffset = 0;
-        }
-
+        int signalNumber = headerConfig.getSampleSignal(dataRecordOffset);
+        writeDigitalSamples(physicalDigitalConverter.signalPhysicalValuesToDigital(signalNumber, physicalSamples));
     }
 
     /**
      * Write ONE digital DataRecord.
      * Take data from digitalData array starting at offset position.
      *
-     * @param digitalData - array with digital data
-     * @param offset - offset within the array at which the DataRecord starts
-     *
+     * @param digitalData array with digital data
+     * @param offset      offset within the array at which the DataRecord starts
      * @throws IOException
      */
     public abstract void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException;
 
 
     /**
-     * Convert ONE physical DataRecord to digital and write it. That is, it performs
+     * Convert ONE physical DataRecord to digital one and write it. That is, it performs
      * writeDigitalDataRecord(physicalDigitalConverter.physicalRecordToDigital(physData, offset)).
      * Take data from physData array starting at offset position.
      *
-     * @param physData - array with physical data
-     * @param offset - offset within the array at which the DataRecord starts
-     *
+     * @param physData array with physical data
+     * @param offset   offset within the array at which the DataRecord starts
      * @throws IOException
      */
-    public void writePhysicalDataRecord(double[] physData, int offset) throws IOException  {
+    public void writePhysicalDataRecord(double[] physData, int offset) throws IOException {
         writeDigitalDataRecord(physicalDigitalConverter.physicalRecordToDigital(physData, offset));
     }
 
     /**
-     * Write given digital DataRecord.
-     * This method do exactly the same as the call writeDigitalDataRecord(digitalDataRecord, 0)
+     * Write the given digital DataRecord.
+     * This method do exactly the same as the call
+     * {@link #writeDigitalDataRecord(int[], int) writeDigitalDataRecord(dataRecord, 0)} method.
      *
-     * @param digitalDataRecord - digital DataRecord to be written to the stream
-     *
+     * @param digitalDataRecord digital DataRecord to be written to the stream
      * @throws IOException
      */
     public void writeDigitalDataRecord(int[] digitalDataRecord) throws IOException {
+        if (digitalDataRecord == null) {
+            return;
+        }
+        if (digitalDataRecord.length != headerConfig.getRecordLength()) {
+            String errMsg = "The input array length must be equal DataRecord length. Input array length = "
+                    + digitalDataRecord.length + " DataRecord length = " + headerConfig.getRecordLength();
+            throw new IllegalArgumentException(errMsg);
+        }
         writeDigitalDataRecord(digitalDataRecord, 0);
     }
 
     /**
-     * Convert given physical DataRecord to digital and write it.
-     * This method do exactly the same as the call writePhysicalDataRecord(physDataRecord, 0)
+     * Convert the given physical DataRecord to digital one and write it.
+     * This method do exactly the same as the call
+     * {@link #writePhysicalDataRecord(double[], int) writePhysicalDataRecord(physDataRecord, 0)}  method.
      *
-     * @param physDataRecord - physical DataRecord to be converted to digital and written to the stream
-     *
+     * @param physDataRecord physical DataRecord to be converted to digital one and written to the stream
      * @throws IOException
      */
-    public void writePhysicalDataRecord(double[] physDataRecord) throws IOException  {
-       writePhysicalDataRecord(physDataRecord, 0);
+    public void writePhysicalDataRecord(double[] physDataRecord) throws IOException {
+        if (physDataRecord == null) {
+            return;
+        }
+        if (physDataRecord.length != headerConfig.getRecordLength()) {
+            String errMsg = "The input array length must be equal DataRecord length. Input array length = "
+                    + physDataRecord.length + " DataRecord length = " + headerConfig.getRecordLength();
+            throw new IllegalArgumentException(errMsg);
+        }
+        writePhysicalDataRecord(physDataRecord, 0);
     }
 
     /**

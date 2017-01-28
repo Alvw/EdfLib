@@ -1,17 +1,23 @@
 package com.biorecorder.edflib;
 
 /**
- *  Class (data-structure) that allows to store information about measuring channel (signal)
- *  required to create EDF/BDF file header and correctly extract data from DataRecords.
- *  It contains number of samples from the channel in each data record, phisical and digital max and min
- *  (to convert physical values into digital and backward),
- *  physical dimension (uV or Ohm), signal label and so on and has
- *  getter and setter methods to set and get that information
+ * Class (data-structure) that allows to store information about measuring channels (signals).
+ * It has the following fields (and their corresponding getters and setters):
+ *  <ul>
+ *     <li>signal label</li>
+ *     <li>transducer type (e.g. AgAgCI electrode)</li>
+ *     <li>physical dimension(e.g. uV or degree C)</li>
+ *     <li>physical minimum (e.g. -500 or 34)</li>
+ *     <li>physical maximum (e.g. 500 or 40)</li>
+ *     <li>digital minimum (e.g. -2048)</li>
+ *     <li>digital maximum (e.g. 2047)</li>
+ *     <li>prefiltering (e.g. HP:0.1Hz LP:75Hz)</li>
+ *     <li>number of samples in each data record</li>
+ * </ul>
  *
- * @see RecordingConfig
  */
 public class SignalConfig {
-    private  int numberOfSamplesInEachDataRecord;
+    private int numberOfSamplesInEachDataRecord;
     private String prefiltering = "None";
     private String transducerType = "Unknown";
     private String label = "";
@@ -26,6 +32,8 @@ public class SignalConfig {
 
     /**
      * Constructor to make a copy of given SignalConfig instance
+     *
+     * @param signalConfig SignalConfig instance that will be copied
      */
     public SignalConfig(SignalConfig signalConfig) {
         this.numberOfSamplesInEachDataRecord = signalConfig.getNumberOfSamplesInEachDataRecord();

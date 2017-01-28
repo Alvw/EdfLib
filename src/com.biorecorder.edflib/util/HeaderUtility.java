@@ -1,6 +1,7 @@
 package com.biorecorder.edflib.util;
 
-import com.biorecorder.edflib.RecordingConfig;
+import com.biorecorder.edflib.FileType;
+import com.biorecorder.edflib.HeaderConfig;
 import com.biorecorder.edflib.SignalConfig;
 
 import java.io.*;
@@ -11,37 +12,34 @@ import java.util.Date;
 
 /**
  * This is a helper class that know how to work with EDF/BDF file header.
- * It has one static method to convert {@link RecordingConfig} to EDF or BDF file header
+ * It has one static method to convert {@link HeaderConfig} to EDF or BDF file header
  * (byte array). And another static method to read a EDF/BDF file header and store its information
- * at RecordingConfig object.
+ * at a HeaderConfig object.
  *
- *   HEADER RECORD (we suggest to also adopt the 12 simple additional EDF+ specs)
- *   8 ascii : version of this data format (0)
- *   80 ascii : local patient identification (mind item 3 of the additional EDF+ specs)
- *   80 ascii : local recording identification (mind item 4 of the additional EDF+ specs)
- *   8 ascii : startdate of recording (dd.mm.yy) (mind item 2 of the additional EDF+ specs)
- *   8 ascii : starttime of recording (hh.mm.ss)
- *   8 ascii : number of bytes in header record (The header record contains 256 + (ns * 256) bytes)
- *   44 ascii : reserved
- *   8 ascii : number of data records (-1 if unknown, obey item 10 of the additional EDF+ specs)
- *   8 ascii : duration of a data record, in seconds
- *   4 ascii : number of signals (ns) in data record
- *   ns * 16 ascii : ns * label (e.g. EEG Fpz-Cz or Body temp) (mind item 9 of the additional EDF+ specs)
- *   ns * 80 ascii : ns * transducer type (e.g. AgAgCl electrode)
- *   ns * 8 ascii : ns * physical dimension (e.g. uV or degreeC)
- *   ns * 8 ascii : ns * physical minimum (e.g. -500 or 34)
- *   ns * 8 ascii : ns * physical maximum (e.g. 500 or 40)
- *   ns * 8 ascii : ns * digital minimum (e.g. -2048)
- *   ns * 8 ascii : ns * digital maximum (e.g. 2047)
- *   ns * 80 ascii : ns * prefiltering (e.g. HP:0.1Hz LP:75Hz)
- *   ns * 8 ascii : ns * nr of samples in each data record
- *   ns * 32 ascii : ns * reserved
+ * <p>HEADER RECORD
+ * <br>8 ascii : version of this data format (0)
+ * <br>80 ascii : local patient identification (mind item 3 of the additional EDF+ specs)
+ * <br>80 ascii : local recording identification (mind item 4 of the additional EDF+ specs)
+ * <br>8 ascii : startdate of recording (dd.mm.yy) (mind item 2 of the additional EDF+ specs)
+ * <br>8 ascii : starttime of recording (hh.mm.ss)
+ * <br>8 ascii : number of bytes in header record (The header record contains 256 + (ns * 256) bytes)
+ * <br>44 ascii : reserved
+ * <br>8 ascii : number of data records (-1 if unknown, obey item 10 of the additional EDF+ specs)
+ * <br>8 ascii : duration of a data record, in seconds
+ * <br>4 ascii : number of signals (ns) in data record
+ * <br>ns * 16 ascii : ns * label (e.g. EEG Fpz-Cz or Body temp) (mind item 9 of the additional EDF+ specs)
+ * <br>ns * 80 ascii : ns * transducer type (e.g. AgAgCl electrode)
+ * <br>ns * 8 ascii : ns * physical dimension (e.g. uV or degreeC)
+ * <br>ns * 8 ascii : ns * physical minimum (e.g. -500 or 34)
+ * <br>ns * 8 ascii : ns * physical maximum (e.g. 500 or 40)
+ * <br>ns * 8 ascii : ns * digital minimum (e.g. -2048)
+ * <br>ns * 8 ascii : ns * digital maximum (e.g. 2047)
+ * <br>ns * 80 ascii : ns * prefiltering (e.g. HP:0.1Hz LP:75Hz)
+ * <br>ns * 8 ascii : ns * nr of samples in each data record
+ * <br>ns * 32 ascii : ns * reserved
  *
  * <p>Detailed information about EDF/BDF format:
- * <br><a href="http://www.teuniz.net/edfbrowser/edf%20format%20description.html">The EDF format</a>
- * <br><a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
- * <br><a href="http://www.biosemi.com/faq/file_format.htm">EDF/BDF difference</a>
- *
+ * <a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
  */
 public class HeaderUtility {
     private static Charset ASCII = Charset.forName("US-ASCII");
@@ -68,101 +66,33 @@ public class HeaderUtility {
     private static final int SIGNAL_NUMBER_OF_SAMPLES_LENGTH = 8;
     private static final int SIGNAL_RESERVED_LENGTH = 32;
 
-    /**
-     * Create EDF file header on the base of given RecordingConfig object
-     *
-     * @param recordingConfig - object containing the information required for EDF header
-     * @return EDF file header as array of bytes
-     */
-    public static  byte[] createEdfHeader(RecordingConfig recordingConfig) {
-        return createHeader(recordingConfig, false);
 
-    }
 
     /**
-     * Create BDF file header on the base of given RecordingConfig object
+     * Create EDF or BDF file header on the base of the given HeaderConfig object
+     * and the given file type.
      *
-     * @param recordingConfig - object containing the information required for BDF header
-     * @return BDF file header as array of bytes
-     */
-    public static  byte[] createBdfHeader(RecordingConfig recordingConfig) {
-        return createHeader(recordingConfig, true);
-    }
-
-    /**
-     * Create the version (minus first byte) of the data format
-     * for BDF or EDF file header respectively
-     *
-     * @param isBdf - true if the the version is for BDF file header
-     *              and false if the the version is for EDF file Header
-     * @return the version for the the BDF or EDF file header
-     */
-    private static String getVersion(boolean isBdf){
-        if(isBdf){
-            return "BIOSEMI"; //bdf
-        }else {
-            return ""; //edf
-        }
-    }
-
-    /**
-     * Create first byte for the BDF or EDF file header respectively
-     *
-     * @param isBdf - true if the firs byte is for BDF file header
-     *              and false if the first byte is for EDF file Header
-     * @return first byte for the the BDF or EDF file header
-     */
-    private static byte getFirstByte(boolean isBdf){
-        if(isBdf){
-            return (byte) 255; //bdf
-        }else {
-            String zeroString = "0";  //edf  "0" (ASCII)
-            return zeroString.getBytes(ASCII)[0]; // or  return (int) '0';
-        }
-    }
-
-    /**
-     * Create the first reserved field for the BDF or EDF file header respectively
-     *
-     * @param isBdf - true if the first reserved field is for BDF file header
-     *              and false if the first reserved field is for EDF file Header
-     * @return the first reserved field for the the BDF or EDF file header
-     */
-    private static String getFirstReserved(boolean isBdf){
-        if(isBdf){
-            return "24BIT"; //bdf
-        }else {
-            return ""; //edf
-        }
-    }
-
-    /**
-     * This method actually performs the main part of the work common for creating
-     * both EDF and BDF file headers.
-     *
-     * @param recordingConfig - object containing the information required for EDF and BDF file header
-     *
-     * @param isBdf - true if we need BDF file header
-     *              false if we need EDF file header
+     * @param headerConfig - object containing the information required for EDF and BDF file header
+     * @param fileType - EDF or BDF
      * @return BDF or EDF file header as array of bytes
      */
 
-    private static  byte[] createHeader(RecordingConfig recordingConfig, boolean isBdf) {
+    public static byte[] createHeader(HeaderConfig headerConfig, FileType fileType) {
 
-        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(recordingConfig.getStartTime()));
-        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(recordingConfig.getStartTime()));
+        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(headerConfig.getRecordingStartTime()));
+        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(headerConfig.getRecordingStartTime()));
 
         StringBuilder headerBuilder = new StringBuilder();
-        headerBuilder.append(adjustLength(getVersion(isBdf), VERSION_LENGTH - 1));  // -1 because first non ascii byte (or "0" for edf) we will add later
-        headerBuilder.append(adjustLength(recordingConfig.getPatientId(), PATIENT_LENGTH));
-        headerBuilder.append(adjustLength(recordingConfig.getRecordingId(), RECORD_LENGTH));
+        headerBuilder.append(adjustLength(fileType.getVersion(), VERSION_LENGTH - 1));  // -1 because first non ascii byte (or "0" for edf) we will add later
+        headerBuilder.append(adjustLength(headerConfig.getPatientIdentification(), PATIENT_LENGTH));
+        headerBuilder.append(adjustLength(headerConfig.getRecordingIdentification(), RECORD_LENGTH));
         headerBuilder.append(startDateOfRecording);
         headerBuilder.append(startTimeOfRecording);
-        headerBuilder.append(adjustLength(Integer.toString(recordingConfig.getNumberOfBytesInHeader()), NUMBER_OF_BYTES_IN_HEADER_LENGTH));
-        headerBuilder.append(adjustLength(getFirstReserved(isBdf), FIRST_RESERVED_LENGTH));
-        headerBuilder.append(adjustLength(Integer.toString(recordingConfig.getNumberOfDataRecords()), NUMBER_Of_DATARECORDS_LENGTH));
-        headerBuilder.append(adjustLength(double2String(recordingConfig.getDurationOfDataRecord()), DURATION_OF_DATARECORD_LENGTH));
-        headerBuilder.append(adjustLength(Integer.toString(recordingConfig.getNumberOfSignals()), NUMBER_OF_SIGNALS_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfBytesInHeaderRecord()), NUMBER_OF_BYTES_IN_HEADER_LENGTH));
+        headerBuilder.append(adjustLength(fileType.getFirstReserved(), FIRST_RESERVED_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfDataRecords()), NUMBER_Of_DATARECORDS_LENGTH));
+        headerBuilder.append(adjustLength(double2String(headerConfig.getDurationOfDataRecord()), DURATION_OF_DATARECORD_LENGTH));
+        headerBuilder.append(adjustLength(Integer.toString(headerConfig.getNumberOfSignals()), NUMBER_OF_SIGNALS_LENGTH));
 
 
         StringBuilder labels = new StringBuilder();
@@ -176,8 +106,8 @@ public class HeaderUtility {
         StringBuilder samplesNumbers = new StringBuilder();
         StringBuilder reservedForChannels = new StringBuilder();
 
-        for (int i = 0; i < recordingConfig.getNumberOfSignals(); i++) {
-            SignalConfig signalConfig = recordingConfig.getSignalConfig(i);
+        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
+            SignalConfig signalConfig = headerConfig.getSignalConfig(i);
             labels.append(adjustLength(signalConfig.getLabel(), SIGNAL_LABEL_LENGTH));
             transducerTypes.append(adjustLength(signalConfig.getTransducerType(), SIGNAL_TRANSDUCER_TYPE_LENGTH));
             physicalDimensions.append(adjustLength(signalConfig.getPhysicalDimension(), SIGNAL_PHYSICAL_DIMENSION_LENGTH));
@@ -202,7 +132,7 @@ public class HeaderUtility {
         headerBuilder.append(reservedForChannels);
         // reserve space for first byte
         ByteBuffer byteBuffer = ByteBuffer.allocate(headerBuilder.length() + 1);
-        byteBuffer.put(getFirstByte(isBdf));
+        byteBuffer.put(fileType.getFirstByte());
         byteBuffer.put(headerBuilder.toString().getBytes(ASCII));
         return byteBuffer.array();
     }
@@ -212,10 +142,10 @@ public class HeaderUtility {
      *
      * @param file file to read
      * @return true if the file is BDF file and false if the file is EDF file
-     * @throws IOException if file can not be read
+     * @throws IOException            if file can not be read
      * @throws HeaderParsingException if the file header is not valid EDF/BDF file header
      */
-    public static boolean isBdf(File file) throws IOException, HeaderParsingException {
+    public static FileType getFileType(File file) throws IOException, HeaderParsingException {
     /*    Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), ASCII));
         int length = VERSION_LENGTH + PATIENT_LENGTH + RECORD_LENGTH + STARTDATE_LENGTH +
                 STARTTIME_LENGTH +  NUMBER_OF_BYTES_IN_HEADER_LENGTH + FIRST_RESERVED_LENGTH;
@@ -238,11 +168,11 @@ public class HeaderUtility {
         input.read(buffer);
         input.close();
 
-        if(buffer[0] == (byte)255)  {
-            return true;
+        if (buffer[0] == (byte) 255) {
+            return FileType.BDF_24BIT;
 
-        }else if((char)buffer[0] == '0') {
-            return true;
+        } else if ((char) buffer[0] == '0') {
+            return FileType.EDF_16BIT;
         }
         throw new HeaderParsingException("Invalid Edf/Bdf file header. First byte should be equal '0' or 255");
     }
@@ -251,13 +181,13 @@ public class HeaderUtility {
      * Read the header of the given EDF or BDF file
      *
      * @param file file to read
-     * @return RecordingConfig object containing information from the file header
-     * @throws IOException if the file can not be read
+     * @return HeaderConfig object containing information from the file header
+     * @throws IOException            if the file can not be read
      * @throws HeaderParsingException if the file header is not valid EDF/BDF file header.
      */
-    public static RecordingConfig readHeader(File file) throws IOException, HeaderParsingException {
+    public static HeaderConfig readHeader(File file) throws IOException, HeaderParsingException {
         Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), ASCII));
-        RecordingConfig recordingConfig = new RecordingConfig();
+        HeaderConfig headerConfig = new HeaderConfig();
 
         char[] buffer;
         buffer = new char[VERSION_LENGTH];
@@ -266,12 +196,12 @@ public class HeaderUtility {
         buffer = new char[PATIENT_LENGTH];
         reader.read(buffer);
         String patientIdentification = new String(buffer).trim();
-        recordingConfig.setPatientId(patientIdentification);
+        headerConfig.setPatientIdentification(patientIdentification);
 
         buffer = new char[RECORD_LENGTH];
         reader.read(buffer);
         String recordIdentification = new String(buffer).trim();
-        recordingConfig.setRecordingId(recordIdentification);
+        headerConfig.setRecordingIdentification(recordIdentification);
 
         buffer = new char[STARTDATE_LENGTH];
         reader.read(buffer);
@@ -283,13 +213,13 @@ public class HeaderUtility {
         String dateFormat = "dd.MM.yy HH.mm.ss";
         String startDateTimeStr = startDateStr + " " + startTimeStr;
         long startTime;
-        try{
+        try {
             Date date = new SimpleDateFormat(dateFormat).parse(startDateTimeStr);
             startTime = date.getTime();
         } catch (Exception e) {
             throw new HeaderParsingException("Invalid Edf/Bdf file header. Error while parsing header Date-Time: " + startDateTimeStr);
         }
-        recordingConfig.setStartTime(startTime);
+        headerConfig.setRecordingStartTime(startTime);
 
         buffer = new char[NUMBER_OF_BYTES_IN_HEADER_LENGTH];
         reader.read(buffer);
@@ -301,79 +231,79 @@ public class HeaderUtility {
         buffer = new char[NUMBER_Of_DATARECORDS_LENGTH];
         reader.read(buffer);
         int numberOfDataRecords = stringToInt(new String(buffer));
-        recordingConfig.setNumberOfDataRecords(numberOfDataRecords);
+        headerConfig.setNumberOfDataRecords(numberOfDataRecords);
 
         buffer = new char[DURATION_OF_DATARECORD_LENGTH];
         reader.read(buffer);
         Double durationOfDataRecord = stringToDouble(new String(buffer));
-        recordingConfig.setDurationOfDataRecord(durationOfDataRecord);
+        headerConfig.setDurationOfDataRecord(durationOfDataRecord);
 
         buffer = new char[NUMBER_OF_SIGNALS_LENGTH];
         reader.read(buffer);
-        int numberOfSignals =  stringToInt(new String(buffer));
+        int numberOfSignals = stringToInt(new String(buffer));
 
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
-           recordingConfig.addSignalConfig(new SignalConfig());
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+            headerConfig.addSignalConfig(new SignalConfig());
         }
 
 
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_LABEL_LENGTH];
             reader.read(buffer);
-            recordingConfig.getSignalConfig(signalNumber).setLabel(new String(buffer).trim());
+            headerConfig.getSignalConfig(signalNumber).setLabel(new String(buffer).trim());
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_TRANSDUCER_TYPE_LENGTH];
             reader.read(buffer);
-            recordingConfig.getSignalConfig(signalNumber).setTransducerType(new String(buffer).trim());
+            headerConfig.getSignalConfig(signalNumber).setTransducerType(new String(buffer).trim());
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_DIMENSION_LENGTH];
             reader.read(buffer);
-            recordingConfig.getSignalConfig(signalNumber).setPhysicalDimension(new String(buffer).trim());
+            headerConfig.getSignalConfig(signalNumber).setPhysicalDimension(new String(buffer).trim());
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MIN_LENGTH];
             reader.read(buffer);
-            int physicalMin =  stringToInt(new String(buffer));
-            recordingConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
+            int physicalMin = stringToInt(new String(buffer));
+            headerConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MAX_LENGTH];
             reader.read(buffer);
-            int physicalMax =  stringToInt(new String(buffer));
-            recordingConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
+            int physicalMax = stringToInt(new String(buffer));
+            headerConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MIN_LENGTH];
             reader.read(buffer);
-            int digitalMin =  stringToInt(new String(buffer));
-            recordingConfig.getSignalConfig(signalNumber).setDigitalMin(digitalMin);
+            int digitalMin = stringToInt(new String(buffer));
+            headerConfig.getSignalConfig(signalNumber).setDigitalMin(digitalMin);
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_DIGITAL_MAX_LENGTH];
             reader.read(buffer);
-            int digitalMax =  stringToInt(new String(buffer));
-            recordingConfig.getSignalConfig(signalNumber).setDigitalMax(digitalMax);
+            int digitalMax = stringToInt(new String(buffer));
+            headerConfig.getSignalConfig(signalNumber).setDigitalMax(digitalMax);
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PREFILTERING_LENGTH];
             reader.read(buffer);
-            recordingConfig.getSignalConfig(signalNumber).setPrefiltering(new String(buffer).trim());
+            headerConfig.getSignalConfig(signalNumber).setPrefiltering(new String(buffer).trim());
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_NUMBER_OF_SAMPLES_LENGTH];
             reader.read(buffer);
-            int numberOfSamplesInDataRecord =  stringToInt(new String(buffer));
-            recordingConfig.getSignalConfig(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInDataRecord);
+            int numberOfSamplesInDataRecord = stringToInt(new String(buffer));
+            headerConfig.getSignalConfig(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInDataRecord);
         }
-        for(int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
+        for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_RESERVED_LENGTH];
             reader.read(buffer);
         }
 
         reader.close();
-        return recordingConfig;
+        return headerConfig;
 
     }
 
@@ -400,7 +330,7 @@ public class HeaderUtility {
      * @return resultant double
      * @throws HeaderParsingException if the string could not be converted to double
      */
-    private static Double stringToDouble(String str) throws  HeaderParsingException {
+    private static Double stringToDouble(String str) throws HeaderParsingException {
         try {
             str = str.trim();
             return Double.valueOf(str);
@@ -410,12 +340,11 @@ public class HeaderUtility {
     }
 
 
-
     /**
      * if the String.length() is more then the given length cut the String to the given length
      * if the String.length() is less then the given length append spaces to the end of the String
      *
-     * @param text - string which length should be adjusted
+     * @param text   - string which length should be adjusted
      * @param length - desired length
      * @return resultant string with the given length
      */
@@ -437,7 +366,7 @@ public class HeaderUtility {
      * @param value double that should be converted to the string
      * @return resultant string with format valid for EDF and BDF header
      */
-    private static String double2String(double value ) {
+    private static String double2String(double value) {
         return String.format("%.6f", value).replace(",", ".");
     }
 

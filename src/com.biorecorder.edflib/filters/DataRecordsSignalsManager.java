@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.DataRecordsWriter;
-import com.biorecorder.edflib.RecordingConfig;
+import com.biorecorder.edflib.HeaderConfig;
 import com.biorecorder.edflib.SignalConfig;
 
 import java.io.IOException;
@@ -12,18 +12,19 @@ import java.util.Map;
 
 /**
  * Permit to omit samples from some channels (delete signal) or realize some kind of
- * transformation with the signal´s data (add some filter to the signal).
- *
- *<p>Example:
- *<pre>{@code
- *    SignalsRemoval dataRecordsWriter = new SignalsRemoval(new EdfWriter("filename"));
- *    dataRecordsWriter.removeSignal(0);
- *    dataRecordsWriter.removeSignal(2);
- *    dataRecordsWriter.addSignalPrefiltering(1, new SignalMovingAverageFilter(10));
+ * transformation with the signal data (add some filter to the signal).
+ * <p>
+ * EdfExample:
+ * <pre>{@code
+ *  DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(new EdfWriter("filename", FileType.BDF_24BIT));
+ *  signalsManager.removeSignal(0);
+ *  signalsManager.removeSignal(2);
+ *  signalsManager.addSignalPrefiltering(1, new SignalMovingAverageFilter(10));
  * }
  * </pre>
  *
  * @see SignalFilter
+ * @see SignalMovingAverageFilter
  */
 public class DataRecordsSignalsManager extends DataRecordsFilter {
     private Map<Integer, SignalFilter> filters = new HashMap<Integer, SignalFilter>();
@@ -36,11 +37,11 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
     /**
      * Indicate that the samples from given signal should be omitted in resultant DataRecord
      *
-     * @param signalNumber - number of channel (signal) in the original (incoming) DataRecord
+     * @param signalNumber number of channel (signal) in the original (incoming) DataRecord
      *                     which samples should be omitted
      */
     public void removeSignal(int signalNumber) {
-        for(int i = signalsMask.size(); i <= signalNumber; i++) {
+        for (int i = signalsMask.size(); i <= signalNumber; i++) {
             signalsMask.add(true);
         }
         signalsMask.set(signalNumber, false);
@@ -51,8 +52,8 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
      * Indicate that the given filter should be applied to the samples
      * of given signal in DataRecords
      *
-     * @param signalFilter  signal filter that will be applied to the samples of given channel number
-     * @param signalNumber  number of channel (signal) in the input DataRecord
+     * @param signalFilter signal filter that will be applied to the samples of given channel number
+     * @param signalNumber number of channel (signal) in the input DataRecord
      *                     the filter should be applied to
      */
     // TODO add the possibility to apply not one but several filters to the same channel
@@ -61,18 +62,18 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
     }
 
 
-    protected RecordingConfig createOutputRecordingConfig() {
-        RecordingConfig outRecordingConfig = new RecordingConfig(recordingConfig);
-        outRecordingConfig.removeAllSignalConfig();
-        for(int i = signalsMask.size(); i < recordingConfig.getNumberOfSignals(); i++) {
+    protected HeaderConfig createOutputRecordingConfig() {
+        HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig);
+        outHeaderConfig.removeAllSignalConfigs();
+        for (int i = signalsMask.size(); i < headerConfig.getNumberOfSignals(); i++) {
             signalsMask.add(true);
         }
-        for (int i = 0; i < recordingConfig.getNumberOfSignals(); i++) {
-            if(signalsMask.get(i)) {
-                outRecordingConfig.addSignalConfig(new SignalConfig(recordingConfig.getSignalConfig(i)));
+        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
+            if (signalsMask.get(i)) {
+                outHeaderConfig.addSignalConfig(new SignalConfig(headerConfig.getSignalConfig(i)));
             }
         }
-        return outRecordingConfig;
+        return outHeaderConfig;
 
     }
 
@@ -84,15 +85,15 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
      * @param offset
      * @return
      */
-    private int[] filterDataRecord (int[] digitalData, int offset) {
+    private int[] filterDataRecord(int[] digitalData, int offset) {
         int[] filteredDataRecord = new int[createOutputRecordingConfig().getRecordLength()];
         int signalPosition = 0;
         int filteredSignalPosition = 0;
-        for (int signalNumber = 0; signalNumber < recordingConfig.getNumberOfSignals(); signalNumber++) {
-            int numberOfSamples = recordingConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord();
-            if(signalsMask.get(signalNumber)) {
+        for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
+            int numberOfSamples = headerConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord();
+            if (signalsMask.get(signalNumber)) {
                 SignalFilter signalFilter = filters.get(signalNumber);
-                if(signalFilter != null) {
+                if (signalFilter != null) {
                     for (int sampleNumber = 0; sampleNumber < numberOfSamples; sampleNumber++) {
                         filteredDataRecord[filteredSignalPosition + sampleNumber] = signalFilter.getFilteredValue(digitalData[offset + signalPosition + sampleNumber]);
                     }
@@ -104,14 +105,13 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
             signalPosition += numberOfSamples;
 
         }
-        return  filteredDataRecord;
+        return filteredDataRecord;
     }
 
 
-
     @Override
-    public void open(RecordingConfig recordingConfig) throws IOException {
-        super.open(recordingConfig);
+    public void open(HeaderConfig headerConfig) throws IOException {
+        super.open(headerConfig);
     }
 
     /**
@@ -119,10 +119,10 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
      * resultant DataRecord to the underlying DataRecordsWriter
      *
      * @param digitalData - array with digital data
-     * @param offset - offset within the array at which the DataRecord starts
-     *
+     * @param offset      - offset within the array at which the DataRecord starts
      * @throws IOException
-     */    @Override
+     */
+    @Override
     public void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException {
         out.writeDigitalDataRecord(filterDataRecord(digitalData, offset));
     }

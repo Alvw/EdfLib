@@ -11,12 +11,12 @@ import java.io.*;
  * This example program opens the EDF-file records/ekg.edf
  * (that contains data from two measuring channels - cardiogram and accelerometer) and
  * <ul>
- * <li>reads its records (one by one) and writes them to the new file ekgcopy1.bdf as it is</li>
- * <li>reads data by samples (from both channels) and writes them to the new file ekgcopy2.bdf as it is</li>
+ * <li>reads its records (one by one) and writes them to the new file ekgcopy1.edf as it is</li>
+ * <li>reads data by samples (from both channels) and writes them to the new file ekgcopy2.edf as it is</li>
  * <li>does some filtering
  * (that joins 10 data records first and then omits data from the first channel and averages samples
  * from the second channel reducing the 50Hz noise)
- * and writes the resultant records to ekgcopy3.bdf</li>
+ * and writes the resultant records to ekgcopy3.edf</li>
  * </ul>
  */
 public class EdfExample {
@@ -31,8 +31,8 @@ public class EdfExample {
             System.out.println("file type " + edfFileReader.getFileType());
             printHeaderInfo(headerConfig);
 
-            // read DataRecords one by one and write them to the new file ekgcopy1.bdf as it is
-            File fileToWrite1 = new File(recordsDir, "ekgcopy1.bdf");
+            // read DataRecords one by one and write them to the new file ekgcopy1.edf as it is
+            File fileToWrite1 = new File(recordsDir, "ekgcopy1.edf");
             EdfWriter fileWriter1 = new EdfWriter(fileToWrite1, FileType.EDF_16BIT);
             fileWriter1.open(headerConfig);
             while (edfFileReader.availableDataRecords() > 0) {
@@ -40,8 +40,8 @@ public class EdfExample {
             }
             fileWriter1.close();
 
-            // read data by samples (from both channels) and write them to the new file ekgcopy2.bdf as it is
-            File fileToWrite2 = new File(recordsDir, "ekgcopy2.bdf");
+            // read data by samples (from both channels) and write them to the new file ekgcopy2.edf as it is
+            File fileToWrite2 = new File(recordsDir, "ekgcopy2.edf");
             EdfWriter fileWriter2 = new EdfWriter(fileToWrite2, FileType.EDF_16BIT);
             fileWriter2.open(headerConfig);
             while (edfFileReader.availableSamples(0) > 0) {
@@ -54,9 +54,9 @@ public class EdfExample {
              *  do the filtering
              * (that joins 10 data records first and then omits data from the first channel and averages samples
              * from the second channel reducing the 50Hz noise)
-             * and write the resultant records to ekgcopy3.bdf
+             * and write the resultant records to ekgcopy3.edf
              */
-            File fileToWrite3 = new File(recordsDir, "ekgcopy3.bdf");
+            File fileToWrite3 = new File(recordsDir, "ekgcopy3.edf");
             EdfWriter fileWriter3 = new EdfWriter(fileToWrite3, FileType.EDF_16BIT);
             DataRecordsJoiner joiner = new DataRecordsJoiner(10, fileWriter3);
 

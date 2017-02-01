@@ -1,9 +1,8 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.util.EndianBitConverter;
-import com.biorecorder.edflib.util.HeaderParsingException;
-import com.biorecorder.edflib.util.HeaderUtility;
-import com.biorecorder.edflib.util.PhysicalDigitalConverter;
+import com.biorecorder.edflib.header.HeaderConfig;
+import com.biorecorder.edflib.header.HeaderParsingException;
+import com.biorecorder.edflib.header.HeaderUtility;
 
 import java.io.*;
 import java.nio.ByteBuffer;

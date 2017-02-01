@@ -1,7 +1,6 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.util.PhysicalDigitalConverter;
-import com.biorecorder.edflib.filters.DataRecordsFilter;
+import com.biorecorder.edflib.header.HeaderConfig;
 
 import java.io.IOException;
 

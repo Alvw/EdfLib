@@ -1,9 +1,8 @@
 package example;
 
 import com.biorecorder.edflib.*;
-import com.biorecorder.edflib.filters.DataRecordsJoiner;
-import com.biorecorder.edflib.filters.DataRecordsSignalsManager;
 import com.biorecorder.edflib.filters.SignalMovingAverageFilter;
+import com.biorecorder.edflib.header.HeaderConfig;
 
 import java.io.*;
 

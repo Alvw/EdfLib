@@ -1,8 +1,6 @@
-package com.biorecorder.edflib.util;
+package com.biorecorder.edflib.header;
 
 import com.biorecorder.edflib.FileType;
-import com.biorecorder.edflib.HeaderConfig;
-import com.biorecorder.edflib.SignalConfig;
 
 import java.io.*;
 import java.nio.ByteBuffer;

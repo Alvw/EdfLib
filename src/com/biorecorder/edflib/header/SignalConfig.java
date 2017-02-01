@@ -1,4 +1,4 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.header;
 
 /**
  * Class (data-structure) that allows to store information about measuring channels (signals).

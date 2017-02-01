@@ -44,6 +44,15 @@ public abstract class DataRecordsWriter {
         physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
+    /**
+     * Return the information from the file header stored in the HeaderConfig object
+     *
+     * @return the object containing EDF/BDF header information
+     */
+    public HeaderConfig getHeaderInfo(){
+        return new HeaderConfig(headerConfig);
+    }
+
 
     /**
      * Write the given digital samples to the inner DataRecord.

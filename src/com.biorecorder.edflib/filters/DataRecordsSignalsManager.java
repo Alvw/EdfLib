@@ -68,10 +68,24 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
         for (int i = signalsMask.size(); i < headerConfig.getNumberOfSignals(); i++) {
             signalsMask.add(true);
         }
-        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            if (signalsMask.get(i)) {
-                outHeaderConfig.addSignalConfig(new SignalConfig(headerConfig.getSignalConfig(i)));
+        for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
+            if (signalsMask.get(signalNumber)) {
+                SignalConfig signalConfig = new SignalConfig(headerConfig.getSignalConfig(signalNumber));
+                SignalFilter signalFilter = filters.get(signalNumber);
+                if (signalFilter != null) {
+                    String prefiltering = signalConfig.getPrefiltering();
+                    if(prefiltering == null || prefiltering.isEmpty()) {
+                        prefiltering = signalFilter.getFilterName();
+                    }
+                    else {
+                        prefiltering = prefiltering + "; "+ signalFilter.getFilterName();
+                    }
+                    signalConfig.setPrefiltering(prefiltering);
+
+                }
+                outHeaderConfig.addSignalConfig(signalConfig);
             }
+
         }
         return outHeaderConfig;
 

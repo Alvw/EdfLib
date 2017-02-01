@@ -52,6 +52,6 @@ public class SignalMovingAverageFilter implements SignalFilter {
 
     @Override
     public String getFilterName() {
-        return "Moving average filter. Number of points = " + bufferSize;
+        return "Moving Average:" + bufferSize;
     }
 }

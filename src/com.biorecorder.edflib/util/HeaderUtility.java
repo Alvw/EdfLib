@@ -111,8 +111,8 @@ public class HeaderUtility {
             labels.append(adjustLength(signalConfig.getLabel(), SIGNAL_LABEL_LENGTH));
             transducerTypes.append(adjustLength(signalConfig.getTransducerType(), SIGNAL_TRANSDUCER_TYPE_LENGTH));
             physicalDimensions.append(adjustLength(signalConfig.getPhysicalDimension(), SIGNAL_PHYSICAL_DIMENSION_LENGTH));
-            physicalMinimums.append(adjustLength(String.valueOf(signalConfig.getPhysicalMin()), SIGNAL_PHYSICAL_MIN_LENGTH));
-            physicalMaximums.append(adjustLength(String.valueOf(signalConfig.getPhysicalMax()), SIGNAL_PHYSICAL_MAX_LENGTH));
+            physicalMinimums.append(adjustLength(double2String(signalConfig.getPhysicalMin()), SIGNAL_PHYSICAL_MIN_LENGTH));
+            physicalMaximums.append(adjustLength(double2String(signalConfig.getPhysicalMax()), SIGNAL_PHYSICAL_MAX_LENGTH));
             digitalMinimums.append(adjustLength(String.valueOf(signalConfig.getDigitalMin()), SIGNAL_DIGITAL_MIN_LENGTH));
             digitalMaximums.append(adjustLength(String.valueOf(signalConfig.getDigitalMax()), SIGNAL_DIGITAL_MAX_LENGTH));
             preFilterings.append(adjustLength(signalConfig.getPrefiltering(), SIGNAL_PREFILTERING_LENGTH));
@@ -265,13 +265,13 @@ public class HeaderUtility {
         for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MIN_LENGTH];
             reader.read(buffer);
-            int physicalMin = stringToInt(new String(buffer));
+            double physicalMin = stringToDouble(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setPhysicalMin(physicalMin);
         }
         for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
             buffer = new char[SIGNAL_PHYSICAL_MAX_LENGTH];
             reader.read(buffer);
-            int physicalMax = stringToInt(new String(buffer));
+            double physicalMax = stringToDouble(new String(buffer));
             headerConfig.getSignalConfig(signalNumber).setPhysicalMax(physicalMax);
         }
         for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {

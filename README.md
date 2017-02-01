@@ -142,7 +142,7 @@ int numberOfamples = 100;
 int signalNumber = 0;
 int[] digitalSamples;
 
- while (edfFileReader.availableSignalSamples(signalNumber) > 0) {
+ while (edfFileReader.availableSamples(signalNumber) > 0) {
     digitalSamples = edfFileReader.readDigitalSamples(signalNumber, numberOfamples);
   // do smth
 }
@@ -151,7 +151,7 @@ int[] digitalSamples;
  
 edfFileReader.setSamplePosition(signalNumber, 0);
 double[] physicalSamples;
-while (edfFileReader.availableSignalSamples(signalNumber) > 0) {
+while (edfFileReader.availableSamples(signalNumber) > 0) {
     physicalSamples = edfFileReader.readPhysicalSamples(signalNumber, numberOfamples);
   // do smth
 }

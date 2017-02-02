@@ -1,7 +1,5 @@
-package com.biorecorder.edflib.util;
+package com.biorecorder.edflib.base;
 
-
-import java.nio.ByteBuffer;
 
 /**
  * Contains several useful static methods to convert Java integer (32-bit, signed, BIG_ENDIAN)

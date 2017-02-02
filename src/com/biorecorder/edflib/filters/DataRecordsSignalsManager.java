@@ -1,9 +1,8 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.filters.SignalFilter;
-import com.biorecorder.edflib.filters.SignalMovingAverageFilter;
-import com.biorecorder.edflib.header.HeaderConfig;
-import com.biorecorder.edflib.header.SignalConfig;
+import com.biorecorder.edflib.base.DataRecordsWriter;
+import com.biorecorder.edflib.base.HeaderConfig;
+import com.biorecorder.edflib.base.SignalConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;

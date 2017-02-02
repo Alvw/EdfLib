@@ -1,6 +1,4 @@
-package com.biorecorder.edflib;
-
-import com.biorecorder.edflib.header.HeaderConfig;
+package com.biorecorder.edflib.base;
 
 import java.io.IOException;
 
@@ -20,8 +18,6 @@ import java.io.IOException;
  * Every subclass of DataRecordsWriter must implement the
  * method that writes one digital DataRecord - {@link #writeDigitalDataRecord(int[], int)}
  *
- * @see EdfWriter
- * @see DataRecordsFilter
  */
 public abstract class DataRecordsWriter {
     protected HeaderConfig headerConfig = new HeaderConfig();

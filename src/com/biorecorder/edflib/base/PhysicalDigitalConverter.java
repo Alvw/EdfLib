@@ -1,7 +1,4 @@
-package com.biorecorder.edflib.util;
-
-import com.biorecorder.edflib.HeaderConfig;
-import com.biorecorder.edflib.SignalConfig;
+package com.biorecorder.edflib.base;
 
 /**
  * This class contains methods to convert physical (floating point) value to digital (integer) and

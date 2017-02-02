@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.header;
+package com.biorecorder.edflib.base;
 
 import java.util.ArrayList;
 

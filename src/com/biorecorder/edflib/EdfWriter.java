@@ -1,7 +1,8 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.header.HeaderConfig;
-import com.biorecorder.edflib.header.HeaderUtility;
+import com.biorecorder.edflib.base.DataRecordsWriter;
+import com.biorecorder.edflib.base.EndianBitConverter;
+import com.biorecorder.edflib.base.HeaderConfig;
 
 import java.io.*;
 import java.nio.channels.FileChannel;

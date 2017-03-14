@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.base;
+package com.biorecorder.edflib;
 
 
 /**

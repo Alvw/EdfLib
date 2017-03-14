@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.base;
+package com.biorecorder.edflib;
 
 /**
  * Class (data-structure) that allows to store information about measuring channels (signals).
@@ -14,9 +14,8 @@ package com.biorecorder.edflib.base;
  *     <li>prefiltering (e.g. HP:0.1Hz LP:75Hz)</li>
  *     <li>number of samples in each data record</li>
  * </ul>
- *
  */
-public class SignalConfig {
+class SignalConfig {
     private int numberOfSamplesInEachDataRecord;
     private String prefiltering = "None";
     private String transducerType = "Unknown";
@@ -30,22 +29,6 @@ public class SignalConfig {
     public SignalConfig() {
     }
 
-    /**
-     * Constructor to make a copy of given SignalConfig instance
-     *
-     * @param signalConfig SignalConfig instance that will be copied
-     */
-    public SignalConfig(SignalConfig signalConfig) {
-        this.numberOfSamplesInEachDataRecord = signalConfig.getNumberOfSamplesInEachDataRecord();
-        this.prefiltering = signalConfig.getPrefiltering();
-        this.transducerType = signalConfig.getTransducerType();
-        this.label = signalConfig.getLabel();
-        this.digitalMin = signalConfig.getDigitalMin();
-        this.digitalMax = signalConfig.getDigitalMax();
-        this.physicalMin = signalConfig.getPhysicalMin();
-        this.physicalMax = signalConfig.getPhysicalMax();
-        this.physicalDimension = signalConfig.getPhysicalDimension();
-    }
 
     public int getDigitalMin() {
         return digitalMin;
@@ -104,11 +87,11 @@ public class SignalConfig {
         this.prefiltering = prefiltering;
     }
 
-    public String getTransducerType() {
+    public String getTransducer() {
         return transducerType;
     }
 
-    public void setTransducerType(String transducerType) {
+    public void setTransducer(String transducerType) {
         this.transducerType = transducerType;
     }
 
@@ -119,4 +102,50 @@ public class SignalConfig {
     public void setLabel(String label) {
         this.label = label;
     }
+
+    /**
+     * Calculate the gain calibration (adjust) factor on the base
+     * of physical and digital maximums and minimums
+     *
+     * @return gain = (physMax - physMin) / (digMax - digMin)
+     */
+    public  double gain() {
+        return (physicalMax - physicalMin) / (digitalMax - digitalMin);
+
+    }
+
+    /**
+     * Calculate the offset calibration (adjust) factor on the base
+     * of physical and digital maximums and minimums
+     *
+     * @return offset = (physMin - digMin * gain) where
+     * gain = (physMax - physMin) / (digMax - digMin)
+     */
+    public double offset() {
+        return physicalMin - digitalMin * gain();
+
+    }
+
+    /**
+     * Convert physical value to digital on the base
+     * of physical and digital maximums and minimums (gain and offset)
+     *
+     * @return digital value
+     */
+    public int physicalValueToDigital(double physValue) {
+        return (int) ((physValue - offset()) / gain());
+
+    }
+
+    /**
+     * Convert digital value to physical on the base
+     * of physical and digital maximums and minimums (gain and offset)
+     *
+     * @return physical value
+     */
+    public  double digitalValueToPhysical(int digValue) {
+        return digValue * gain() + offset();
+
+    }
+
 }

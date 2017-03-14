@@ -1,8 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DataRecordsWriter;
-import com.biorecorder.edflib.base.HeaderConfig;
-import com.biorecorder.edflib.base.SignalConfig;
+import com.biorecorder.edflib.DataRecordsWriter;
+import com.biorecorder.edflib.HeaderConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,28 +63,29 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
 
     protected HeaderConfig createOutputRecordingConfig() {
         HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig);
-        outHeaderConfig.removeAllSignalConfigs();
         for (int i = signalsMask.size(); i < headerConfig.getNumberOfSignals(); i++) {
             signalsMask.add(true);
         }
         for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
             if (signalsMask.get(signalNumber)) {
-                SignalConfig signalConfig = new SignalConfig(headerConfig.getSignalConfig(signalNumber));
                 SignalFilter signalFilter = filters.get(signalNumber);
                 if (signalFilter != null) {
-                    String prefiltering = signalConfig.getPrefiltering();
+                    String prefiltering = outHeaderConfig.getPrefiltering(signalNumber);
                     if(prefiltering == null || prefiltering.isEmpty()) {
                         prefiltering = signalFilter.getFilterName();
                     }
                     else {
                         prefiltering = prefiltering + "; "+ signalFilter.getFilterName();
                     }
-                    signalConfig.setPrefiltering(prefiltering);
+                    outHeaderConfig.setPrefiltering(signalNumber, prefiltering);
 
                 }
-                outHeaderConfig.addSignalConfig(signalConfig);
             }
-
+        }
+        for (int i = signalsMask.size() - 1; i >=0 ; i--) {
+            if(! signalsMask.get(i)) {
+                outHeaderConfig.removeSignal(i);
+            }
         }
         return outHeaderConfig;
 
@@ -104,7 +104,7 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
         int signalPosition = 0;
         int filteredSignalPosition = 0;
         for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
-            int numberOfSamples = headerConfig.getSignalConfig(signalNumber).getNumberOfSamplesInEachDataRecord();
+            int numberOfSamples = headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber);
             if (signalsMask.get(signalNumber)) {
                 SignalFilter signalFilter = filters.get(signalNumber);
                 if (signalFilter != null) {

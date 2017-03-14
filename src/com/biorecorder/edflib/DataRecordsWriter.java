@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.base;
+package com.biorecorder.edflib;
 
 import java.io.IOException;
 
@@ -20,8 +20,7 @@ import java.io.IOException;
  *
  */
 public abstract class DataRecordsWriter {
-    protected HeaderConfig headerConfig = new HeaderConfig();
-    protected PhysicalDigitalConverter physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
+    protected HeaderConfig headerConfig = new HeaderConfig(0);
     protected int[] dataRecord = new int[0];
     protected int dataRecordOffset;
 
@@ -36,7 +35,6 @@ public abstract class DataRecordsWriter {
      */
     public void open(HeaderConfig headerConfig) throws IOException {
         this.headerConfig = new HeaderConfig(headerConfig);
-        physicalDigitalConverter = new PhysicalDigitalConverter(headerConfig);
     }
 
     /**
@@ -103,8 +101,12 @@ public abstract class DataRecordsWriter {
      * @throws IOException
      */
     public void writePhysicalSamples(double[] physicalSamples) throws IOException {
+        int[] digValues = new int[physicalSamples.length];
         int signalNumber = headerConfig.getSampleSignal(dataRecordOffset);
-        writeDigitalSamples(physicalDigitalConverter.signalPhysicalValuesToDigital(signalNumber, physicalSamples));
+        for (int i = 0; i < physicalSamples.length; i++) {
+            digValues[i] = headerConfig.physicalValueToDigital(signalNumber, physicalSamples[i]);
+        }
+        writeDigitalSamples(digValues);
     }
 
     /**
@@ -128,7 +130,15 @@ public abstract class DataRecordsWriter {
      * @throws IOException
      */
     public void writePhysicalDataRecord(double[] physData, int offset) throws IOException {
-        writeDigitalDataRecord(physicalDigitalConverter.physicalRecordToDigital(physData, offset));
+        int[] digitalDataRecord = new int[headerConfig.getRecordLength()];
+        int counter = 0;
+        for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
+            for (int sampleNumber = 0; sampleNumber < headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber); sampleNumber++) {
+                digitalDataRecord[counter] = headerConfig.physicalValueToDigital(signalNumber, physData[offset + counter]);
+                counter++;
+            }
+        }
+        writeDigitalDataRecord(digitalDataRecord);
     }
 
     /**

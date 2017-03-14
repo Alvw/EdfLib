@@ -1,9 +1,5 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.DataRecordsWriter;
-import com.biorecorder.edflib.base.EndianBitConverter;
-import com.biorecorder.edflib.base.HeaderConfig;
-
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -117,7 +113,7 @@ public class EdfWriter extends DataRecordsWriter {
                 headerConfig.setRecordingStartTime(startTime);
             }
             headerConfig.setNumberOfDataRecords(-1);
-            fileOutputStream.write(HeaderUtility.createHeader(headerConfig, fileType));
+            fileOutputStream.write(headerConfig.createFileHeader());
         }
         int numberOfBytesPerSample = 0;
         switch (fileType) {
@@ -142,7 +138,7 @@ public class EdfWriter extends DataRecordsWriter {
         }
         FileChannel channel = fileOutputStream.getChannel();
         channel.position(0);
-        fileOutputStream.write(HeaderUtility.createHeader(headerConfig, fileType));
+        fileOutputStream.write(headerConfig.createFileHeader());
         fileOutputStream.close();
     }
 

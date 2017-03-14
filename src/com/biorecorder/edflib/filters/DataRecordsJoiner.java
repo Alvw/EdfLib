@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DataRecordsWriter;
-import com.biorecorder.edflib.base.HeaderConfig;
+import com.biorecorder.edflib.DataRecordsWriter;
+import com.biorecorder.edflib.HeaderConfig;
 
 import java.io.IOException;
 
@@ -41,7 +41,7 @@ public class DataRecordsJoiner extends DataRecordsFilter {
         HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig); // copy header config
         outHeaderConfig.setDurationOfDataRecord(headerConfig.getDurationOfDataRecord() * numberOfRecordsToJoin);
         for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            outHeaderConfig.getSignalConfig(i).setNumberOfSamplesInEachDataRecord(headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord() * numberOfRecordsToJoin);
+            outHeaderConfig.setNumberOfSamplesInEachDataRecord(i,headerConfig.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
         }
         return outHeaderConfig;
     }
@@ -64,7 +64,7 @@ public class DataRecordsJoiner extends DataRecordsFilter {
         int signalPosition = 0;
         int outSignalPosition;
         for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            int numberOfSignalSamples = headerConfig.getSignalConfig(i).getNumberOfSamplesInEachDataRecord();
+            int numberOfSignalSamples = headerConfig.getNumberOfSamplesInEachDataRecord(i);
             outSignalPosition = signalPosition * numberOfRecordsToJoin + (recordsCounter - 1) * numberOfSignalSamples;
             System.arraycopy(digitalData, offset + signalPosition, outDataRecord, outSignalPosition, numberOfSignalSamples);
             signalPosition += numberOfSignalSamples;

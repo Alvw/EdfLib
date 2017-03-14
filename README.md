@@ -92,9 +92,6 @@ To save data to a EDF/BDF file we have to create EdfWriter:
 ```java
 EdfWriter edfFileWriter = new EdfWriter("filename");
 
- // or
-
-EdfWriter edfFileWriter = new EdfWriter("filename");
 ```
 
 But to make it possible to write data to the file, we must open the EdfWriter first and pass a
@@ -103,15 +100,10 @@ HeaderConfig object with the configuration information for the file header recor
 Suppose that we have a two-channels measuring device. One channel measures the cardiogram with the frequency 500 Hz, and the other is accelerometer detecting movements with the frequency 50 Hz. Lets create appropriate HeaderConfig and open the EdfWriter:
 
 ```java
-HeaderConfig headerConfig = new HeaderConfig(2);
-headerConfig.setPatientIdentification("Some Patient");
-headerConfig.setDurationOfDataRecord(1); // 1 second
-
 
 HeaderConfig headerConfig = new HeaderConfig(2);
 headerConfig.setPatientIdentification("Some Patient");
 headerConfig.setDurationOfDataRecord(1); // 1 second
-
 
 headerConfig.setLabel(0,"EKG");
 headerConfig.setDigitalMin(0,-32767);
@@ -121,14 +113,12 @@ headerConfig.setPhysicalMax(0,3125);
 headerConfig.setPhysicalDimension(0,"uV");
 headerConfig.setNumberOfSamplesInEachDataRecord(0,500);
 
-
-headerConfig.setLabel(0,"Accelerometer");
-headerConfig.setDigitalMin(0,-32767);
-headerConfig.setDigitalMax(0, 32767);
-headerConfig.setPhysicalMin(0,-16384);
-headerConfig.setPhysicalMax(0,-16384);
-headerConfig.setPhysicalDimension(0,"m/sec^3");
-
+headerConfig.setLabel(1,"Accelerometer");
+headerConfig.setDigitalMin(1,-32767);
+headerConfig.setDigitalMax(1, 32767);
+headerConfig.setPhysicalMin(1,-16384);
+headerConfig.setPhysicalMax(1,-16384);
+headerConfig.setPhysicalDimension(1,"m/sec^3");
 
 edfFileWriter.open(headerConfig);
 ```

@@ -36,7 +36,7 @@ public class EdfExample {
             EdfWriter fileWriter1 = new EdfWriter(fileToWrite1, FileType.EDF_16BIT);
             fileWriter1.open(headerConfig);
             while (edfFileReader.availableDataRecords() > 0) {
-                fileWriter1.writePhysicalDataRecord(edfFileReader.readPhysicalDataRecord());
+                fileWriter1.writeDigitalDataRecord(edfFileReader.readDigitalDataRecord());
             }
             fileWriter1.close();
 
@@ -51,7 +51,7 @@ public class EdfExample {
             fileWriter2.close();
 
             /*
-             *  do the filtering
+             *  do some filtering
              * (that joins 10 data records first and then omits data from the first channel and averages samples
              * from the second channel reducing the 50Hz noise)
              * and write the resultant records to ekgcopy3.edf
@@ -75,7 +75,6 @@ public class EdfExample {
             // Print some header info from resultant file after filtering
             System.out.println("\nHeader info of the resultant filtered Edf-file:");
             printHeaderInfo(fileWriter3.getHeaderInfo());
-            System.out.println(fileWriter1.getWritingInfo());
 
 
         } catch (Exception e) {

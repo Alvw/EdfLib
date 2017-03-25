@@ -4,7 +4,7 @@ import java.nio.charset.Charset;
 
 /**
  * Defines file types that can be read or written by
- * {@link EdfReader} and {@link EdfWriter}
+ * {@link EdfFileReader} and {@link EdfFileWriter}
  *
  */
 public enum FileType {

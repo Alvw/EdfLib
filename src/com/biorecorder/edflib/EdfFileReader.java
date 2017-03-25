@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * Permit to read DataRecords from EDF or BDF file. The structure of DataRecords is described
- * in the file header. EdfReader reads  and recognizes the information from the file header and
+ * in the file header. EdfFileReader reads  and recognizes the information from the file header and
  * save it in special {@link HeaderConfig} object. After that it can correctly read data
  * from the file.
  * <p>
@@ -16,7 +16,7 @@ import java.util.List;
  * and digital maximum and minimum specified for every channel (signal)). So we can "read" physical values if
  * we wish - {@link #readPhysicalDataRecord()}, {@link #readPhysicalSamples(int, int)}.
  */
-public class EdfReader {
+public class EdfFileReader {
     private HeaderConfig headerConfig;
     private FileInputStream fileInputStream;
     private File file;
@@ -24,13 +24,13 @@ public class EdfReader {
     private int recordPosition = 0;
 
     /**
-     * Creates EdfReader to read data from the file represented by the specified File object.
+     * Creates EdfFileReader to read data from the file represented by the specified File object.
      *
      * @param file the file to be opened for reading
      * @throws IOException            if the file header can not be read
      * @throws HeaderParsingException if the file header is not valid EDF/BDF file header
      */
-    public EdfReader(File file) throws IOException, HeaderParsingException {
+    public EdfFileReader(File file) throws IOException, HeaderParsingException {
         headerConfig = new HeaderConfig(file);
         this.file = file;
         fileInputStream = new FileInputStream(file);
@@ -333,7 +333,7 @@ public class EdfReader {
 
 
     /**
-     * Close this EdfReader and releases any system resources associated with
+     * Close this EdfFileReader and releases any system resources associated with
      * it. This method MUST be called after finishing reading DataRecords.
      * Failing to do so will cause unnessesary memory usage and corrupted and incomplete data writing.
      *

@@ -452,29 +452,32 @@ public class HeaderConfig {
         return totalNumberOfSamplesInRecord;
     }
 
+    public double getSampleRate(int signalNumber) {
+        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord() / durationOfDataRecord;
+    }
+
     /**
-     * Helper method. Give the signal number corresponding to the given sample position
-     * inside a DataRecord
+     * Helper method. Give the  number of signal corresponding to the given
+     * sample number calculating from the beginning of recording
      *
-     * @param samplePosition sample position within a DataRecord
+     * @param sampleNumber sample number
      * @return signal number corresponding to the given sample position
      */
-    public int getSampleSignal(int samplePosition) {
-        if (samplePosition < 0) {
-            samplePosition = 0;
+    public int signalNumber(long sampleNumber) {
+        if (sampleNumber < 0) {
+            sampleNumber = 0;
         }
-        if (samplePosition > getRecordLength()) {
-            samplePosition = samplePosition % getRecordLength();
-        }
+        sampleNumber = sampleNumber % getRecordLength();
         int samplesCounter = 0;
         for (int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
             samplesCounter += getNumberOfSamplesInEachDataRecord(signalNumber);
-            if (samplePosition <= samplesCounter) {
+            if (sampleNumber <= samplesCounter) {
                 return signalNumber;
             }
         }
         return 0;
     }
+
 
     /**
      * Helper method. Convert the physical value belonging to the given signal to digital one

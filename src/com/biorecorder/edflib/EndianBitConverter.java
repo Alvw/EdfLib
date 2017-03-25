@@ -191,14 +191,12 @@ public class EndianBitConverter {
      *
      * @param intArray            int array to be converted to byte array
      * @param numberOfBytesPerInt the number of bytes that we will get as a result of conversion of each int
-     * @param offset              the offset within the array of the first int to be converted
-     * @param length              number of int elements that will be converted to bytes
      * @return resultant array of byte (LITTLE_ENDIAN ordered)
      */
 
-    public static byte[] intArrayToLittleEndianByteArray(int[] intArray, int offset, int length, int numberOfBytesPerInt) {
-        byte[] result = new byte[length * numberOfBytesPerInt];
-        intArrayToLittleEndianByteArray(intArray, offset, result, 0, length, numberOfBytesPerInt);
+    public static byte[] intArrayToLittleEndianByteArray(int[] intArray,  int numberOfBytesPerInt) {
+        byte[] result = new byte[intArray.length * numberOfBytesPerInt];
+        intArrayToLittleEndianByteArray(intArray, 0, result, 0, intArray.length, numberOfBytesPerInt);
         return result;
     }
 

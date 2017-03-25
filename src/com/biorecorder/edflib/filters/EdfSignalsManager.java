@@ -1,6 +1,6 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.DataRecordsWriter;
+import com.biorecorder.edflib.EdfWriter;
 import com.biorecorder.edflib.HeaderConfig;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.util.Map;
  * <p>
  * EdfExample:
  * <pre>{@code
- *  DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(new EdfWriter("filename", FileType.BDF_24BIT));
+ *  EdfSignalsManager signalsManager = new EdfSignalsManager(new EdfWriter("filename", FileType.BDF_24BIT));
  *  signalsManager.removeSignal(0);
  *  signalsManager.removeSignal(2);
  *  signalsManager.addSignalPrefiltering(1, new SignalMovingAverageFilter(10));
@@ -25,11 +25,11 @@ import java.util.Map;
  * @see SignalFilter
  * @see SignalMovingAverageFilter
  */
-public class DataRecordsSignalsManager extends DataRecordsFilter {
+public class EdfSignalsManager extends EdfFilter {
     private Map<Integer, SignalFilter> filters = new HashMap<Integer, SignalFilter>();
     private List<Boolean> signalsMask = new ArrayList<Boolean>();
 
-    public DataRecordsSignalsManager(DataRecordsWriter out) {
+    public EdfSignalsManager(EdfWriter out) {
         super(out);
     }
 
@@ -136,9 +136,9 @@ public class DataRecordsSignalsManager extends DataRecordsFilter {
      * @param offset      - offset within the array at which the DataRecord starts
      * @throws IOException
      */
-    @Override
+
     public void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException {
-        out.writeDigitalDataRecord(filterDataRecord(digitalData, offset));
+       // out.writeDigitalDataRecord(filterDataRecord(digitalData, offset));
     }
 
 }

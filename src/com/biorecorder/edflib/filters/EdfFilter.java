@@ -1,6 +1,6 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.DataRecordsWriter;
+import com.biorecorder.edflib.EdfWriter;
 import com.biorecorder.edflib.HeaderConfig;
 
 import java.io.IOException;
@@ -10,23 +10,23 @@ import java.io.IOException;
  * DataRecordsWriter object. It implements the same interface but permits to add some additional
  * functionality to the underlying class.
  * <p>
- * DataRecordsFilter itself simply overrides all methods of DataRecordsWriter
+ * EdfFilter itself simply overrides all methods of DataRecordsWriter
  * with versions that pass all requests to the underlying DataRecordsWriter. The only purpose of this class
  * is to be a superclass for real data DataRecord filters which normally modify incoming
  * DataRecords before pass (write) them to underlying writer.
  * <p>
  * Full analog of {@link java.io.FilterOutputStream}
  */
-public class DataRecordsFilter extends DataRecordsWriter {
-    protected DataRecordsWriter out;
+public class EdfFilter extends EdfWriter {
+    protected EdfWriter out;
 
     /**
-     * Creates an DataRecordsFilter built on top of the specified underlying DataRecords writer.
+     * Creates an EdfFilter built on top of the specified underlying DataRecords writer.
      *
      * @param out the underlying DataRecords writer, to be assigned to the field this.out for later use
      */
 
-    public DataRecordsFilter(DataRecordsWriter out) {
+    public EdfFilter(EdfWriter out) {
         this.out = out;
     }
 
@@ -46,7 +46,7 @@ public class DataRecordsFilter extends DataRecordsWriter {
 
 
     /**
-     * The open method of DataRecordsFilter calls the same method of its
+     * The open method of EdfFilter calls the same method of its
      * underlying DataRecordsWriter but with the new HeaderConfig
      * corresponding to the structure of resulting output DataRecords
      *
@@ -63,13 +63,12 @@ public class DataRecordsFilter extends DataRecordsWriter {
     /**
      * Calls the same method of its underlying DataRecordsWriter.
      *
-     * @param digitalData array with digital data
-     * @param offset      offset within the array at which the DataRecord starts
+     * @param digitalSamples array with digital data
      * @throws IOException
      */
     @Override
-    public void writeDigitalDataRecord(int[] digitalData, int offset) throws IOException {
-        out.writeDigitalDataRecord(digitalData, offset);
+    public void writeDigitalSamples(int[] digitalSamples) throws IOException {
+        out.writeDigitalSamples(digitalSamples);
     }
 
     /**

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -587,6 +588,7 @@ public class HeaderConfig {
         }
     }
 
+
     /**
      * Convert String to double
      *
@@ -634,6 +636,43 @@ public class HeaderConfig {
         return String.format("%.6f", value).replace(",", ".");
     }
 
+
+    public void test(int[] digDataRecord) {
+        double[]  physDataRecord = new double[digDataRecord.length];
+        int[]  digDataRecord1 = new int[digDataRecord.length];
+        for (int i = 0; i < digDataRecord.length; i++) {
+            physDataRecord[i] = digitalValueToPhysical(signalNumber(i), digDataRecord[i]);
+        }
+
+        for (int i = 0; i < digDataRecord.length; i++) {
+            digDataRecord1[i] = physicalValueToDigital(signalNumber(i), physDataRecord[i]);
+        }
+        System.out.println("is arrays equal? "+ Arrays.equals(digDataRecord, digDataRecord1));
+
+    }
+
+    public double offset(int signalNumber) {
+        return signals.get(signalNumber).offset();
+    }
+
+    public double[] convertDig(int[] digDataRecord) {
+        double[]  physDataRecord = new double[digDataRecord.length];
+        int[]  digDataRecord1 = new int[digDataRecord.length];
+        for (int i = 0; i < digDataRecord.length; i++) {
+            physDataRecord[i] = digitalValueToPhysical(signalNumber(i), digDataRecord[i]);
+        }
+        return physDataRecord;
+    }
+
+    public int[] convertPhys(double[] physDataRecord) {
+        int[]  digDataRecord = new int[physDataRecord.length];
+
+        for (int i = 0; i < digDataRecord.length; i++) {
+            digDataRecord[i] = physicalValueToDigital(signalNumber(i), physDataRecord[i]);
+        }
+        return digDataRecord;
+
+    }
 }
 
 

@@ -70,6 +70,13 @@ public class EdfFileReader {
         samplesPositionList.set(signalNumber, newPosition);
     }
 
+    public void reset() {
+        recordPosition = 0;
+        for(int i = 0; i < samplesPositionList.size(); i++) {
+            samplesPositionList.set(i, Long.valueOf(0));
+        }
+    }
+
     /**
      * Return the current DataRecord position.
      * The position is measured in DataRecords.
@@ -137,13 +144,18 @@ public class EdfFileReader {
     public double[] readPhysicalDataRecord() throws IOException {
         int[] digRecord = readDigitalDataRecord();
         double[] physRecord = new double[digRecord.length];
-        int counter = 0;
+        for(int i = 0; i < digRecord.length; i++) {
+            physRecord[i] = headerConfig.digitalValueToPhysical(headerConfig.signalNumber(i), digRecord[i]);
+
+        }
+
+       /* int counter = 0;
         for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
             for (int sampleNumber = 0; sampleNumber < headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber); sampleNumber++) {
                 physRecord[counter] = headerConfig.digitalValueToPhysical(signalNumber, digRecord[counter]);
                 counter++;
             }
-        }
+        }*/
         return physRecord;
     }
 

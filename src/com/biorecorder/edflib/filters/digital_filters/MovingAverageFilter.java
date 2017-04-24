@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.filters;
+package com.biorecorder.edflib.filters.digital_filters;
 
 
 import java.util.ArrayList;
@@ -11,18 +11,18 @@ import java.util.List;
  * filteredValue_m = ( value_m + value_(m-1) + ... + value_(m-n) ) / n
  */
 
-public class SignalMovingAverageFilter implements SignalFilter {
+public class MovingAverageFilter implements SignalFilter {
 
     private List<Integer> buffer = new ArrayList<Integer>();
     private int bufferSize;
 
     /**
-     * Create SignalMovingAverageFilter that will buffer the given number of averaging points
+     * Create MovingAverageFilter that will buffer the given number of averaging points
      *
      * @param numberOfAveragingPoints the number of last input samples that will be buffered
      *                                to calculate the average value
      */
-    public SignalMovingAverageFilter(int numberOfAveragingPoints) {
+    public MovingAverageFilter(int numberOfAveragingPoints) {
         this.bufferSize = numberOfAveragingPoints;
     }
 
@@ -51,7 +51,7 @@ public class SignalMovingAverageFilter implements SignalFilter {
 
 
     @Override
-    public String getFilterName() {
-        return "Moving Average:" + bufferSize;
+    public String getName() {
+        return "MovAvg:" + bufferSize;
     }
 }

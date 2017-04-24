@@ -65,13 +65,15 @@ public class EdfJoiner extends EdfFilter {
             int joinedRecords = countRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
-            while (samplePosition > counter + headerConfig.getNumberOfSamplesInEachDataRecord(channelNumber)) {
+            while (samplePosition >= counter + headerConfig.getNumberOfSamplesInEachDataRecord(channelNumber)) {
                 counter += headerConfig.getNumberOfSamplesInEachDataRecord(channelNumber);
-                channelNumber++;
+                 channelNumber++;
             }
+
             int outSamplePosition = counter * numberOfRecordsToJoin;
             outSamplePosition += joinedRecords * headerConfig.getNumberOfSamplesInEachDataRecord(channelNumber);
             outSamplePosition += samplePosition - counter;
+
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 

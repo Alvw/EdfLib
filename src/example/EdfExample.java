@@ -2,28 +2,18 @@ package example;
 
 import com.biorecorder.edflib.*;
 import com.biorecorder.edflib.filters.EdfJoiner;
-import com.biorecorder.edflib.filters.EdfSignalsManager;
-import com.biorecorder.edflib.filters.SignalMovingAverageFilter;
+import com.biorecorder.edflib.filters.EdfSignalsFilter;
+import com.biorecorder.edflib.filters.EdfSignalsRemover;
 import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.filters.digital_filters.MovingAverageFilter;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * This example program opens the EDF-file records/ekg.edf
  * (that contains data from two measuring channels - cardiogram and accelerometer) and
- * <ul>
- * <li>reads its records (one by one) and writes them to the new file ekgcopy1.edf as it is</li>
- * <li>reads data by samples (from both channels) and writes them to the new file ekgcopy2.edf as it is</li>
- * <li>does some filtering
- * (that joins 10 data records first and then omits data from the first channel and averages samples
- * from the second channel reducing the 50Hz noise)
- * and writes the resultant records to ekgcopy3.edf</li>
- * </ul>
+ * copy its data to new files as it is or with some transformations
  */
 public class EdfExample {
     public static void main(String[] args) {
@@ -33,26 +23,8 @@ public class EdfExample {
             EdfFileReader originalFileReader = new EdfFileReader(originalFile);
             HeaderConfig headerConfig = originalFileReader.getHeaderInfo();
             // Print some header info from original file
-            System.out.println("\nHeader info of the original Edf-file:");
-            printHeaderInfo(headerConfig);
-
-            //headerConfig.test(originalFileReader.readDigitalDataRecord());
-
-         /*   int[] digRecord = originalFileReader.readDigitalDataRecord();
-            int[] digRecord1 = originalFileReader.readDigitalDataRecord();
-            int[] digRecord3 = originalFileReader.readDigitalDataRecord();
-            originalFileReader.reset();
-            double[] physRecord = originalFileReader.readPhysicalDataRecord();
-            double[] physRecord1 = headerConfig.convertDig(digRecord);
-             System.out.println("is arrays equal? "+ Arrays.equals(physRecord, physRecord1));
-            for (int i = 0; i < physRecord.length; i++) {
-              // System.out.println(i+ " "+physRecord[i]+ " "+ physRecord1[i]);
-            }
-            for (int i = 0; i < physRecord.length; i++) {
-               // System.out.println(i+ " "+digRecord1[i]);
-            }
-            System.out.println("offset "+headerConfig.offset(0));*/
-
+            System.out.println("Header info of the original Edf-file:");
+            System.out.println(headerConfig.headerToString());
 
 /*****************************************************************************************
  *    Read «DIGITAL» DataRecords one by one and write them to the new file ekgcopy1.edf as it is
@@ -76,9 +48,11 @@ public class EdfExample {
                 arr2 = resultantFileReader.readDigitalDataRecord();
                 i++;
                 if(!Arrays.equals(arr1, arr2)) {
-                    System.out.println("original and resultant files are not equals. Record: "+i);
+                    throw new RuntimeException("Test1: original and resultant files are not equals. Record: "+i);
                 }
             }
+
+            resultantFileReader.close();
             System.out.println("Test1 done! \n");
 
 
@@ -104,9 +78,11 @@ public class EdfExample {
                 arr2 = resultantFileReader.readDigitalDataRecord();
                 i++;
                 if(!Arrays.equals(arr1, arr2)) {
-                    System.out.println("original and resultant files are not equals. Record: "+i);
+                    throw new RuntimeException("Test2: original and resultant files are not equals. Record: "+i);
                 }
             }
+
+            resultantFileReader.close();
             System.out.println("Test2 done! \n");
 
 /*****************************************************************************************
@@ -118,8 +94,8 @@ public class EdfExample {
             fileWriter3.open(headerConfig);
             originalFileReader.reset();
             while (originalFileReader.availableSamples(0) > 0) {
-                fileWriter3.writeDigitalSamples(originalFileReader.readDigitalSamples(0, headerConfig.getNumberOfSamplesInEachDataRecord(0)));
-                fileWriter3.writeDigitalSamples(originalFileReader.readDigitalSamples(1, headerConfig.getNumberOfSamplesInEachDataRecord(1)));
+                fileWriter3.writePhysicalSamples(originalFileReader.readPhysicalSamples(0, headerConfig.getNumberOfSamplesInEachDataRecord(0)));
+                fileWriter3.writePhysicalSamples(originalFileReader.readPhysicalSamples(1, headerConfig.getNumberOfSamplesInEachDataRecord(1)));
             }
             fileWriter3.close();
 
@@ -132,49 +108,123 @@ public class EdfExample {
                 arr2 = resultantFileReader.readDigitalDataRecord();
                 i++;
                 if(!Arrays.equals(arr1, arr2)) {
-                    System.out.println("original and resultant files are not equals "+i);
-                    for(int j = 0; j < arr1.length; j++) {
-                        if(arr1[j] != arr2[j]) {
-                             System.out.println(j+ " "+arr1[j]+ "   " +arr2[j]);
-                        }
-                    }
+                    throw new RuntimeException("Test3: original and resultant files are not equals. Record: "+i);
                 }
             }
+
+            resultantFileReader.close();
             System.out.println("Test3 done! \n");
 
-
 /*****************************************************************************************
- *     Test EdfJoiner. Read data, joins 10 data records and write the resultant records
+ *     Test EdfJoiner. Read data, joins 5 data records and write the resultant records
  *     to ekgcopy4.edf
  *****************************************************************************************/
 
-            /*
-             *  do some filtering
-             * (that joins 10 data records first and then omits data from the first channel and averages samples
-             * from the second channel reducing the 50Hz noise)
-             * and write the resultant records to ekgcopy3.edf
-             */
-            File fileToWrite4 = new File(recordsDir, "ekgcopy4.edf");
-            EdfFileWriter fileWriter4 = new EdfFileWriter(fileToWrite4);
-            EdfJoiner joiner = new EdfJoiner(10, fileWriter3);
-
-         /*   EdfSignalsManager signalsManager = new EdfSignalsManager(joiner);
-            signalsManager.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
-            signalsManager.removeSignal(1);
-            signalsManager.open(headerConfig);*/
+            File resultantFile4 = new File(recordsDir, "ekgcopy4.edf");
+            EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4);
+            int numberOfRecordsToJoin = 5;
+            EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, fileWriter4);
 
             joiner.open(headerConfig);
-            originalFileReader.setDataRecordPosition(0);
+            originalFileReader.reset();
             while (originalFileReader.availableDataRecords() > 0) {
-                joiner.writeDigitalSamples(originalFileReader.readDigitalDataRecord());
+                joiner.writePhysicalSamples(originalFileReader.readPhysicalDataRecord());
             }
-            fileWriter4.close();
-            originalFileReader.close();
+            joiner.close();
+
+            System.out.println("Test4: copy file with joining every 5 data records");
+            resultantFileReader = new EdfFileReader(resultantFile4);
+            originalFileReader.reset();
+            i = 0;
+            int numberOfSamples = 150;
+            while(resultantFileReader.availableSamples(0) > 0) {
+                arr1 = originalFileReader.readDigitalSamples(0, numberOfSamples);
+                arr2 = resultantFileReader.readDigitalSamples(0, numberOfSamples);
+                i++;
+                if(arr1.length == arr2.length && !Arrays.equals(arr1, arr2)) {
+                    throw new RuntimeException("Test4: original and resultant files are not equals. Record: "+i);
+
+                }
+            }
+            i = 0;
+            numberOfSamples = 15;
+            while(resultantFileReader.availableSamples(1) > 0) {
+                arr1 = originalFileReader.readDigitalSamples(1, numberOfSamples);
+                arr2 = resultantFileReader.readDigitalSamples(1, numberOfSamples);
+                i++;
+                if(arr1.length == arr2.length && !Arrays.equals(arr1, arr2)) {
+                    throw new RuntimeException("Test4: original and resultant files are not equals. Record: "+i);
+                }
+            }
+
+            resultantFileReader.close();
+            System.out.println("Test4 done! \n");
+
+            // Print some header info from resultant file
+            System.out.println("Header info of the resultant joined Edf-file:");
+            System.out.println(fileWriter4.getHeaderInfo().headerToString());
+
+
+/*****************************************************************************************
+ *     Test EdfSignalsRemover. Reads data records from original file,
+ *     removes samples belonging to channel 0 and write the resultant records
+ *     to ekgcopy5.edf
+ *****************************************************************************************/
+
+            File resultantFile5 = new File(recordsDir, "ekgcopy5.edf");
+            EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5);
+            EdfSignalsRemover signalsRemover = new EdfSignalsRemover(fileWriter5);
+            signalsRemover.removeSignal(0);
+            signalsRemover.open(headerConfig);
+
+            originalFileReader.reset();
+            while (originalFileReader.availableDataRecords() > 0) {
+                signalsRemover.writePhysicalSamples(originalFileReader.readPhysicalDataRecord());
+            }
+            signalsRemover.close();
+
+            System.out.println("Test5: copy file with removing data from channel 0");
+            resultantFileReader = new EdfFileReader(resultantFile5);
+            originalFileReader.reset();
+            i = 0;
+            while(resultantFileReader.availableDataRecords() > 0) {
+                arr1 = originalFileReader.readDigitalSamples(1, headerConfig.getNumberOfSamplesInEachDataRecord(1));
+                arr2 = resultantFileReader.readDigitalDataRecord();
+                i++;
+                if(!Arrays.equals(arr1, arr2)) {
+                    throw new RuntimeException("Test5: original and resultant files are not equals. Record: "+i);
+                }
+            }
+
+            resultantFileReader.close();
+            System.out.println("Test5 done! \n");
+
+            // Print some header info from resultant file
+            System.out.println("Header info of the resultant Edf-file with removed channel:");
+            System.out.println(fileWriter5.getHeaderInfo().headerToString());
+
+/*****************************************************************************************
+ *     EdfSignalsFilter usage example. Read data, apply some filtering to
+ *     samples from channel 0 and write the resultant records
+ *     to ekgcopy6.edf
+ *****************************************************************************************/
+            File resultantFile6 = new File(recordsDir, "ekgcopy6.edf");
+            EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6);
+            EdfSignalsFilter signalsFilter = new EdfSignalsFilter(fileWriter6);
+            signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
+            signalsFilter.open(headerConfig);
+
+            originalFileReader.reset();
+            while (originalFileReader.availableDataRecords() > 0) {
+                signalsFilter.writeDigitalSamples(originalFileReader.readDigitalDataRecord());
+            }
+            signalsFilter.close();
 
             // Print some header info from resultant file after filtering
-            System.out.println("\nHeader info of the resultant filtered Edf-file:");
-            printHeaderInfo(fileWriter3.getHeaderInfo());
+            System.out.println("Header info of the resultant filtered Edf-file:");
+            System.out.println(fileWriter6.getHeaderInfo().headerToString());
 
+            originalFileReader.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -183,19 +233,5 @@ public class EdfExample {
 
     }
 
-    private static void printHeaderInfo(HeaderConfig headerConfig) {
-        System.out.println("file type " + headerConfig.getFileType());
-        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        String timeStamp = dateFormat.format(new Date(headerConfig.getRecordingStartTime()));
-        System.out.println("Start time "+timeStamp);
-        System.out.println("Duration of DataRecords = " + headerConfig.getDurationOfDataRecord());
-        System.out.println("Number of signals = " + headerConfig.getNumberOfSignals());
-        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            System.out.println(i + ": label = " + headerConfig.getLabel(i)
-                    + "; number of samples in data records = " + headerConfig.getNumberOfSamplesInEachDataRecord(i)
-                    + "; prefiltering = " + headerConfig.getPrefiltering(i));
-        }
-        System.out.println();
 
-    }
 }

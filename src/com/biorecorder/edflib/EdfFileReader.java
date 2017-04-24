@@ -145,7 +145,7 @@ public class EdfFileReader {
         int[] digRecord = readDigitalDataRecord();
         double[] physRecord = new double[digRecord.length];
         for(int i = 0; i < digRecord.length; i++) {
-            physRecord[i] = headerConfig.digitalValueToPhysical(headerConfig.signalNumber(i), digRecord[i]);
+            physRecord[i] = headerConfig.digitalValueToPhysical(headerConfig.signalNumber(i+1), digRecord[i]);
 
         }
 
@@ -257,10 +257,9 @@ public class EdfFileReader {
     public double[] readPhysicalSamples(int signalNumber, int numberOfSamples) throws IOException {
         int[] digSamples = readDigitalSamples(signalNumber, numberOfSamples);
         double[] physSamples = new double[digSamples.length];
-        for(int i = 0; i < digSamples.length; i++) {
+        for(int i = 0; i < numberOfSamples; i++) {
             physSamples[i] = headerConfig.digitalValueToPhysical(signalNumber, digSamples[i]);
         }
-
         return physSamples;
     }
 

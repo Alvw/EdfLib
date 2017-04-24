@@ -3,6 +3,7 @@ package com.biorecorder.edflib;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -465,10 +466,13 @@ public class HeaderConfig {
      * @return signal number corresponding to the given sample position
      */
     public int signalNumber(long sampleNumber) {
-        if (sampleNumber < 0) {
-            sampleNumber = 0;
+        if (sampleNumber < 1) {
+            throw new RuntimeException("Sample number could not be < 1!");
         }
-        sampleNumber = sampleNumber % getRecordLength();
+
+        int recordLength = getRecordLength();
+        sampleNumber = (sampleNumber % recordLength == 0) ? recordLength : sampleNumber % recordLength;
+
         int samplesCounter = 0;
         for (int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
             samplesCounter += getNumberOfSamplesInEachDataRecord(signalNumber);
@@ -572,6 +576,32 @@ public class HeaderConfig {
         return byteBuffer.array();
     }
 
+    public double getSampleFrequency(int signalNumber) {
+        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord() / getDurationOfDataRecord();
+    }
+
+    /**
+     * Get some header info as a String
+     * @return some header info as a String
+     */
+    public String headerToString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("file type = " + getFileType());
+        DateFormat dateFormat = new SimpleDateFormat("dd:MM:yyyy HH:mm:ss");
+        String timeStamp = dateFormat.format(new Date(getRecordingStartTime()));
+        sb.append("\nStart date and time = "+timeStamp);
+        sb.append("\nDuration of DataRecords = " + getDurationOfDataRecord());
+        sb.append("\nNumber of signals = " + getNumberOfSignals());
+        for (int i = 0; i < getNumberOfSignals(); i++) {
+            sb.append("\n "+i + ": label = " + getLabel(i)
+                    + "; number of samples in data records = " + getNumberOfSamplesInEachDataRecord(i)
+                    + "; frequency = "+ Math.round(getSampleFrequency(i))
+                    + "; prefiltering = " + getPrefiltering(i));
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
     /**
      * Convert String to in
      *
@@ -636,43 +666,6 @@ public class HeaderConfig {
         return String.format("%.6f", value).replace(",", ".");
     }
 
-
-    public void test(int[] digDataRecord) {
-        double[]  physDataRecord = new double[digDataRecord.length];
-        int[]  digDataRecord1 = new int[digDataRecord.length];
-        for (int i = 0; i < digDataRecord.length; i++) {
-            physDataRecord[i] = digitalValueToPhysical(signalNumber(i), digDataRecord[i]);
-        }
-
-        for (int i = 0; i < digDataRecord.length; i++) {
-            digDataRecord1[i] = physicalValueToDigital(signalNumber(i), physDataRecord[i]);
-        }
-        System.out.println("is arrays equal? "+ Arrays.equals(digDataRecord, digDataRecord1));
-
-    }
-
-    public double offset(int signalNumber) {
-        return signals.get(signalNumber).offset();
-    }
-
-    public double[] convertDig(int[] digDataRecord) {
-        double[]  physDataRecord = new double[digDataRecord.length];
-        int[]  digDataRecord1 = new int[digDataRecord.length];
-        for (int i = 0; i < digDataRecord.length; i++) {
-            physDataRecord[i] = digitalValueToPhysical(signalNumber(i), digDataRecord[i]);
-        }
-        return physDataRecord;
-    }
-
-    public int[] convertPhys(double[] physDataRecord) {
-        int[]  digDataRecord = new int[physDataRecord.length];
-
-        for (int i = 0; i < digDataRecord.length; i++) {
-            digDataRecord[i] = physicalValueToDigital(signalNumber(i), physDataRecord[i]);
-        }
-        return digDataRecord;
-
-    }
 }
 
 

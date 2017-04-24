@@ -40,7 +40,7 @@ public class EdfFilter extends EdfWriter {
      * @return resulting output DataRecords configuration
      */
     protected HeaderConfig createOutputRecordingConfig() {
-        return new HeaderConfig(headerConfig);
+        return new HeaderConfig(new HeaderConfig(headerConfig));
 
     }
 

@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.filters;
+package com.biorecorder.edflib.filters.digital_filters;
 
 /**
  * Signal filter describes some kind of transformation with stream data coming from
@@ -19,5 +19,5 @@ public interface SignalFilter {
      *
      * @return the name of this filter
      */
-    String getFilterName();
+    String getName();
 }

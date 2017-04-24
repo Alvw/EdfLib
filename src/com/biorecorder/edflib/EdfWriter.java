@@ -85,19 +85,17 @@ public abstract class EdfWriter {
      */
     public void writePhysicalSamples(double[] physicalSamples) throws IOException {
         int[] digSamples = new int[physicalSamples.length];
-        long counter = sampleCounter;
-        System.out.println("counter start "+counter);
+        int signalNumber = 0;
         for (int i = 0; i < physicalSamples.length; i++) {
-            digSamples[i] = headerConfig.physicalValueToDigital(headerConfig.signalNumber(counter), physicalSamples[i]);
-            counter++;
+            signalNumber = headerConfig.signalNumber(sampleCounter + i + 1);
+            digSamples[i] = headerConfig.physicalValueToDigital(signalNumber, physicalSamples[i]);
         }
+
         writeDigitalSamples(digSamples);
-        System.out.println("counter end "+counter);
     }
 
     protected int countRecords() {
-      // return  headerConfig.getRecordLength() == 0 ?  0 :  (int) sampleCounter / headerConfig.getRecordLength();
-        return (int) sampleCounter / headerConfig.getRecordLength();
+        return  headerConfig.getRecordLength() == 0 ?  0 :  (int) (sampleCounter / headerConfig.getRecordLength());
     }
 
 

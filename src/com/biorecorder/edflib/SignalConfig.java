@@ -133,8 +133,6 @@ class SignalConfig {
      * @return digital value
      */
     public int physicalValueToDigital(double physValue) {
-        // return (int) ((physValue - offset()) / gain());
-
         Long value =  Math.round((physValue - offset()) / gain());
         return value.intValue();
 

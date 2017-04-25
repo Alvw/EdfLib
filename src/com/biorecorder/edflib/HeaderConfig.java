@@ -89,7 +89,7 @@ public class HeaderConfig {
     private long recordingStartTime = -1;
     private int numberOfDataRecords = -1;
     private double durationOfDataRecord;
-    private ArrayList<SignalConfig> signals;
+    private ArrayList<SignalConfig> signals = new ArrayList<SignalConfig>();
     private FileType fileType = FileType.EDF_16BIT;
 
     private static Charset ASCII = Charset.forName("US-ASCII");
@@ -116,16 +116,16 @@ public class HeaderConfig {
     private static final int SIGNAL_NUMBER_OF_SAMPLES_LENGTH = 8;
     private static final int SIGNAL_RESERVED_LENGTH = 32;
 
-
     /**
-     * This constructor creates a EDF_16BIT HeaderConfig instance
-     * with the given number of channels (signals)
-     *
-     * @param numberOfSignals number of signals in data records
+     * Default constructor that creates a HeaderConfig instance
+     * with 0 channels (signals). So all channels should be added as necessary.
+     * <p>
+     * See method: {@link #addSignal()}
      */
-    public HeaderConfig(int numberOfSignals) {
-      this(numberOfSignals, FileType.EDF_16BIT);
+    public HeaderConfig(FileType fileType) {
+
     }
+
 
     /**
      * This constructor creates a HeaderConfig instance of the given type (EDF_16BIT or BDF_24BIT)
@@ -136,7 +136,6 @@ public class HeaderConfig {
      */
     public HeaderConfig(int numberOfSignals, FileType fileType) {
         this.fileType = fileType;
-        signals = new ArrayList<SignalConfig>(numberOfSignals);
         for (int i = 0; i < numberOfSignals; i++) {
             signals.add(new SignalConfig());
         }
@@ -418,7 +417,7 @@ public class HeaderConfig {
 
 
     /**
-     * HeaderConfig must include SignalConfigs describing all measuring channels (signals).
+     * HeaderConfig must describe all its measuring channels (signals).
      * And we have to add them successively in the same order in which the samples belonging to the
      * channels will be placed (saved) in DataRecords
      */

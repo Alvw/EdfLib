@@ -27,7 +27,7 @@ import java.util.Date;
  * to 3 LITTLE_ENDIAN ordered bytes (24 bits) for BDF files
  * and in this form written to the file.
  *
- * @see DataRecordsWriter
+ * @see EdfWriter
  * @see EdfFileWriter
  */
 public class EdfFileWriter extends EdfWriter {
@@ -78,7 +78,7 @@ public class EdfFileWriter extends EdfWriter {
      * If true the average duration of DataRecords during writing process will be calculated
      * and the result will be written to the file header.
      * <p>
-     * <p>average duration of DataRecords = (time of coming last DataRecord - time of coming first DataRecord) / total number of DataRecords
+     * Average duration of DataRecords = (time of coming last DataRecord - time of coming first DataRecord) / total number of DataRecords
      *
      * @param isComputable - if true duration of DataRecords will be calculated
      */
@@ -89,8 +89,7 @@ public class EdfFileWriter extends EdfWriter {
 
 
     /**
-     * Write ONE digital DataRecord to the file.
-     * Take data from digitalData array starting at offset position.
+     * Write digital samples to the file.
      * Every int is converted to LITTLE_ENDIAN ordered bytes (2 bytes for EDF files and 3 bytes for BDF files).
      *
      * @param digitalSamples array with digital samples

@@ -17,7 +17,7 @@ import java.io.IOException;
  *
  */
 public abstract class EdfWriter {
-    protected HeaderConfig headerConfig = new HeaderConfig(0);
+    protected HeaderConfig headerConfig = new HeaderConfig(FileType.EDF_16BIT);
     protected long sampleCounter;
 
 
@@ -47,7 +47,6 @@ public abstract class EdfWriter {
     /**
      * Write the given digital samples.
      *
-     * to the inner DataRecord.
      * The input array should contain n samples belonging to one signal
      * where n = (samplefrequency of that signal) * (duration of DataRecord).
      * <p>

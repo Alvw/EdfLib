@@ -88,7 +88,7 @@ public class HeaderConfig {
     private String recordingIdentification = "Default record";
     private long recordingStartTime = -1;
     private int numberOfDataRecords = -1;
-    private double durationOfDataRecord;
+    private double durationOfDataRecord = 1; // sec
     private ArrayList<SignalConfig> signals = new ArrayList<SignalConfig>();
     private FileType fileType = FileType.EDF_16BIT;
 
@@ -123,7 +123,7 @@ public class HeaderConfig {
      * See method: {@link #addSignal()}
      */
     public HeaderConfig(FileType fileType) {
-
+        this.fileType = fileType;
     }
 
 
@@ -159,7 +159,7 @@ public class HeaderConfig {
         if(firstChar == '0') {
             fileType = FileType.EDF_16BIT;
 
-        } else if((byte) firstChar == (byte) 255) {
+        } else if((Character.getNumericValue(firstChar) & 0xFF) ==  255) {
             fileType = FileType.BDF_24BIT;
         } else {
             throw new HeaderParsingException("Invalid Edf/Bdf file header. First byte should be equal '0' or 255");
@@ -302,6 +302,10 @@ public class HeaderConfig {
         return fileType;
     }
 
+    public void setFileType(FileType fileType) {
+        this.fileType = fileType;
+    }
+
     public String getPatientIdentification() {
         return patientIdentification;
     }
@@ -363,11 +367,6 @@ public class HeaderConfig {
         signals.get(signalNumber).setPhysicalDimension(physicalDimension);
     }
 
-
-    public void setNumberOfSamplesInEachDataRecord(int signalNumber, int numberOfSamplesInEachDataRecord) {
-        signals.get(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInEachDataRecord);
-    }
-
     public void setPrefiltering(int signalNumber, String prefiltering) {
         signals.get(signalNumber).setPrefiltering(prefiltering);
     }
@@ -414,6 +413,20 @@ public class HeaderConfig {
         return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
     }
 
+    public void setNumberOfSamplesInEachDataRecord(int signalNumber, int numberOfSamplesInEachDataRecord) {
+        signals.get(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInEachDataRecord);
+    }
+
+
+    public double getSampleRate(int signalNumber) {
+        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord() / durationOfDataRecord;
+    }
+
+    public void setSampleRate(int signalNumber, int sampleRate) {
+        int numberOfSamplesInEachDataRecord = (int)(sampleRate * durationOfDataRecord);
+        setNumberOfSamplesInEachDataRecord(signalNumber, numberOfSamplesInEachDataRecord );
+
+    }
 
 
     /**
@@ -451,10 +464,6 @@ public class HeaderConfig {
             totalNumberOfSamplesInRecord += signals.get(i).getNumberOfSamplesInEachDataRecord();
         }
         return totalNumberOfSamplesInRecord;
-    }
-
-    public double getSampleRate(int signalNumber) {
-        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord() / durationOfDataRecord;
     }
 
     /**
@@ -517,7 +526,6 @@ public class HeaderConfig {
     }
 
     public byte[] createFileHeader() {
-
         String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(recordingStartTime));
         String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(recordingStartTime));
 

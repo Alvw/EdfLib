@@ -20,10 +20,10 @@ public class EdfExample {
         File recordsDir = new File(System.getProperty("user.dir"), "records");
         File originalFile = new File(recordsDir, "ekg.edf");
         try {
+
             EdfFileReader originalFileReader = new EdfFileReader(originalFile);
             HeaderConfig headerConfig = originalFileReader.getHeaderInfo();
             // Print some header info from original file
-            System.out.println("Header info of the original Edf-file:");
             System.out.println(headerConfig.headerToString());
 
 /*****************************************************************************************

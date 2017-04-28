@@ -82,4 +82,10 @@ public enum FileType {
      */
     public abstract String getFirstReserved();
 
+    public static void main(String[] args) {
+        FileType fileType = FileType.BDF_24BIT;
+        int byteValue = fileType.getFirstByte() & 0xFF;
+        System.out.println("first "+byteValue);
     }
+
+}

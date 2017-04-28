@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * Class for writing DataRecords to the EDF or BDF File.
@@ -137,13 +138,80 @@ public class EdfFileWriter extends EdfWriter {
      * @return string with info about writing process
      */
     public String getWritingInfo() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SS");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         StringBuilder stringBuilder = new StringBuilder("\n");
         stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
         stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
         stringBuilder.append("Number of data records = " + countRecords() + "\n");
         stringBuilder.append("Duration of a data record = " + durationOfDataRecord);
         return stringBuilder.toString();
+    }
+    /**
+     * Unit Test. Usage Example.
+     * <p>
+     * Create the file: current_project_dir/records/test.edf
+     * and write to it 10 data records. Then print some file header info
+     * and writing info.
+     *<p>
+     * Data records has the following structure:
+     * <br>duration of data records = 1 sec (default)
+     * <br>number of channels = 2;
+     * <br>number of samples from channel 0 in each data record (data package) = 50 (sample frequency 50Hz);
+     * <br>number of samples from channel 1 in each data record (data package) = 5 (sample frequency 5 Hz);
+     *
+     * @param args the command-line arguments
+     */
+    public static void main(String[] args) {
+        File recordsDir = new File(System.getProperty("user.dir"), "records");
+        // create file
+        File file = new File(recordsDir, "test.edf");
+        try {
+            // create EdfFileWriter to write edf data to that file
+            EdfFileWriter fileWriter = new EdfFileWriter(file);
+
+            // create header info for the file describing data records structure
+            HeaderConfig headerConfig = new HeaderConfig(2, FileType.EDF_16BIT);
+            headerConfig.setLabel(0, "first channel");
+            headerConfig.setNumberOfSamplesInEachDataRecord(0, 50);
+            headerConfig.setLabel(0, "second channel");
+            headerConfig.setNumberOfSamplesInEachDataRecord(1, 5);
+
+            // open EdfFileWriter giving it the header info.
+            // Now it is ready to write data records
+            fileWriter.open(headerConfig);
+
+            // create and write samples
+            int channel0Frequency = 50; // Hz
+            int channel1Frequency = 5; // Hz
+            int[] samplesFromChannel0 = new int[channel0Frequency];
+            int[] samplesFromChannel1 = new int[channel1Frequency];
+            Random rand = new Random();
+            for(int i = 0; i < 10; i++) {
+                // create random samples for channel 0
+                for(int j = 0; j < samplesFromChannel0.length; j++) {
+                    samplesFromChannel0[j] = rand.nextInt(10000);
+                }
+
+                // create random samples for channel 1
+                for(int j = 0; j < samplesFromChannel1.length; j++) {
+                    samplesFromChannel1[j] = rand.nextInt(10000);
+                }
+
+                // write samples from both channels to the edf file
+                fileWriter.writeDigitalSamples(samplesFromChannel0);
+                fileWriter.writeDigitalSamples(samplesFromChannel1);
+            }
+            // close EdfFileWriter. Always must be done after finishing to write data records
+            fileWriter.close();
+
+            // print some header info
+            System.out.println(fileWriter.getHeaderInfo().headerToString());
+            // print some writing info
+            System.out.println(fileWriter.getWritingInfo());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

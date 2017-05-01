@@ -15,19 +15,16 @@ package com.biorecorder.edflib;
  *     <li>number of samples in each data record</li>
  * </ul>
  */
-class SignalConfig {
+class SignalInfo {
     private int numberOfSamplesInEachDataRecord;
     private String prefiltering = "None";
     private String transducerType = "Unknown";
     private String label = "";
-    private int digitalMin = -8388608;
-    private int digitalMax = 8388607;
-    private double physicalMin = -8388608;
-    private double physicalMax = 8388607;
+    private int digitalMin = FileType.EDF_16BIT.getDigitalMin();
+    private int digitalMax = FileType.EDF_16BIT.getDigitalMax();
+    private double physicalMin = FileType.EDF_16BIT.getDigitalMin();
+    private double physicalMax = FileType.EDF_16BIT.getDigitalMax();;
     private String physicalDimension = "";  // uV or Ohm
-
-    public SignalConfig() {
-    }
 
 
     public int getDigitalMin() {
@@ -54,19 +51,22 @@ class SignalConfig {
         return numberOfSamplesInEachDataRecord;
     }
 
-    public void setDigitalMin(int digitalMin) {
+    public void setDigitalRange(int digitalMin, int digitalMax) {
+        if(digitalMax <= digitalMin) {
+            throw new RuntimeException("DigitalMax must be > digitalMin!. DigitalMax = "
+                    + digitalMax + " DigitalMin = "+digitalMin);
+        }
         this.digitalMin = digitalMin;
-    }
-
-    public void setDigitalMax(int digitalMax) {
         this.digitalMax = digitalMax;
     }
 
-    public void setPhysicalMin(double physicalMin) {
-        this.physicalMin = physicalMin;
-    }
 
-    public void setPhysicalMax(double physicalMax) {
+    public void setPhysicalRange(double physicalMin, double physicalMax) {
+        if(physicalMax <= physicalMin) {
+            throw new RuntimeException("physicalMax must be > physicalMin!. PhysicalMax = "
+                    + physicalMax+" PhysicalMin = " + physicalMin);
+        }
+        this.physicalMin = physicalMin;
         this.physicalMax = physicalMax;
     }
 
@@ -76,7 +76,12 @@ class SignalConfig {
 
 
     public void setNumberOfSamplesInEachDataRecord(int numberOfSamplesInEachDataRecord) {
-        this.numberOfSamplesInEachDataRecord = numberOfSamplesInEachDataRecord;
+       if(numberOfSamplesInEachDataRecord <= 0) {
+           throw new RuntimeException("Number of samples in each DataRecord = "+ numberOfSamplesInEachDataRecord
+           + ".  Must be > 0!");
+
+       }
+       this.numberOfSamplesInEachDataRecord = numberOfSamplesInEachDataRecord;
     }
 
     public String getPrefiltering() {

@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.HeaderInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,27 +18,27 @@ public class EdfSignalsRemover extends EdfFilter{
     }
 
     /**
-     * Indicate that the samples from the given signal should be omitted in resultant DataRecord
+     * Indicate that the samples from the given signal should be omitted in resultant DataRecords
      *
-     * @param signalNumber number of channel (signal) in the original (incoming) DataRecord
-     *                     which samples should be omitted
+     * @param signalNumber number of the signal
+     *                     whose samples should be omitted. Numbering starts from 0.
      */
     public void removeSignal(int signalNumber) {
         signalsToRemove.add(signalNumber);
     }
 
-    protected HeaderConfig createOutputRecordingConfig() {
-        HeaderConfig outHeaderConfig = new HeaderConfig(headerConfig);
-        for (int signalNamber = headerConfig.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
+    protected HeaderInfo createOutputRecordingConfig() {
+        HeaderInfo outHeaderInfo = new HeaderInfo(headerInfo);
+        for (int signalNamber = headerInfo.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
             if(signalsToRemove.contains(Integer.valueOf(signalNamber))) {
-                outHeaderConfig.removeSignal(signalNamber);
+                outHeaderInfo.removeSignal(signalNamber);
             }
         }
-        return outHeaderConfig;
+        return outHeaderInfo;
     }
 
     /**
-     * Omit data from the "deleted" channels and
+     * Omits data from the "deleted" channels and
      * create resultant array of samples
      *
      * @param digitalSamples input array of digital samples
@@ -47,7 +47,7 @@ public class EdfSignalsRemover extends EdfFilter{
     private int[] createResultantSamples(int[] digitalSamples) {
        List<Integer> resultantSamples = new ArrayList<Integer>();
        for (int sample : digitalSamples) {
-           int signalNumber = headerConfig.signalNumber(sampleCounter + 1);
+           int signalNumber = headerInfo.sampleNumberToSignalNumber(sampleCounter + 1);
            if(!signalsToRemove.contains(signalNumber)) {
                resultantSamples.add(sample);
            }

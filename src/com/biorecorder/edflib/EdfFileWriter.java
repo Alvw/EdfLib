@@ -7,70 +7,66 @@ import java.util.Date;
 import java.util.Random;
 
 /**
- * Class for writing DataRecords to the EDF or BDF File.
- * It creates a file if it does not exist.
+ * This class permits to write digital or physical samples
+ * from multiple measuring channel to  EDF or BDF File.
+ * Every channel (signal) has its own sample frequency.
+ * <p>
+ * If the file does not exist it will be created.
  * Already existing file with the same name
  * will be silently overwritten without advance warning!!
  * <p>
- * To make it possible to write DataRecords to the file, we must open
- * the EdfFileWriter first and pass a
- * {@link HeaderConfig} object with the configuration information for the file header record.
- * That is, call the method {@link #open(HeaderConfig)}.
- * Only after that DataRecords and samples could be written correctly.
+ * To write data samples to the file we must provide it
+ * a {@link HeaderInfo} object with the configuration information.
+ * Only after that data samples could be written correctly.
  * <p>
- * We may write <b>digital</b> or <b>physical</b> DataRecords and samples. Every physical (floating point) value
- * will be converted to the corresponding digital (int) value
- * using physical maximum, physical minimum, digital maximum and digital minimum
- * of the signal.
+ * We may write <b>digital</b> or <b>physical</b>  samples.
+ * Every physical (floating point) sample
+ * will be converted to the corresponding digital (int) one
+ * using physical maximum, physical minimum, digital maximum and digital minimum of the signal.
  * <p>
- * Every digital (int) value is converted
+ * Every digital (int) value will be converted
  * to 2 LITTLE_ENDIAN ordered bytes (16 bits) for EDF files or
  * to 3 LITTLE_ENDIAN ordered bytes (24 bits) for BDF files
  * and in this form written to the file.
  *
  * @see EdfWriter
- * @see EdfFileWriter
  */
 public class EdfFileWriter extends EdfWriter {
 
     private long startTime;
     private long stopTime;
-    private File file;
     private double durationOfDataRecord;
     private boolean isDurationOfDataRecordsComputable;
     private FileOutputStream fileOutputStream;
 
+    /**
+     * Creates EdfFileWriter to write data samples to the file represented by
+     * the specified File object. HeaderInfo object specifies the type of the file
+     * (EDF_16BIT or BDF_24BIT) and provides all necessary information for the file header record.
+     * A HeaderInfo object must be passed to the EdfFileWriter before writing any data samples.
+     * We may do that in the constructor or by method {@link #setHeader(HeaderInfo)}.
+     *
+     *
+     * @param file the file to be opened for writing
+     * @param headerInfo object containing all necessary information for the header record
+     * @throws IOException
+     */
+    public EdfFileWriter(File file, HeaderInfo headerInfo) throws IOException {
+        this.headerInfo = headerInfo;
+        fileOutputStream = new FileOutputStream(file);
+    }
 
     /**
-     * Creates EdfWriter to write DataRecords to the file represented by
-     * the specified File object.  EDF or BDF file will be created depending on the
-     * given file type.
+     * Creates EdfWriter to write data samples to the file represented by
+     * the specified File object.  A HeaderInfo object specifying the type of the file
+     * (EDF_16BIT or BDF_24BIT) and providing all necessary information for the file header record
+     * must be passed to the EdfFileWriter before writing any data samples.
+     * Use the method {@link #setHeader(HeaderInfo)}.
      *
      * @param file the file to be opened for writing
      * @throws IOException
      */
     public EdfFileWriter(File file) throws IOException {
-        this.file = file;
-        fileOutputStream = new FileOutputStream(file);
-        fileOutputStream.close();
-    }
-
-    /**
-     * Create a {@link File} with the given filename and call the other constructor
-     * {@link #EdfFileWriter(File)}
-     *
-     * @param filename the system-dependent filename
-     * @throws IOException
-     */
-
-    public EdfFileWriter(String filename) throws IOException {
-        this(new File(filename));
-    }
-
-    @Override
-    public synchronized void open(HeaderConfig headerConfig) throws IOException {
-        super.open(headerConfig);
-        sampleCounter = 0;
         fileOutputStream = new FileOutputStream(file);
     }
 
@@ -89,28 +85,24 @@ public class EdfFileWriter extends EdfWriter {
 
 
 
-    /**
-     * Write digital samples to the file.
-     * Every int is converted to LITTLE_ENDIAN ordered bytes (2 bytes for EDF files and 3 bytes for BDF files).
-     *
-     * @param digitalSamples array with digital samples
-     * @throws IOException
-     */
     @Override
     public synchronized void writeDigitalSamples(int[] digitalSamples) throws IOException {
         if (sampleCounter == 0) {
-            // 1 second = 1000 msec
-            startTime = System.currentTimeMillis() - (long) headerConfig.getDurationOfDataRecord() * 1000;
-            // setRecordingStartTime делаем только если bdfHeader.getRecordingStartTime == -1
-            // если например идет копирование данных из файла в файл и
-            // bdfHeader.getRecordingStartTime имеет нормальное значение то изменять его не нужно
-            if (headerConfig.getRecordingStartTime() < 0) {
-                headerConfig.setRecordingStartTime(startTime);
+            if(headerInfo == null) {
+                throw new RuntimeException("File header is not specified! HeaderInfo = "+headerInfo);
             }
-            headerConfig.setNumberOfDataRecords(-1);
-            fileOutputStream.write(headerConfig.createFileHeader());
+            // 1 second = 1000 msec
+            startTime = System.currentTimeMillis() - (long) headerInfo.getDurationOfDataRecord() * 1000;
+            // setRecordingStartDateTimeMs делаем только если bdfHeader.getRecordingStartDateTimeMs == -1
+            // если например идет копирование данных из файла в файл и
+            // bdfHeader.getRecordingStartDateTimeMs имеет нормальное значение то изменять его не нужно
+            if (headerInfo.getRecordingStartDateTimeMs() < 0) {
+                headerInfo.setRecordingStartDateTimeMs(startTime);
+            }
+            headerInfo.setNumberOfDataRecords(-1);
+            fileOutputStream.write(headerInfo.createFileHeader());
         }
-        fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerConfig.getFileType().getNumberOfBytesPerSample()));
+        fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
         stopTime = System.currentTimeMillis();
         durationOfDataRecord = (stopTime - startTime) * 0.001 / countRecords();
         sampleCounter += digitalSamples.length;
@@ -119,23 +111,23 @@ public class EdfFileWriter extends EdfWriter {
 
     @Override
     public synchronized void close() throws IOException {
-        if (headerConfig.getNumberOfDataRecords() == -1) {
-            headerConfig.setNumberOfDataRecords(countRecords());
+        if (headerInfo.getNumberOfDataRecords() == -1) {
+            headerInfo.setNumberOfDataRecords(countRecords());
         }
         if (isDurationOfDataRecordsComputable) {
-            headerConfig.setDurationOfDataRecord(durationOfDataRecord);
+            headerInfo.setDurationOfDataRecord(durationOfDataRecord);
         }
         FileChannel channel = fileOutputStream.getChannel();
         channel.position(0);
-        fileOutputStream.write(headerConfig.createFileHeader());
+        fileOutputStream.write(headerInfo.createFileHeader());
         fileOutputStream.close();
     }
 
     /**
-     * Get info about writing process: start recording time, stop recording time,
+     * Gets some info about file writing process: start recording time, stop recording time,
      * number of written DataRecords, average duration of DataRecords.
      *
-     * @return string with info about writing process
+     * @return string with some info about writing process
      */
     public String getWritingInfo() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -143,9 +135,10 @@ public class EdfFileWriter extends EdfWriter {
         stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
         stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
         stringBuilder.append("Number of data records = " + countRecords() + "\n");
-        stringBuilder.append("Duration of a data record = " + durationOfDataRecord);
+        stringBuilder.append("Actual duration of a data record = " + durationOfDataRecord);
         return stringBuilder.toString();
     }
+
     /**
      * Unit Test. Usage Example.
      * <p>
@@ -162,27 +155,34 @@ public class EdfFileWriter extends EdfWriter {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        File recordsDir = new File(System.getProperty("user.dir"), "records");
+        int channel0Frequency = 50; // Hz
+        int channel1Frequency = 5; // Hz
+
+        // create header info for the file describing data records structure
+        HeaderInfo headerInfo = new HeaderInfo(2, FileType.EDF_16BIT);
+        // Signal numbering starts from 0!
+        // configure signal (channel) number 0
+        headerInfo.setSampleFrequency(0, channel0Frequency);
+        headerInfo.setLabel(0, "first channel");
+        headerInfo.setPhysicalRange(0, -500, 500);
+        headerInfo.setDigitalRange(0, -2048, -2047);
+        headerInfo.setPhysicalDimension(0, "uV");
+
+        // configure signal (channel) number 1
+        headerInfo.setSampleFrequency(1, channel1Frequency);
+        headerInfo.setLabel(1, "second channel");
+        headerInfo.setPhysicalRange(1, 100, 300);
+
+
         // create file
+        File recordsDir = new File(System.getProperty("user.dir"), "records");
         File file = new File(recordsDir, "test.edf");
+
         try {
             // create EdfFileWriter to write edf data to that file
-            EdfFileWriter fileWriter = new EdfFileWriter(file);
-
-            // create header info for the file describing data records structure
-            HeaderConfig headerConfig = new HeaderConfig(2, FileType.EDF_16BIT);
-            headerConfig.setLabel(0, "first channel");
-            headerConfig.setNumberOfSamplesInEachDataRecord(0, 50);
-            headerConfig.setLabel(0, "second channel");
-            headerConfig.setNumberOfSamplesInEachDataRecord(1, 5);
-
-            // open EdfFileWriter giving it the header info.
-            // Now it is ready to write data records
-            fileWriter.open(headerConfig);
+            EdfFileWriter fileWriter = new EdfFileWriter(file, headerInfo);
 
             // create and write samples
-            int channel0Frequency = 50; // Hz
-            int channel1Frequency = 5; // Hz
             int[] samplesFromChannel0 = new int[channel0Frequency];
             int[] samplesFromChannel1 = new int[channel1Frequency];
             Random rand = new Random();
@@ -194,18 +194,19 @@ public class EdfFileWriter extends EdfWriter {
 
                 // create random samples for channel 1
                 for(int j = 0; j < samplesFromChannel1.length; j++) {
-                    samplesFromChannel1[j] = rand.nextInt(10000);
+                    samplesFromChannel1[j] = rand.nextInt(1000);
                 }
 
                 // write samples from both channels to the edf file
                 fileWriter.writeDigitalSamples(samplesFromChannel0);
                 fileWriter.writeDigitalSamples(samplesFromChannel1);
             }
-            // close EdfFileWriter. Always must be done after finishing to write data records
+
+            // close EdfFileWriter. Always must be called after finishing writing DataRecords.
             fileWriter.close();
 
             // print some header info
-            System.out.println(fileWriter.getHeaderInfo().headerToString());
+            System.out.println(fileWriter.getHeader());
             // print some writing info
             System.out.println(fileWriter.getWritingInfo());
         } catch (IOException e) {

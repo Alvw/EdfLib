@@ -12,44 +12,77 @@ public enum FileType {
      * EDF file with 16 bits integers
      */
     EDF_16BIT {
+        private final int DEFAULT_DIG_MIN_16 = -32768;
+        private final int DEFAULT_DIG_MAX_16 = 32767;
+        @Override
         public String getVersion() {
             return "";
         }
 
+        @Override
         public byte getFirstByte() {
             final Charset ASCII = Charset.forName("US-ASCII");
             String zeroString = "0";  // "0" (ASCII)
             return zeroString.getBytes(ASCII)[0]; // or  return (int) '0';
         }
 
+        @Override
         public String getFirstReserved() {
             return "";
         }
 
+        @Override
         public int getNumberOfBytesPerSample() {
             return 2;
         }
 
+        @Override
+        public int getDigitalMax() {
+            return DEFAULT_DIG_MAX_16;
+        }
+
+        @Override
+        public int getDigitalMin() {
+            return DEFAULT_DIG_MIN_16;
+        }
     },
     /**
      * BDF file with 24 bits integers
      */
     BDF_24BIT {
+        private final int DEFAULT_DIG_MIN_24 = -8388608;
+        private final int DEFAULT_DIG_MAX_24 = 8388607;
+
+        @Override
         public String getVersion() {
             return "BIOSEMI";
         }
 
+        @Override
         public byte getFirstByte() {
             return (byte) 255;
         }
 
+        @Override
         public String getFirstReserved() {
             return "24BIT";
         }
 
-       public int getNumberOfBytesPerSample() {
+        @Override
+        public int getNumberOfBytesPerSample() {
            return 3;
        }
+
+        @Override
+        public int getDigitalMax() {
+            return DEFAULT_DIG_MAX_24;
+        }
+
+        @Override
+        public int getDigitalMin() {
+            return DEFAULT_DIG_MIN_24;
+        }
+
     };
 
     /**
@@ -82,10 +115,10 @@ public enum FileType {
      */
     public abstract String getFirstReserved();
 
-    public static void main(String[] args) {
-        FileType fileType = FileType.BDF_24BIT;
-        int byteValue = fileType.getFirstByte() & 0xFF;
-        System.out.println("first "+byteValue);
-    }
+
+    public abstract int getDigitalMax();
+
+    public abstract int getDigitalMin();
 
 }
+

@@ -101,26 +101,26 @@ Suppose that we have a two-channels measuring device. One channel measures the c
 
 ```java
 
-HeaderConfig headerConfig = new HeaderConfig(2);
-headerConfig.setPatientIdentification("Some Patient");
-headerConfig.setDurationOfDataRecord(1); // 1 second
+HeaderConfig headerInfo = new HeaderConfig(2);
+headerInfo.setPatientIdentification("Some Patient");
+headerInfo.setDurationOfDataRecord(1); // 1 second
 
-headerConfig.setLabel(0,"EKG");
-headerConfig.setDigitalMin(0,-32767);
-headerConfig.setDigitalMax(0,32767);
-headerConfig.setPhysicalMin(0,-3125);
-headerConfig.setPhysicalMax(0,3125);
-headerConfig.setPhysicalDimension(0,"uV");
-headerConfig.setNumberOfSamplesInEachDataRecord(0,500);
+headerInfo.setLabel(0,"EKG");
+headerInfo.setDigitalMin(0,-32767);
+headerInfo.setDigitalMax(0,32767);
+headerInfo.setPhysicalMin(0,-3125);
+headerInfo.setPhysicalMax(0,3125);
+headerInfo.setPhysicalDimension(0,"uV");
+headerInfo.setNumberOfSamplesInEachDataRecord(0,500);
 
-headerConfig.setLabel(1,"Accelerometer");
-headerConfig.setDigitalMin(1,-32767);
-headerConfig.setDigitalMax(1, 32767);
-headerConfig.setPhysicalMin(1,-16384);
-headerConfig.setPhysicalMax(1,-16384);
-headerConfig.setPhysicalDimension(1,"m/sec^3");
+headerInfo.setLabel(1,"Accelerometer");
+headerInfo.setDigitalMin(1,-32767);
+headerInfo.setDigitalMax(1, 32767);
+headerInfo.setPhysicalMin(1,-16384);
+headerInfo.setPhysicalMax(1,-16384);
+headerInfo.setPhysicalDimension(1,"m/sec^3");
 
-edfFileWriter.open(headerConfig);
+edfFileWriter.open(headerInfo);
 ```
 
 Now EdfWriter is redy to write data. And we may write the samples from the channels directly to the EdfWriter:
@@ -170,15 +170,15 @@ EdfReader edfFileReader = new EdfReader("filename");
 Now we can get the header record of the file and for example print some header information:
 
 ```java
-HeaderConfig headerConfig = edfFileReader.getHeaderInfo();
+HeaderConfig headerInfo = edfFileReader.getHeaderInfo();
 
-System.out.println("File type "+ headerConfig.getFileType());
-System.out.println("Duration of DataRecords = "+headerConfig.getDurationOfDataRecord());
-System.out.println("Number of signals = "+headerConfig.getNumberOfSignals());
-for(int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-      System.out.println(i+ ": label = "+ headerConfig.getLabel(i)
+System.out.println("File type "+ headerInfo.getFileType());
+System.out.println("Duration of DataRecords = "+headerInfo.getDurationOfDataRecord());
+System.out.println("Number of signals = "+headerInfo.getNumberOfSignals());
+for(int i = 0; i < headerInfo.getNumberOfSignals(); i++) {
+      System.out.println(i+ ": label = "+ headerInfo.getLabel(i)
       + ", number of samples in data records = "
-   +  headerConfig.getNumberOfSamplesInEachDataRecord(i));
+   +  headerInfo.getNumberOfSamplesInEachDataRecord(i));
 }
 
 ```
@@ -186,9 +186,9 @@ for(int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
 We can change header information if we want. Lets for example change the patient name and the label of signal 0 (Note that the signals numbering starts from 0!):
 
 ```java
-headerConfig.setPatientIdentification("John Smith");
-headerConfig.setLabel(0,"EKG");
-edfFileReader.rewriteHeader(headerConfig);
+headerInfo.setPatientIdentification("John Smith");
+headerInfo.setLabel(0,"EKG");
+edfFileReader.rewriteHeader(headerInfo);
 ```
 
 Data from the file we may read in DataRecords (digital o phycisal):
@@ -261,7 +261,7 @@ Class **DataRecordsJoiner.java** combines a few short DataRecords into one:
 EdfWriter edfFileWriter = new EdfWriter("filename", FileType.EDF_16BIT);
 int numberOfRecordsToJoin = 10;
 DataRecordsJoiner joiner = new DataRecordsJoiner(numberOfRecordsToJoin, edfFileWriter);
-joiner.open(headerConfig);
+joiner.open(headerInfo);
 
 joiner.writeDigitalDataRecord(dataRecord);
 ```
@@ -275,7 +275,7 @@ EdfWriter edfFileWriter = new EdfWriter("filename", FileType.EDF_16BIT);
 DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(edfFileWriter);
 signalsManager.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
 signalsManager.removeSignal(1);
-signalsManager.open(headerConfig);
+signalsManager.open(headerInfo);
 
 signalsManager.writeDigitalDataRecord(dataRecord);
 ```
@@ -292,7 +292,7 @@ DataRecordsJoiner joiner = new DataRecordsJoiner(numberOfRecordsToJoin, edfFileW
 DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(joiner);
 signalsManager.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
 signalsManager.removeSignal(1);
-signalsManager.open(headerConfig);
+signalsManager.open(headerInfo);
 
 signalsManager.writeDigitalDataRecord(dataRecord);
 ```

@@ -6,37 +6,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Permit to read DataRecords from EDF or BDF file. The structure of DataRecords is described
- * in the file header. EdfFileReader reads  and recognizes the information from the file header and
- * save it in special {@link HeaderConfig} object. After that it can correctly read data
- * from the file.
+ * Permits to read data samples from EDF or BDF file. Also EdfFileReader
+ * read information from the file header and save it in special {@link HeaderInfo} object, that we
+ * can get by method {@link #getHeader()}
  * <p>
- * <p>EDF/BDF files contains "row" digital (int) data but they can be converted to corresponding
+ * EDF/BDF files contains "row" digital (int) data but they can be converted to corresponding
  * real physical floating point data on the base of header information (physical maximum and minimum
- * and digital maximum and minimum specified for every channel (signal)). So we can "read" physical values if
- * we wish - {@link #readPhysicalDataRecord()}, {@link #readPhysicalSamples(int, int)}.
+ * and digital maximum and minimum specified for every channel (signal)).
+ * So we can "read" both digital or physical values.
+ * See: {@link #readDigitalDataRecord()}, {@link #readDigitalSamples(int, int)}
+ * {@link #readPhysicalDataRecord()}, {@link #readPhysicalSamples(int, int)}.
  */
 public class EdfFileReader {
-    private HeaderConfig headerConfig;
+    private HeaderInfo headerInfo;
     private FileInputStream fileInputStream;
     private File file;
-    private List<Long> samplesPositionList = new ArrayList<Long>();
+    private long[] samplesPositionList;
     private int recordPosition = 0;
 
     /**
      * Creates EdfFileReader to read data from the file represented by the specified File object.
      *
-     * @param file the file to be opened for reading
-     * @throws IOException            if the file header can not be read
+     * @param file Edf or Bdf file to be opened for reading
+     * @throws IOException            if the file  can not be read
      * @throws HeaderParsingException if the file header is not valid EDF/BDF file header
      */
     public EdfFileReader(File file) throws IOException, HeaderParsingException {
-        headerConfig = new HeaderConfig(file);
+        headerInfo = new HeaderInfo(file);
         this.file = file;
         fileInputStream = new FileInputStream(file);
-        for (int i = 0; i < headerConfig.getNumberOfSignals(); i++) {
-            samplesPositionList.add(new Long(0));
-        }
+        samplesPositionList = new long[ headerInfo.getNumberOfSignals()];
     }
 
     /**
@@ -61,19 +60,22 @@ public class EdfFileReader {
      * {@link #readPhysicalSamples(int, int)} will start reading
      * samples belonging to a channel from the specified for that channel position.
      *
-     * @param signalNumber channel (signal) number whose sample position we change
+     * @param signalNumber channel (signal) number whose sample position we change. Numbering starts from 0!
      * @param newPosition  the new sample position, a non-negative integer counting
      *                     the number of samples belonging to the specified
      *                     channel from the beginning of the file
      */
     public void setSamplePosition(int signalNumber, long newPosition) {
-        samplesPositionList.set(signalNumber, newPosition);
+        samplesPositionList[signalNumber] = newPosition;
     }
 
+    /**
+     * Puts DataRecord position indicator and sample position indicators of all signals to 0.
+     */
     public void reset() {
         recordPosition = 0;
-        for(int i = 0; i < samplesPositionList.size(); i++) {
-            samplesPositionList.set(i, Long.valueOf(0));
+        for(int i = 0; i < samplesPositionList.length; i++) {
+            samplesPositionList[i] = 0;
         }
     }
 
@@ -92,13 +94,13 @@ public class EdfFileReader {
      * Return the current sample position  of the given channel (signal).
      * The position is measured in samples.
      *
-     * @param signalNumber channel (signal) number whose position we want to get
+     * @param signalNumber channel (signal) number whose position we want to get. Numbering starts from 0!
      * @return current sample position, a non-negative integer counting
      * the number of samples belonging to the given
      * channel from the beginning of the file
      */
     public long getSamplePosition(int signalNumber) {
-        return samplesPositionList.get(signalNumber);
+        return samplesPositionList[signalNumber];
     }
 
     /**
@@ -112,14 +114,14 @@ public class EdfFileReader {
      */
 
     public int[] readDigitalDataRecord() throws IOException {
-        int numberOfBytesPerSample = headerConfig.getFileType().getNumberOfBytesPerSample();
-        long realPosition = headerConfig.getNumberOfBytesInHeaderRecord() +
-                headerConfig.getRecordLength() * recordPosition * numberOfBytesPerSample;
+        int numberOfBytesPerSample = headerInfo.getFileType().getNumberOfBytesPerSample();
+        long realPosition = headerInfo.getNumberOfBytesInHeaderRecord() +
+                headerInfo.getRecordLength() * recordPosition * numberOfBytesPerSample;
         if (fileInputStream.getChannel().position() != realPosition) {
             fileInputStream.getChannel().position(realPosition);
         }
 
-        int rowLength = headerConfig.getRecordLength() * numberOfBytesPerSample;
+        int rowLength = headerInfo.getRecordLength() * numberOfBytesPerSample;
         byte[] rowData = new byte[rowLength];
 
         int numberOfReadBytes = fileInputStream.getChannel().read(ByteBuffer.wrap(rowData));
@@ -145,17 +147,9 @@ public class EdfFileReader {
         int[] digRecord = readDigitalDataRecord();
         double[] physRecord = new double[digRecord.length];
         for(int i = 0; i < digRecord.length; i++) {
-            physRecord[i] = headerConfig.digitalValueToPhysical(headerConfig.signalNumber(i+1), digRecord[i]);
+            physRecord[i] = headerInfo.digitalValueToPhysical(headerInfo.sampleNumberToSignalNumber(i+1), digRecord[i]);
 
         }
-
-       /* int counter = 0;
-        for (int signalNumber = 0; signalNumber < headerConfig.getNumberOfSignals(); signalNumber++) {
-            for (int sampleNumber = 0; sampleNumber < headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber); sampleNumber++) {
-                physRecord[counter] = headerConfig.digitalValueToPhysical(signalNumber, digRecord[counter]);
-                counter++;
-            }
-        }*/
         return physRecord;
     }
 
@@ -174,11 +168,11 @@ public class EdfFileReader {
      * @throws IOException if the file could not be read
      */
     private int readSamplesFromRecord(int signalNumber, int recordPosition, ByteBuffer buffer) throws IOException {
-        long signalPosition = headerConfig.getRecordLength() * recordPosition;
+        long signalPosition = headerInfo.getRecordLength() * recordPosition;
         for (int i = 0; i < signalNumber; i++) {
-            signalPosition += headerConfig.getNumberOfSamplesInEachDataRecord(i);
+            signalPosition += headerInfo.getNumberOfSamplesInEachDataRecord(i);
         }
-        signalPosition = signalPosition * headerConfig.getFileType().getNumberOfBytesPerSample() + headerConfig.getNumberOfBytesInHeaderRecord();
+        signalPosition = signalPosition * headerInfo.getFileType().getNumberOfBytesPerSample() + headerInfo.getNumberOfBytesInHeaderRecord();
         return fileInputStream.getChannel().read(buffer, signalPosition);
     }
 
@@ -191,7 +185,7 @@ public class EdfFileReader {
      * Read samples are saved in the specified array starting at the specified offset.
      * Return the amount of samples read (this can be less than given numberOfSamples or zero!)
      *
-     * @param signalNumber    channel (signal) number whose samples must be read
+     * @param signalNumber    channel (signal) number whose samples must be read. Numbering starts from 0!
      * @param digArray        int array where read samples are saved
      * @param offset          offset within the array at which saving starts
      * @param numberOfSamples number of samples to read
@@ -200,24 +194,24 @@ public class EdfFileReader {
      */
     public int readDigitalSamples(int signalNumber, int[] digArray, int offset, int numberOfSamples) throws IOException {
         int readTotal = 0;
-        int samplesPerRecord = headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber);
-        byte[] rowData = new byte[samplesPerRecord * headerConfig.getFileType().getNumberOfBytesPerSample()];
+        int samplesPerRecord = headerInfo.getNumberOfSamplesInEachDataRecord(signalNumber);
+        byte[] rowData = new byte[samplesPerRecord * headerInfo.getFileType().getNumberOfBytesPerSample()];
         ByteBuffer buffer = ByteBuffer.wrap(rowData);
-        int recordNumber = (int) (samplesPositionList.get(signalNumber) / samplesPerRecord);
-        int positionInRecord = (int) (samplesPositionList.get(signalNumber) % samplesPerRecord);
+        int recordNumber = (int) (samplesPositionList[signalNumber] / samplesPerRecord);
+        int positionInRecord = (int) (samplesPositionList[signalNumber] % samplesPerRecord);
 
         while (readTotal < numberOfSamples) {
             if (readSamplesFromRecord(signalNumber, recordNumber, buffer) < buffer.capacity()) {
                 break;
             }
             int readInRecord = Math.min(numberOfSamples - readTotal, samplesPerRecord - positionInRecord);
-            EndianBitConverter.littleEndianByteArrayToIntArray(rowData, positionInRecord * headerConfig.getFileType().getNumberOfBytesPerSample(), digArray, offset + readTotal, readInRecord, headerConfig.getFileType().getNumberOfBytesPerSample());
+            EndianBitConverter.littleEndianByteArrayToIntArray(rowData, positionInRecord * headerInfo.getFileType().getNumberOfBytesPerSample(), digArray, offset + readTotal, readInRecord, headerInfo.getFileType().getNumberOfBytesPerSample());
             readTotal += readInRecord;
             buffer.clear();
             recordNumber++;
             positionInRecord = 0;
         }
-        samplesPositionList.set(signalNumber, samplesPositionList.get(signalNumber) + readTotal);
+        samplesPositionList[signalNumber] += readTotal;
         return readTotal;
     }
 
@@ -228,7 +222,7 @@ public class EdfFileReader {
      * The sample position indicator of that channel will be increased with the amount of samples read.
      * Array with read digital samples will be returned (array length can be less than given numberOfSamples or zero!)
      *
-     * @param signalNumber    channel (signal) number whose samples must be read
+     * @param signalNumber    channel (signal) number whose samples must be read. Numbering starts from 0!
      * @param numberOfSamples number of samples to read
      * @return Array with read digital samples
      * @throws IOException
@@ -249,7 +243,7 @@ public class EdfFileReader {
      * The sample position indicator of that channel will be increased with the amount of samples read.
      * Array with read physical samples will be returned (array length can be less than given numberOfSamples or zero!)
      *
-     * @param signalNumber    channel (signal) number whose samples must be read
+     * @param signalNumber    channel (signal) number whose samples must be read. Numbering starts from 0!
      * @param numberOfSamples number of samples to read
      * @return Array with read physical samples
      * @throws IOException
@@ -258,19 +252,19 @@ public class EdfFileReader {
         int[] digSamples = readDigitalSamples(signalNumber, numberOfSamples);
         double[] physSamples = new double[digSamples.length];
         for(int i = 0; i < numberOfSamples; i++) {
-            physSamples[i] = headerConfig.digitalValueToPhysical(signalNumber, digSamples[i]);
+            physSamples[i] = headerInfo.digitalValueToPhysical(signalNumber, digSamples[i]);
         }
         return physSamples;
     }
 
 
     /**
-     * Return the information from the file header stored in the HeaderConfig object
+     * Return the information from the file header stored in the HeaderInfo object
      *
      * @return the object containing EDF/BDF header information
      */
-    public HeaderConfig getHeaderInfo() {
-        return new HeaderConfig(headerConfig);
+    public HeaderInfo getHeader() {
+        return new HeaderInfo(headerInfo);
     }
 
     /**
@@ -278,20 +272,20 @@ public class EdfFileReader {
      * a new header will be created and rewritten to the file.
      * Note that the number of channels (signals) could not be changed!
      *
-     * @param headerConfig config object containing info for the new header
+     * @param headerInfo config object containing info for the new header
      */
-    public void rewriteHeader(HeaderConfig headerConfig) throws IOException {
-        if(headerConfig.getNumberOfSignals() != this.headerConfig.getNumberOfSignals()) {
+    public void rewriteHeader(HeaderInfo headerInfo) throws IOException {
+        if(headerInfo.getNumberOfSignals() != this.headerInfo.getNumberOfSignals()) {
             String errMsg = "The number of signals could not be changed!  Current number of signals = "
-                    + this.headerConfig.getNumberOfSignals() + " New number of signals = " + headerConfig.getNumberOfSignals();
+                    + this.headerInfo.getNumberOfSignals() + " New number of signals = " + headerInfo.getNumberOfSignals();
             throw new IllegalArgumentException(errMsg);
         }
 
-        byte[] header = headerConfig.createFileHeader();
+        byte[] header = headerInfo.createFileHeader();
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         fileOutputStream.write(header);
         fileOutputStream.close();
-        this.headerConfig = new HeaderConfig(headerConfig);
+        this.headerInfo = new HeaderInfo(headerInfo);
     }
 
 
@@ -309,13 +303,13 @@ public class EdfFileReader {
     /**
      * Get the number of samples of the given channel (signal) available for reading
      * (from the current sample position set for that signal)
-     * <br>availableSamples(signalNumber) = getNumberOfSamples(signalNumber) - getSamplePosition(signalNumber);
+     * <br>availableSamples(sampleNumberToSignalNumber) = getNumberOfSamples(sampleNumberToSignalNumber) - getSamplePosition(sampleNumberToSignalNumber);
      *
      * @return number of samples of the given signal available for reading
      * @throws IOException if file could not be read
      */
     public long availableSamples(int signalNumber) throws IOException {
-        return getNumberOfSamples(signalNumber) - samplesPositionList.get(signalNumber);
+        return getNumberOfSamples(signalNumber) - samplesPositionList[signalNumber];
     }
 
 
@@ -327,19 +321,19 @@ public class EdfFileReader {
      * @throws IOException if file could not be read
      */
     public int getNumberOfDataRecords() throws IOException {
-        return (int) (file.length() - headerConfig.getNumberOfBytesInHeaderRecord()) / (headerConfig.getRecordLength() * headerConfig.getFileType().getNumberOfBytesPerSample());
+        return (int) (file.length() - headerInfo.getNumberOfBytesInHeaderRecord()) / (headerInfo.getRecordLength() * headerInfo.getFileType().getNumberOfBytesPerSample());
     }
 
     /**
      * Calculate and get the total number of samples of the given channel (signal)
      * in the file.
-     * <br>getNumberOfSamples(signalNumber) = availableSamples(signalNumber) + getSamplePosition(signalNumber);
+     * <br>getNumberOfSamples(sampleNumberToSignalNumber) = availableSamples(sampleNumberToSignalNumber) + getSamplePosition(sampleNumberToSignalNumber);
      *
      * @return total number of samples of the given signal in the file
      * @throws IOException if file could not be read
      */
     public long getNumberOfSamples(int signalNumber) throws IOException {
-        return  (long) getNumberOfDataRecords() * (long) headerConfig.getNumberOfSamplesInEachDataRecord(signalNumber);
+        return  (long) getNumberOfDataRecords() * (long) headerInfo.getNumberOfSamplesInEachDataRecord(signalNumber);
     }
 
 

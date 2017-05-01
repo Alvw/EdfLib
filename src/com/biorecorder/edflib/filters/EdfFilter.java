@@ -1,18 +1,18 @@
 package com.biorecorder.edflib.filters;
 
 import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderConfig;
+import com.biorecorder.edflib.HeaderInfo;
 
 import java.io.IOException;
 
 /**
  * A base decorator class (pattern Decorator) that is actually just a wrapper around some other
- * DataRecordsWriter object. It implements the same interface but permits to add some additional
+ * EdfWriter object. It implements the same interface but permits to add some additional
  * functionality to the underlying class.
  * <p>
- * EdfFilter itself simply overrides all methods of DataRecordsWriter
- * with versions that pass all requests to the underlying DataRecordsWriter. The only purpose of this class
- * is to be a superclass for real data DataRecord filters which normally modify incoming
+ * EdfFilter itself simply overrides all methods of EdfWriter
+ * with versions that pass all requests to the underlying EdfWriter. The only purpose of this class
+ * is to be a superclass for real realisation of EdfFilter which normally modify incoming
  * DataRecords before pass (write) them to underlying writer.
  * <p>
  * Full analog of {@link java.io.FilterOutputStream}
@@ -21,9 +21,9 @@ public class EdfFilter extends EdfWriter {
     protected EdfWriter out;
 
     /**
-     * Creates an EdfFilter built on top of the specified underlying DataRecords writer.
+     * Creates an EdfFilter built on top of the specified underlying EdfWriter.
      *
-     * @param out the underlying DataRecords writer, to be assigned to the field this.out for later use
+     * @param out the underlying EdfWriter
      */
 
     public EdfFilter(EdfWriter out) {
@@ -32,48 +32,49 @@ public class EdfFilter extends EdfWriter {
 
 
     /**
-     * Create HeaderConfig describing the structure of resulting output DataRecords
-     * (after filtering transformations). In the base class it simply returns the copy
-     * of the configuration set for input DataRecords.
+     * Create HeaderInfo describing the structure of resulting output DataRecords
+     * (after corresponding transformations).
      * This method should be overwritten in all subclasses.
      *
-     * @return resulting output DataRecords configuration
+     * @return HeaderInfo object describing resultant output DataRecords configuration
      */
-    protected HeaderConfig createOutputRecordingConfig() {
-        return new HeaderConfig(new HeaderConfig(headerConfig));
+    protected HeaderInfo createOutputRecordingConfig() {
+        return new HeaderInfo(new HeaderInfo(headerInfo));
 
     }
 
 
     /**
-     * The open method of EdfFilter calls the same method of its
-     * underlying DataRecordsWriter but with the new HeaderConfig
-     * corresponding to the structure of resulting output DataRecords
+     * The setHeader method of EdfFilter create HeaderInfo object describing the
+     * structure of resultant DataRecords and pass it to underlying EdfWriter
      *
-     * @param headerConfig object with the information about input DataRecords structure
+     * @param headerInfo HeaderInfo object with the information describing input DataRecords structure
      * @throws IOException
      */
     @Override
-    public void open(HeaderConfig headerConfig) throws IOException {
-        super.open(headerConfig);
-        out.open(createOutputRecordingConfig());
+    public void setHeader(HeaderInfo headerInfo) throws IOException {
+        super.setHeader(headerInfo);
+        out.setHeader(createOutputRecordingConfig());
     }
 
 
     /**
-     * Calls the same method of its underlying DataRecordsWriter.
+     * Calls the same method of its underlying EdfWriter and pass to it data samples.
      *
-     * @param digitalSamples array with digital data
+     * @param digitalSamples array with digital data samples
      * @throws IOException
      */
     @Override
     public void writeDigitalSamples(int[] digitalSamples) throws IOException {
+        if(headerInfo == null) {
+            throw new RuntimeException("File header is not specified! HeaderInfo = "+headerInfo);
+        }
         out.writeDigitalSamples(digitalSamples);
     }
 
     /**
      * Calls the same method of its
-     * underlying DataRecordsWriter.
+     * underlying EdfWriter.
      *
      * @throws IOException
      */

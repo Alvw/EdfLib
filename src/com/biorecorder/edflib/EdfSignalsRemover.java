@@ -1,7 +1,4 @@
-package com.biorecorder.edflib.filters;
-
-import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderInfo;
+package com.biorecorder.edflib;
 
 import java.io.IOException;
 import java.util.ArrayList;

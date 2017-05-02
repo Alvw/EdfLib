@@ -1,9 +1,7 @@
-package com.biorecorder.edflib.filters;
+package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderInfo;
-import com.biorecorder.edflib.filters.digital_filters.MovingAverageFilter;
-import com.biorecorder.edflib.filters.digital_filters.SignalFilter;
+import com.biorecorder.edflib.filters.MovingAverageFilter;
+import com.biorecorder.edflib.filters.SignalFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,7 +80,8 @@ public class EdfSignalsFilter extends EdfFilter {
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if(signalFilters != null) {
                 for (SignalFilter filter : signalFilters) {
-                    digitalSamples[i] = filter.getFilteredValue(digitalSamples[i]);
+                    Long filteredVal = Math.round(filter.getFilteredValue(digitalSamples[i]));
+                    digitalSamples[i] = filteredVal.intValue();
                 }
             }
             sampleCounter++;

@@ -1,7 +1,4 @@
-package com.biorecorder.edflib.filters;
-
-import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderInfo;
+package com.biorecorder.edflib;
 
 import java.io.IOException;
 
@@ -48,7 +45,7 @@ public class EdfJoiner extends EdfFilter {
     @Override
     public void setHeader(HeaderInfo headerInfo) throws IOException {
         super.setHeader(headerInfo);
-        outDataRecord = new int[headerInfo.getRecordLength() * numberOfRecordsToJoin];
+        outDataRecord = new int[headerInfo.getDataRecordLength() * numberOfRecordsToJoin];
     }
 
     /**
@@ -72,7 +69,7 @@ public class EdfJoiner extends EdfFilter {
     @Override
     public void writeDigitalSamples(int[] digitalSamples) throws IOException {
         for (int sample : digitalSamples) {
-            int samplePosition = (int) (sampleCounter % headerInfo.getRecordLength());
+            int samplePosition = (int) (sampleCounter % headerInfo.getDataRecordLength());
             int joinedRecords = countRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
@@ -88,7 +85,7 @@ public class EdfJoiner extends EdfFilter {
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 
-            if(sampleCounter % headerInfo.getRecordLength() == 0 &&  countRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % headerInfo.getDataRecordLength() == 0 &&  countRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

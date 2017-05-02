@@ -97,7 +97,7 @@ public abstract class EdfWriter {
     }
 
     protected int countRecords() {
-        return  headerInfo.getRecordLength() == 0 ?  0 :  (int) (sampleCounter / headerInfo.getRecordLength());
+        return  headerInfo.getDataRecordLength() == 0 ?  0 :  (int) (sampleCounter / headerInfo.getDataRecordLength());
     }
 
 

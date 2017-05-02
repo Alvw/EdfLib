@@ -201,6 +201,7 @@ public class EndianBitConverter {
     }
 
 
+
     /**
      * Convert given LITTLE_ENDIAN ordered bytes to BIG_ENDIAN 32-bit UNSIGNED int.
      * Available number of input bytes: 4, 3, 2 or 1.

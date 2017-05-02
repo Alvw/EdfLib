@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.filters;
+package com.biorecorder.edflib;
 
 import com.biorecorder.edflib.EdfWriter;
 import com.biorecorder.edflib.HeaderInfo;

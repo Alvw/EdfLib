@@ -10,8 +10,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * This class allows to store the information required to create EDF/BDF file header
- * and correctly extract data from Data Records. It has the following fields
+ * This class permits to store the information required for the header record
+ * of EDF/BDF file and then correctly extract data from the file. It has the following fields
  * (and their corresponding getters and setters):
  * <ul>
  * <li>patient identification</li>
@@ -811,7 +811,7 @@ public class HeaderInfo {
      *
      * @return sum of samples from all channels
      */
-    public int getRecordLength() {
+    public int getDataRecordLength() {
         int totalNumberOfSamplesInRecord = 0;
         for (int i = 0; i < signals.size(); i++) {
             totalNumberOfSamplesInRecord += signals.get(i).getNumberOfSamplesInEachDataRecord();
@@ -831,7 +831,7 @@ public class HeaderInfo {
                     + ". Can not be < 1!");
         }
 
-        int recordLength = getRecordLength();
+        int recordLength = getDataRecordLength();
         sampleNumber = (sampleNumber % recordLength == 0) ? recordLength : sampleNumber % recordLength;
 
         int samplesCounter = 0;
@@ -858,7 +858,7 @@ public class HeaderInfo {
     }
 
     /**
-     * Helper method. Convert the digital value to physical one for the given signal.
+     * Helper method. Converts the digital value to physical one for the given signal.
      *
      * @param digValue     digital value that has to be converted to physical one
      * @param signalNumber number of the signal(channel). Numeration starts from 0
@@ -866,6 +866,38 @@ public class HeaderInfo {
      */
     public double digitalValueToPhysical(int signalNumber, int digValue) {
         return signals.get(signalNumber).digitalValueToPhysical(digValue);
+    }
+
+    /**
+     * Helper method. Converts the given physical DataRecord to digital DataRecord
+     * @param physRecord array with physical values from all signals (physical DataRecord)
+     * @param digRecord array where resultant digital values will be stored
+     */
+    public void physicalDataRecordToDigital(double[] physRecord, int[] digRecord) {
+        int sampleCounter = 0;
+        for(int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
+            int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
+            for(int i = 0; i < numberOfSamples; i++) {
+                digRecord[sampleCounter] = physicalValueToDigital(signalNumber, physRecord[sampleCounter]);
+                sampleCounter++;
+            }
+        }
+    }
+
+    /**
+     * Helper method. Converts the given digital DataRecord to physical DataRecord
+     * @param digRecord array with digital values from all signals (digital DataRecord)
+     * @param physRecord array where resultant physical values will be stored
+     */
+    public void digitalDataRecordToPhysical(int[] digRecord, double[] physRecord) {
+        int sampleCounter = 0;
+        for(int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
+            int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
+            for(int i = 0; i < numberOfSamples; i++) {
+                physRecord[sampleCounter] = digitalValueToPhysical(signalNumber, digRecord[sampleCounter]);
+                sampleCounter++;
+            }
+        }
     }
 
 

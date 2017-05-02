@@ -7,10 +7,6 @@ EDFlib is a programming library for Java to read/write EDF/BDF files. EDF+/BDF+ 
 Download JAR and import it in your app. https://github.com/instasent/instasent-java-lib/releases/download/0.1.1/instasent-java-lib.jar.
 --->
 
-## License
-
-This project is licensed under the terms of the MIT license. See license.txt.
-
 ## EDF Format
 
 EDF means European Data Format. It is the popular medical time series storage fileformat.
@@ -77,85 +73,76 @@ More detailed information about EDF/BDF format:
 
 ## Library Usage and Javadoc
 
-The library has 2 main files:  **EdfReader.java** to read EDF/BDF files, **EdfWriter.java**  to create and write EDF or BDF file.
+The library has 2 main files:  **EdfFileReader.java** to read EDF/BDF files, **EdfFileWriter.java**  to create and write EDF or BDF file.
 
-Also the class **HeaderConfig.java** is necessary to store the information from the file header or to provide it.
+Also the class **HeaderInfo.java** is necessary to store the information from the file header or to provide it.
 
-For more detailed info see [javadoc](http://biorecorder.com/api/edflib/) .
+For more detailed info see [javadoc](http://biorecorder.com/api/edflib/javadoc) .
 
 ## Examples
 
 ### EdfWriter
 
-To save data to a EDF/BDF file we have to create EdfWriter:
+To save data to a EDF/BDF file we have to create EdfWriter and give it a HeaderInfo object with the configuration information for the file header record.
+
+Suppose that we have a two-channels measuring device. One channel  with the frequency 50 Hz, and the other with the frequency 5 Hz. Lets create appropriate HeaderInfo object and EdfFileWriter:
 
 ```java
-EdfWriter edfFileWriter = new EdfWriter("filename");
+int numberOfChannels = 2;
+int channel0Frequency = 50; // Hz
+int channel1Frequency = 5; // Hz
 
+// create header info for the file describing data records structure
+HeaderInfo headerInfo = new HeaderInfo(numberOfChannels, FileType.EDF_16BIT);
+// Signal numbering starts from 0!
+
+// configure signal (channel) number 0
+headerInfo.setSampleFrequency(0, channel0Frequency);
+headerInfo.setLabel(0, "first channel");
+headerInfo.setPhysicalRange(0, -500, 500);
+headerInfo.setDigitalRange(0, -2048, -2047);
+headerInfo.setPhysicalDimension(0, "uV");
+
+// configure signal (channel) number 1
+headerInfo.setSampleFrequency(1, channel1Frequency);
+headerInfo.setLabel(1, "second channel");
+headerInfo.setPhysicalRange(1, 100, 300);
+
+
+// create EdfFileWriter
+File file = new File("filename.edf");
+EdfFileWriter edfFileWriter = new EdfFileWriter(file, headerInfo);
 ```
 
-But to make it possible to write data to the file, we must open the EdfWriter first and pass a
-HeaderConfig object with the configuration information for the file header record.
-
-Suppose that we have a two-channels measuring device. One channel measures the cardiogram with the frequency 500 Hz, and the other is accelerometer detecting movements with the frequency 50 Hz. Lets create appropriate HeaderConfig and open the EdfWriter:
+Now we may write data samples to the EdfFileWriter:
 
 ```java
+// create and write samples
+int[] samplesFromChannel0 = new int[channel0Frequency];
+int[] samplesFromChannel1 = new int[channel1Frequency];
+Random rand = new Random();
+for(int i = 0; i < 10; i++) {
+    // create random samples for channel 0
+    for(int j = 0; j < samplesFromChannel0.length; j++) {
+        samplesFromChannel0[j] = rand.nextInt(10000);
+    }
 
-HeaderConfig headerInfo = new HeaderConfig(2);
-headerInfo.setPatientIdentification("Some Patient");
-headerInfo.setDurationOfDataRecord(1); // 1 second
+    // create random samples for channel 1
+    for(int j = 0; j < samplesFromChannel1.length; j++) {
+        samplesFromChannel1[j] = rand.nextInt(1000);
+    }
 
-headerInfo.setLabel(0,"EKG");
-headerInfo.setDigitalMin(0,-32767);
-headerInfo.setDigitalMax(0,32767);
-headerInfo.setPhysicalMin(0,-3125);
-headerInfo.setPhysicalMax(0,3125);
-headerInfo.setPhysicalDimension(0,"uV");
-headerInfo.setNumberOfSamplesInEachDataRecord(0,500);
-
-headerInfo.setLabel(1,"Accelerometer");
-headerInfo.setDigitalMin(1,-32767);
-headerInfo.setDigitalMax(1, 32767);
-headerInfo.setPhysicalMin(1,-16384);
-headerInfo.setPhysicalMax(1,-16384);
-headerInfo.setPhysicalDimension(1,"m/sec^3");
-
-edfFileWriter.open(headerInfo);
-```
-
-Now EdfWriter is redy to write data. And we may write the samples from the channels directly to the EdfWriter:
-
-```java
-int[] signal0Samples = new int[500];
-int[] signal1Samples = new int[50];
-
-while (isRecording) {
-    // fill signal0Samples with 500 samples from channel_0
-    edfFileWriter.writeDigitalSamples(signal0Samples);
-    // fill signal1Samples with 50 samples from channel_1
-    edfFileWriter.writeDigitalSamples(signal1Samples);
+    // write samples from both channels to the edf file
+    edfFileWriter.writeDigitalSamples(samplesFromChannel0);
+    edfFileWriter.writeDigitalSamples(samplesFromChannel1);
 }
+
 ```
 
 The same way we may write not digital but physical values.
 
+When we finish to work with EdfWriter we must close it:
 
-Or we may first prepare a DataRecord by filling it with data from both channels (recived during 1 second), and when the record will be ready write it to the file:
-
-```java
-boolean isRecording = true;
-
-int[] dataRecord = new int[500 + 50];
-
-while (isRecording) {
-    // put 500 samples from channel_0 to the dataRecord channel_0
-    // put 50 samples from channel_1 to the dataRecord
-    edfFileWriter.writeDigitalDataRecord(dataRecord);
-}
-
-```
-
-When we finish to work with EdfWriter we must  close it:
 ```java
 edfFileWriter.close();
 ```
@@ -164,75 +151,37 @@ edfFileWriter.close();
 To read  a EDF/BDF file, we have to create EdfReader:
 
 ```java
-EdfReader edfFileReader = new EdfReader("filename");
+EdfFileReader edfFileReader = new EdfFileReader(new File("filename.edf"));
 ```
 
-Now we can get the header record of the file and for example print some header information:
+Now we can read data samples (digital or  physical) belonging to any channel:
 
 ```java
-HeaderConfig headerInfo = edfFileReader.getHeaderInfo();
-
-System.out.println("File type "+ headerInfo.getFileType());
-System.out.println("Duration of DataRecords = "+headerInfo.getDurationOfDataRecord());
-System.out.println("Number of signals = "+headerInfo.getNumberOfSignals());
-for(int i = 0; i < headerInfo.getNumberOfSignals(); i++) {
-      System.out.println(i+ ": label = "+ headerInfo.getLabel(i)
-      + ", number of samples in data records = "
-   +  headerInfo.getNumberOfSamplesInEachDataRecord(i));
-}
-
-```
-
-We can change header information if we want. Lets for example change the patient name and the label of signal 0 (Note that the signals numbering starts from 0!):
-
-```java
-headerInfo.setPatientIdentification("John Smith");
-headerInfo.setLabel(0,"EKG");
-edfFileReader.rewriteHeader(headerInfo);
-```
-
-Data from the file we may read in DataRecords (digital o phycisal):
-
-```java
-int[] digitalDataRecord;
-while (edfFileReader.availableDataRecords() > 0) {
-    digitalDataRecord = edfFileReader.readDigitalDataRecord();
-    // do smth
-}
-
-// or
-
-edfFileReader.setDataRecordPosition(0);
-double[] physicalDataRecord;
-while (edfFileReader.availableDataRecords() > 0) {
-    physicalDataRecord = edfFileReader.readPhysicalDataRecord();
-    // do smth
-}
-
-```
-
-Or we may read only samples belonging to some channel (also digital or  physical):
-
-```java
-int numberOfamples = 100;
 int signalNumber = 0;
-int[] digitalSamples;
 
- while (edfFileReader.availableSamples(signalNumber) > 0) {
-    digitalSamples = edfFileReader.readDigitalSamples(signalNumber, numberOfamples);
-  // do smth
-}
-
-// or
+// read digital values
+int[] digSampleBuffer = new int[100] ;
 
 edfFileReader.setSamplePosition(signalNumber, 0);
-double[] physicalSamples;
+
 while (edfFileReader.availableSamples(signalNumber) > 0) {
-    physicalSamples = edfFileReader.readPhysicalSamples(signalNumber, numberOfamples);
-  // do smth
+    edfFileReader.readDigitalSamples(signalNumber, digSampleBuffer);
+    // do smth with samples stored in digSampleBuffer
 }
 ```
+or
 
+```java
+// read physical values
+double[] physSampleBuffer = new double[50];
+
+edfFileReader.setSamplePosition(signalNumber, 0);
+
+while (edfFileReader.availableSamples(signalNumber) > 0) {
+    edfFileReader.readPhysicalSamples(signalNumber, physSampleBuffer);
+    // do smth with samples stored in physSampleBuffer
+}
+```
 Note that every signal has it's own independent sample position indicator. That permits us to read samples from different signals independently.
 
 Every time we read samples belonging to some signal the corresponding sample position indicator will be increased with the amount of samples read.
@@ -244,7 +193,13 @@ long samplePosition = 5000;
 edfFileReader.setSamplePosition(signalNumber, samplePosition);
 ```
 
-When we finish to work with EdfReader we must  close it:
+Also we can get the header record of the file and for example print some header information:
+
+```java
+System.out.println(edfFileReader.getHeader());
+```
+
+When we finish to work with EdfReader we must close it:
 
 ```java
 edfFileReader.close();
@@ -255,49 +210,55 @@ edfFileReader.close();
 
 It is possible to do some kind of DataRecords transformation before actually write them to the file.
 
-Class **DataRecordsJoiner.java** combines a few short DataRecords into one:
+Class **EdfJoiner.java** combines a few short DataRecords into one:
 
 ```java
-EdfWriter edfFileWriter = new EdfWriter("filename", FileType.EDF_16BIT);
-int numberOfRecordsToJoin = 10;
-DataRecordsJoiner joiner = new DataRecordsJoiner(numberOfRecordsToJoin, edfFileWriter);
-joiner.open(headerInfo);
+HeaderInfo headerInfor;
+// create and configure headerInfo
+// ....
 
-joiner.writeDigitalDataRecord(dataRecord);
+// create edf file writer
+EdfFileWriter edfFileWriter = new EdfFileWriter(new File("filename.edf"));
+
+// create edf joiner
+int numberOfRecordsToJoin = 5;
+EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, edfFileWriter);
+
+// set headerInfo
+joiner.setHeader(headerInfo);
+
+// write digital or physical samples
+joiner.writeDigitalSamples(intArray);
+joiner.writePhysicalSamples(doubleArray);
 ```
 
-In this example if input DataRecords have duration = 1 second then resultant DataRecords actually written to the file will have duration = 10 seconds.
+In this example if input DataRecord has duration = 1 sec, then resultant DataRecords actually written to the file will have duration = 5 seconds.
 
-Class **DataRecordsSignalsManager.java** permits to omit samples from some channels (delete signal) or realize some kind of transformation with the signal data (add some filter to the signal). At the moment only SignalMovingAverageFilter is available for signal transformation:
+Class **EdfSignalsFilter.java** permits to realize some kind of transformation with the signal data (add some digital filter to the signal). At the moment only MovingAverage and HighPass filters are available.
+
 
 ```java
-EdfWriter edfFileWriter = new EdfWriter("filename", FileType.EDF_16BIT);
-DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(edfFileWriter);
-signalsManager.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
-signalsManager.removeSignal(1);
-signalsManager.open(headerInfo);
+HeaderInfo headerInfor;
+// create and configure headerInfo
+// ....
 
-signalsManager.writeDigitalDataRecord(dataRecord);
+// create edf file writer
+EdfFileWriter edfFileWriter = new EdfFileWriter(new File("filename.edf"));
+
+// create EdfSignalsFilter
+EdfSignalsFilter signalsFilter = new EdfSignalsFilter(edfFileWriter);
+// set MovingAvg filter for signal number 0
+signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
+
+// set headerInfo
+signalsFilter.setHeader(headerInfo);
+
+// write digital or physical samples
+signalsFilter.writeDigitalSamples(intArray);
+signalsFilter.writePhysicalSamples(doubleArray);
 ```
 
-In this example if the input DataRecords have samples from 2 channels then the resultant DataRecords (actually written to the file) will have samples only from one channel, and the samples values will be averaging... Averaging permits to reduce the 50 hz  noise. So the resultant signal will be much more "clean".
-
-Filters can be connected together in a chain:
-
-```java
-EdfWriter edfFileWriter = new EdfWriter("filename", FileType.EDF_16BIT);
-int numberOfRecordsToJoin = 10;
-DataRecordsJoiner joiner = new DataRecordsJoiner(numberOfRecordsToJoin, edfFileWriter);
-
-DataRecordsSignalsManager signalsManager = new DataRecordsSignalsManager(joiner);
-signalsManager.addSignalPrefiltering(0, new SignalMovingAverageFilter(10));
-signalsManager.removeSignal(1);
-signalsManager.open(headerInfo);
-
-signalsManager.writeDigitalDataRecord(dataRecord);
-```
-
-An example program is available in the 'examples/EdflibExample.java' file.  This example reads the EDF file ('records/ekg.edf') and copy its data to a new EDF file with the filtering described above.  The file ekg.edf  contains real data from two channels - the cardiogram and accelerometer.
+An example program is available in the 'examples/EdfExample.java' file.
 
 Use [EDFbrowser](http://www.teuniz.net/edfbrowser/ "EDFbrowser") to view EDF/BDF-files.
 

@@ -1,11 +1,11 @@
-package com.biorecorder.edflib.filters.digital_filters;
+package com.biorecorder.edflib.filters;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The simplest realisation of Moving Average Filter that buffers given number (n) of incoming
+ * The simplest realisation of Moving Average filter that buffers given number (n) of incoming
  * samples and returns its average value
  * <p>
  * filteredValue_m = ( value_m + value_(m-1) + ... + value_(m-n) ) / n
@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MovingAverageFilter implements SignalFilter {
 
-    private List<Integer> buffer = new ArrayList<Integer>();
+    private List<Double> buffer = new ArrayList<>();
     private int bufferSize;
 
     /**
@@ -34,7 +34,7 @@ public class MovingAverageFilter implements SignalFilter {
      * @return average value of last n samples
      */
     @Override
-    public int getFilteredValue(int value) {
+    public double getFilteredValue(double value) {
         buffer.add(value);
         if (buffer.size() < bufferSize) {
             return value;
@@ -46,7 +46,7 @@ public class MovingAverageFilter implements SignalFilter {
         for (int i = 0; i < bufferSize; i++) {
             bufferSum += buffer.get(i);
         }
-        return (int) (bufferSum / bufferSize);
+        return  bufferSum / bufferSize;
     }
 
 

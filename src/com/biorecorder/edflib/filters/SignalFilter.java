@@ -1,4 +1,4 @@
-package com.biorecorder.edflib.filters.digital_filters;
+package com.biorecorder.edflib.filters;
 
 /**
  * Signal filter describes some kind of transformation with stream data coming from
@@ -12,7 +12,7 @@ public interface SignalFilter {
      * @param value input value
      * @return filtered value
      */
-    int getFilteredValue(int value);
+    double getFilteredValue(double value);
 
     /**
      * Give the name or short description of this filter.

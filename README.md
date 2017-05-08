@@ -114,7 +114,7 @@ File file = new File("filename.edf");
 EdfFileWriter edfFileWriter = new EdfFileWriter(file, headerInfo);
 ```
 
-Now we may write data samples to the EdfFileWriter:
+Now we may write data samples to the EdfFileWriter. Lets write to the file 10 data records:
 
 ```java
 // create and write samples

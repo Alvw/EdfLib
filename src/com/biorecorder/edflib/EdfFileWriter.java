@@ -52,8 +52,8 @@ public class EdfFileWriter extends EdfWriter {
      * @throws IOException
      */
     public EdfFileWriter(File file, HeaderInfo headerInfo) throws IOException {
+        this(file);
         this.headerInfo = headerInfo;
-        fileOutputStream = new FileOutputStream(file);
     }
 
     /**
@@ -67,6 +67,11 @@ public class EdfFileWriter extends EdfWriter {
      * @throws IOException
      */
     public EdfFileWriter(File file) throws IOException {
+        File dir = file.getParentFile();
+        if(!dir.exists()) {
+            dir.mkdirs();
+        }
+        file.createNewFile();
         fileOutputStream = new FileOutputStream(file);
     }
 
@@ -104,7 +109,9 @@ public class EdfFileWriter extends EdfWriter {
         }
         fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
         stopTime = System.currentTimeMillis();
-        durationOfDataRecord = (stopTime - startTime) * 0.001 / countRecords();
+        if(countRecords() > 0) {
+            durationOfDataRecord = (stopTime - startTime) * 0.001 / countRecords();
+        }
         sampleCounter += digitalSamples.length;
     }
 
@@ -114,7 +121,7 @@ public class EdfFileWriter extends EdfWriter {
         if (headerInfo.getNumberOfDataRecords() == -1) {
             headerInfo.setNumberOfDataRecords(countRecords());
         }
-        if (isDurationOfDataRecordsComputable) {
+        if (isDurationOfDataRecordsComputable && durationOfDataRecord > 0) {
             headerInfo.setDurationOfDataRecord(durationOfDataRecord);
         }
         FileChannel channel = fileOutputStream.getChannel();

@@ -24,7 +24,7 @@ public class HighPassFilter implements SignalFilter {
     public HighPassFilter(double cutOffFrequency, double sampleFrequency) {
         this.cutOffFrequency = (int)cutOffFrequency;
         maxSize = (int)(sampleFrequency / cutOffFrequency);
-        buffer = new FifoQueue<>(maxSize);
+        buffer = new FifoQueue<Double>(maxSize);
     }
 
     @Override

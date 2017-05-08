@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MovingAverageFilter implements SignalFilter {
 
-    private List<Double> buffer = new ArrayList<>();
+    private List<Double> buffer = new ArrayList<Double>();
     private int bufferSize;
 
     /**

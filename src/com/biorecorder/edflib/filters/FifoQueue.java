@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class FifoQueue<E> {
 
-    private List<E> list = new LinkedList<>();
+    private List<E> list = new LinkedList<E>();
     private int size = 3;
 
     public FifoQueue(int size) {
@@ -64,7 +64,7 @@ public class FifoQueue<E> {
 
     public List<E> getBackingList() {
         // return a copy of the list
-        return new LinkedList<>(list);
+        return new LinkedList<E>(list);
     }
 
     public void clear() {

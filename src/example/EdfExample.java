@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class EdfExample {
     public static void main(String[] args) {
         File recordsDir = new File(System.getProperty("user.dir"), "records");
-        File originalFile = new File(recordsDir, "ekg.edf");
+        File originalFile = new File(recordsDir, "ekg.bdf");
         try {
 
             EdfFileReader originalFileReader = new EdfFileReader(originalFile);
@@ -28,9 +28,9 @@ public class EdfExample {
             System.out.println(headerInfo);
 
 /*****************************************************************************************
- *    Read «DIGITAL» DataRecords one by one and write them to the new file ekgcopy1.edf as it is
+ *    Read «DIGITAL» DataRecords one by one and write them to the new file ekgcopy1.bdf as it is
  *****************************************************************************************/
-            File resultantFile1 = new File(recordsDir, "ekgcopy1.edf");
+            File resultantFile1 = new File(recordsDir, "ekgcopy1.bdf");
             EdfFileWriter fileWriter1 = new EdfFileWriter(resultantFile1, headerInfo);
 
             int originalDataRecordLength = headerInfo.getDataRecordLength();
@@ -66,10 +66,10 @@ public class EdfExample {
 
 
 /*****************************************************************************************
- *     Read «PHYSICAL» DataRecords one by one and write them to the new file ekgcopy2.edf
+ *     Read «PHYSICAL» DataRecords one by one and write them to the new file ekgcopy2.bdf
  *     Test Physical-Digital converter.
  *****************************************************************************************/
-            File resultantFile2 = new File(recordsDir, "ekgcopy2.edf");
+            File resultantFile2 = new File(recordsDir, "ekgcopy2.bdf");
             EdfFileWriter fileWriter2 = new EdfFileWriter(resultantFile2, headerInfo);
 
             // set DataRecord and signals positions to 0;
@@ -104,9 +104,9 @@ public class EdfExample {
 
 /*****************************************************************************************
  *     Read data by samples (from both channels) and
- *     write them to the new file ekgcopy3.edf
+ *     write them to the new file ekgcopy3.bdf
  *****************************************************************************************/
-            File resultantFile3 = new File(recordsDir, "ekgcopy3.edf");
+            File resultantFile3 = new File(recordsDir, "ekgcopy3.bdf");
             EdfFileWriter fileWriter3 = new EdfFileWriter(resultantFile3, headerInfo);
             // set DataRecord and signals positions to 0;
             originalFileReader.reset();
@@ -147,10 +147,10 @@ public class EdfExample {
 
 /*****************************************************************************************
  *     Test EdfJoiner. Read data, joins 5 data records and write the resultant records
- *     to ekgcopy4.edf
+ *     to ekg_joined.bdf
  *****************************************************************************************/
 
-            File resultantFile4 = new File(recordsDir, "ekgcopy4.edf");
+            File resultantFile4 = new File(recordsDir, "ekg_joined.bdf");
             EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4);
             int numberOfRecordsToJoin = 5;
             EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, fileWriter4);
@@ -212,10 +212,10 @@ public class EdfExample {
 /*****************************************************************************************
  *     Test EdfSignalsRemover. Reads data records from original file,
  *     removes samples belonging to channel 0 and write the resultant records
- *     to ekgcopy5.edf
+ *     to ekg_1channel.bdf
  *****************************************************************************************/
 
-            File resultantFile5 = new File(recordsDir, "ekgcopy5.edf");
+            File resultantFile5 = new File(recordsDir, "ekg_1channel.bdf");
             EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5);
             EdfSignalsRemover signalsRemover = new EdfSignalsRemover(fileWriter5);
             signalsRemover.removeSignal(0);
@@ -257,15 +257,18 @@ public class EdfExample {
             System.out.println(fileWriter5.getHeader());
 
 /*****************************************************************************************
- *     EdfSignalsFilter usage example. Read data, apply some filtering to
- *     samples from channel 0 and write the resultant records
- *     to ekgcopy6.edf
+ *     EdfSignalsFilter usage example. Read data, apply two filters to
+ *     samples from channel 0:
+ *       1. HighPass filter removes the DC component (average value) from the signal
+ *       2. MovingAverage filter removes 50HZ noise
+ *     and write the resultant clean records to ekg_filtered.bdf
  *****************************************************************************************/
-            File resultantFile6 = new File(recordsDir, "ekgcopy6.edf");
+            File resultantFile6 = new File(recordsDir, "ekg_filtered.bdf");
             EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6);
             EdfSignalsFilter signalsFilter = new EdfSignalsFilter(fileWriter6);
-            signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
             signalsFilter.addSignalFilter(0, new HighPassFilter(1, headerInfo.getSampleFrequency(0)));
+            signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
+            
             signalsFilter.setHeader(headerInfo);
 
             // set DataRecord and signals positions to 0;

@@ -251,7 +251,6 @@ public class HeaderInfo {
 
         }
 
-        signals = new ArrayList<>(numberOfSignals);
         int[] digMaxList = new int[numberOfSignals];
         int[] digMinList = new int[numberOfSignals];
         double[] physMaxList = new double[numberOfSignals];

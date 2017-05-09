@@ -71,6 +71,9 @@ public class EdfFileWriter extends EdfWriter {
         if(!dir.exists()) {
             dir.mkdirs();
         }
+        if(file.exists()) {
+            file.delete();
+        }
         file.createNewFile();
         fileOutputStream = new FileOutputStream(file);
     }

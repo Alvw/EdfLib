@@ -70,7 +70,7 @@ public class EdfJoiner extends EdfFilter {
     public void writeDigitalSamples(int[] digitalSamples) throws IOException {
         for (int sample : digitalSamples) {
             int samplePosition = (int) (sampleCounter % headerInfo.getDataRecordLength());
-            int joinedRecords = countRecords() % numberOfRecordsToJoin;
+            int joinedRecords = getNumberOfWrittenDataRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
             while (samplePosition >= counter + headerInfo.getNumberOfSamplesInEachDataRecord(channelNumber)) {
@@ -85,7 +85,7 @@ public class EdfJoiner extends EdfFilter {
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 
-            if(sampleCounter % headerInfo.getDataRecordLength() == 0 &&  countRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % headerInfo.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

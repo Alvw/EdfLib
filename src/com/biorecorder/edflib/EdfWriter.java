@@ -96,10 +96,13 @@ public abstract class EdfWriter {
         writeDigitalSamples(digSamples);
     }
 
-    protected int countRecords() {
+    /**
+     * Gets the number of actually written data records (data packages).
+     * @return number of  written data records
+     */
+    public int getNumberOfWrittenDataRecords() {
         return  headerInfo.getDataRecordLength() == 0 ?  0 :  (int) (sampleCounter / headerInfo.getDataRecordLength());
     }
-
 
 
     /**

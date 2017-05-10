@@ -112,8 +112,8 @@ public class EdfFileWriter extends EdfWriter {
         }
         fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
         stopTime = System.currentTimeMillis();
-        if(countRecords() > 0) {
-            durationOfDataRecord = (stopTime - startTime) * 0.001 / countRecords();
+        if(getNumberOfWrittenDataRecords() > 0) {
+            durationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfWrittenDataRecords();
         }
         sampleCounter += digitalSamples.length;
     }
@@ -122,7 +122,7 @@ public class EdfFileWriter extends EdfWriter {
     @Override
     public synchronized void close() throws IOException {
         if (headerInfo.getNumberOfDataRecords() == -1) {
-            headerInfo.setNumberOfDataRecords(countRecords());
+            headerInfo.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
         }
         if (isDurationOfDataRecordsComputable && durationOfDataRecord > 0) {
             headerInfo.setDurationOfDataRecord(durationOfDataRecord);
@@ -144,7 +144,7 @@ public class EdfFileWriter extends EdfWriter {
         StringBuilder stringBuilder = new StringBuilder("\n");
         stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
         stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
-        stringBuilder.append("Number of data records = " + countRecords() + "\n");
+        stringBuilder.append("Number of data records = " + getNumberOfWrittenDataRecords() + "\n");
         stringBuilder.append("Actual duration of a data record = " + durationOfDataRecord);
         return stringBuilder.toString();
     }

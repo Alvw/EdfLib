@@ -49,10 +49,9 @@ public class EdfFilter extends EdfWriter {
      * structure of resultant DataRecords and pass it to underlying EdfWriter
      *
      * @param headerInfo HeaderInfo object with the information describing input DataRecords structure
-     * @throws IOException
      */
     @Override
-    public void setHeader(HeaderInfo headerInfo) throws IOException {
+    public void setHeader(HeaderInfo headerInfo)  {
         super.setHeader(headerInfo);
         out.setHeader(createOutputRecordingConfig());
     }
@@ -62,10 +61,9 @@ public class EdfFilter extends EdfWriter {
      * Calls the same method of its underlying EdfWriter and pass to it data samples.
      *
      * @param digitalSamples array with digital data samples
-     * @throws IOException
      */
     @Override
-    public void writeDigitalSamples(int[] digitalSamples) throws IOException {
+    public void writeDigitalSamples(int[] digitalSamples)  {
         if(headerInfo == null) {
             throw new RuntimeException("File header is not specified! HeaderInfo = "+headerInfo);
         }
@@ -75,11 +73,9 @@ public class EdfFilter extends EdfWriter {
     /**
      * Calls the same method of its
      * underlying EdfWriter.
-     *
-     * @throws IOException
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         out.close();
     }
 }

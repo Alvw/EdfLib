@@ -60,7 +60,7 @@ public class EdfSignalsRemover extends EdfFilter{
 
 
     @Override
-    public void writeDigitalSamples(int[] digitalSamples) throws IOException {
+    public void writeDigitalSamples(int[] digitalSamples) {
         out.writeDigitalSamples(createResultantSamples(digitalSamples));
     }
 }

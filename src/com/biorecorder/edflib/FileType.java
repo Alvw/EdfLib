@@ -15,34 +15,34 @@ public enum FileType {
         private final int DEFAULT_DIG_MIN_16 = -32768;
         private final int DEFAULT_DIG_MAX_16 = 32767;
         @Override
-        public String getVersion() {
+        String getVersion() {
             return "";
         }
 
         @Override
-        public byte getFirstByte() {
+        byte getFirstByte() {
             final Charset ASCII = Charset.forName("US-ASCII");
             String zeroString = "0";  // "0" (ASCII)
             return zeroString.getBytes(ASCII)[0]; // or  return (int) '0';
         }
 
         @Override
-        public String getFirstReserved() {
+        String getFirstReserved() {
             return "";
         }
 
         @Override
-        public int getNumberOfBytesPerSample() {
+        int getNumberOfBytesPerSample() {
             return 2;
         }
 
         @Override
-        public int getDigitalMax() {
+        int getDigitalMax() {
             return DEFAULT_DIG_MAX_16;
         }
 
         @Override
-        public int getDigitalMin() {
+        int getDigitalMin() {
             return DEFAULT_DIG_MIN_16;
         }
     },
@@ -54,32 +54,32 @@ public enum FileType {
         private final int DEFAULT_DIG_MAX_24 = 8388607;
 
         @Override
-        public String getVersion() {
+        String getVersion() {
             return "BIOSEMI";
         }
 
         @Override
-        public byte getFirstByte() {
+        byte getFirstByte() {
             return (byte) 255;
         }
 
         @Override
-        public String getFirstReserved() {
+        String getFirstReserved() {
             return "24BIT";
         }
 
         @Override
-        public int getNumberOfBytesPerSample() {
+        int getNumberOfBytesPerSample() {
            return 3;
        }
 
         @Override
-        public int getDigitalMax() {
+        int getDigitalMax() {
             return DEFAULT_DIG_MAX_24;
         }
 
         @Override
-        public int getDigitalMin() {
+        int getDigitalMin() {
             return DEFAULT_DIG_MIN_24;
         }
 
@@ -90,7 +90,7 @@ public enum FileType {
      *
      * @return number of bytes per data sample in the file: 2 for EDF files and 3 for BDF files
      */
-    public abstract int getNumberOfBytesPerSample();
+    abstract int getNumberOfBytesPerSample();
 
 
     /**
@@ -99,26 +99,26 @@ public enum FileType {
      *
      * @return the version for the the BDF or EDF file header
      */
-    public abstract String getVersion();
+    abstract String getVersion();
 
     /**
      * Create first byte for the BDF or EDF file header respectively
      *
      * @return first byte for the the BDF or EDF file header
      */
-    public abstract byte getFirstByte();
+    abstract byte getFirstByte();
 
     /**
      * Create the first reserved field for the BDF or EDF file header respectively
      *
      * @return the first reserved field for the the BDF or EDF file header
      */
-    public abstract String getFirstReserved();
+    abstract String getFirstReserved();
 
 
-    public abstract int getDigitalMax();
+    abstract int getDigitalMax();
 
-    public abstract int getDigitalMin();
+    abstract int getDigitalMin();
 
 }
 

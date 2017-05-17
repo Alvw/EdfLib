@@ -52,20 +52,12 @@ class SignalInfo {
     }
 
     public void setDigitalRange(int digitalMin, int digitalMax) {
-        if(digitalMax <= digitalMin) {
-            throw new RuntimeException("DigitalMax must be > digitalMin!. DigitalMax = "
-                    + digitalMax + " DigitalMin = "+digitalMin);
-        }
         this.digitalMin = digitalMin;
         this.digitalMax = digitalMax;
     }
 
 
     public void setPhysicalRange(double physicalMin, double physicalMax) {
-        if(physicalMax <= physicalMin) {
-            throw new RuntimeException("physicalMax must be > physicalMin!. PhysicalMax = "
-                    + physicalMax+" PhysicalMin = " + physicalMin);
-        }
         this.physicalMin = physicalMin;
         this.physicalMax = physicalMax;
     }
@@ -76,11 +68,6 @@ class SignalInfo {
 
 
     public void setNumberOfSamplesInEachDataRecord(int numberOfSamplesInEachDataRecord) {
-       if(numberOfSamplesInEachDataRecord <= 0) {
-           throw new RuntimeException("Number of samples in each DataRecord = "+ numberOfSamplesInEachDataRecord
-           + ".  Must be > 0!");
-
-       }
        this.numberOfSamplesInEachDataRecord = numberOfSamplesInEachDataRecord;
     }
 

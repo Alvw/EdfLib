@@ -1,5 +1,9 @@
 package com.biorecorder.edflib;
 
+import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
+import com.biorecorder.edflib.exceptions.FileWritingRuntimeException;
+import com.biorecorder.edflib.exceptions.IORuntimeException;
+
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -46,12 +50,13 @@ public class EdfFileWriter extends EdfWriter {
      * A HeaderInfo object must be passed to the EdfFileWriter before writing any data samples.
      * We may do that in the constructor or by method {@link #setHeader(HeaderInfo)}.
      *
-     *
-     * @param file the file to be opened for writing
+     * @param file       the file to be opened for writing
      * @param headerInfo object containing all necessary information for the header record
-     * @throws IOException
+     * @throws FileNotFoundRuntimeException Runtime wrapper of FileNotFoundException
+     * @throws SecurityException            if a security manager exists and
+     *                                      does not permit to create file or write to the file.
      */
-    public EdfFileWriter(File file, HeaderInfo headerInfo) throws IOException {
+    public EdfFileWriter(File file, HeaderInfo headerInfo) throws FileNotFoundRuntimeException, SecurityException {
         this(file);
         this.headerInfo = headerInfo;
     }
@@ -64,18 +69,20 @@ public class EdfFileWriter extends EdfWriter {
      * Use the method {@link #setHeader(HeaderInfo)}.
      *
      * @param file the file to be opened for writing
-     * @throws IOException
+     * @throws FileNotFoundRuntimeException Runtime wrapper of FileNotFoundException
+     * @throws SecurityException            if a security manager exists and
+     *                                      does not permit to create file or write to the file.
      */
-    public EdfFileWriter(File file) throws IOException {
+    public EdfFileWriter(File file) throws FileNotFoundRuntimeException, SecurityException {
         File dir = file.getParentFile();
-        if(!dir.exists()) {
+        if (!dir.exists()) {
             dir.mkdirs();
         }
-        if(file.exists()) {
-            file.delete();
+        try {
+            fileOutputStream = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundRuntimeException(e);
         }
-        file.createNewFile();
-        fileOutputStream = new FileOutputStream(file);
     }
 
 
@@ -92,27 +99,31 @@ public class EdfFileWriter extends EdfWriter {
     }
 
 
-
     @Override
-    public synchronized void writeDigitalSamples(int[] digitalSamples) throws IOException {
-        if (sampleCounter == 0) {
-            if(headerInfo == null) {
-                throw new RuntimeException("File header is not specified! HeaderInfo = "+headerInfo);
+    public synchronized void writeDigitalSamples(int[] digitalSamples) throws IORuntimeException {
+        try {
+            if (sampleCounter == 0) {
+                if (headerInfo == null) {
+                    throw new NullPointerException("HeaderInfo is not specified: " + headerInfo);
+                }
+                // 1 second = 1000 msec
+                startTime = System.currentTimeMillis() - (long) headerInfo.getDurationOfDataRecord() * 1000;
+                // setRecordingStartDateTimeMs делаем только если bdfHeader.getRecordingStartDateTimeMs == -1
+                // если например идет копирование данных из файла в файл и
+                // bdfHeader.getRecordingStartDateTimeMs имеет нормальное значение то изменять его не нужно
+                if (headerInfo.getRecordingStartDateTimeMs() < 0) {
+                    headerInfo.setRecordingStartDateTimeMs(startTime);
+                }
+                headerInfo.setNumberOfDataRecords(-1);
+                fileOutputStream.write(headerInfo.createFileHeader());
             }
-            // 1 second = 1000 msec
-            startTime = System.currentTimeMillis() - (long) headerInfo.getDurationOfDataRecord() * 1000;
-            // setRecordingStartDateTimeMs делаем только если bdfHeader.getRecordingStartDateTimeMs == -1
-            // если например идет копирование данных из файла в файл и
-            // bdfHeader.getRecordingStartDateTimeMs имеет нормальное значение то изменять его не нужно
-            if (headerInfo.getRecordingStartDateTimeMs() < 0) {
-                headerInfo.setRecordingStartDateTimeMs(startTime);
-            }
-            headerInfo.setNumberOfDataRecords(-1);
-            fileOutputStream.write(headerInfo.createFileHeader());
+            fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
+        } catch (IOException e) {
+            String errMasg = "File write error. Check available HD space";
+            throw new FileWritingRuntimeException(errMasg,e);
         }
-        fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
         stopTime = System.currentTimeMillis();
-        if(getNumberOfWrittenDataRecords() > 0) {
+        if (getNumberOfWrittenDataRecords() > 0) {
             durationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfWrittenDataRecords();
         }
         sampleCounter += digitalSamples.length;
@@ -120,7 +131,7 @@ public class EdfFileWriter extends EdfWriter {
 
 
     @Override
-    public synchronized void close() throws IOException {
+    public synchronized void close() throws IORuntimeException {
         if (headerInfo.getNumberOfDataRecords() == -1) {
             headerInfo.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
         }
@@ -128,9 +139,14 @@ public class EdfFileWriter extends EdfWriter {
             headerInfo.setDurationOfDataRecord(durationOfDataRecord);
         }
         FileChannel channel = fileOutputStream.getChannel();
-        channel.position(0);
-        fileOutputStream.write(headerInfo.createFileHeader());
-        fileOutputStream.close();
+
+        try {
+            channel.position(0);
+            fileOutputStream.write(headerInfo.createFileHeader());
+            fileOutputStream.close();
+        } catch (IOException e) {
+            new IORuntimeException(e);
+        }
     }
 
     /**
@@ -155,7 +171,7 @@ public class EdfFileWriter extends EdfWriter {
      * Create the file: current_project_dir/records/test.edf
      * and write to it 10 data records. Then print some file header info
      * and writing info.
-     *<p>
+     * <p>
      * Data records has the following structure:
      * <br>duration of data records = 1 sec (default)
      * <br>number of channels = 2;
@@ -183,45 +199,40 @@ public class EdfFileWriter extends EdfWriter {
         headerInfo.setLabel(1, "second channel");
         headerInfo.setPhysicalRange(1, 100, 300);
 
-
         // create file
         File recordsDir = new File(System.getProperty("user.dir"), "records");
         File file = new File(recordsDir, "test.edf");
 
-        try {
-            // create EdfFileWriter to write edf data to that file
-            EdfFileWriter fileWriter = new EdfFileWriter(file, headerInfo);
+        // create EdfFileWriter to write edf data to that file
+        EdfFileWriter fileWriter = new EdfFileWriter(file, headerInfo);
 
-            // create and write samples
-            int[] samplesFromChannel0 = new int[channel0Frequency];
-            int[] samplesFromChannel1 = new int[channel1Frequency];
-            Random rand = new Random();
-            for(int i = 0; i < 10; i++) {
-                // create random samples for channel 0
-                for(int j = 0; j < samplesFromChannel0.length; j++) {
-                    samplesFromChannel0[j] = rand.nextInt(10000);
-                }
-
-                // create random samples for channel 1
-                for(int j = 0; j < samplesFromChannel1.length; j++) {
-                    samplesFromChannel1[j] = rand.nextInt(1000);
-                }
-
-                // write samples from both channels to the edf file
-                fileWriter.writeDigitalSamples(samplesFromChannel0);
-                fileWriter.writeDigitalSamples(samplesFromChannel1);
+        // create and write samples
+        int[] samplesFromChannel0 = new int[channel0Frequency];
+        int[] samplesFromChannel1 = new int[channel1Frequency];
+        Random rand = new Random();
+        for (int i = 0; i < 10; i++) {
+            // create random samples for channel 0
+            for (int j = 0; j < samplesFromChannel0.length; j++) {
+                samplesFromChannel0[j] = rand.nextInt(10000);
             }
 
-            // close EdfFileWriter. Always must be called after finishing writing DataRecords.
-            fileWriter.close();
+            // create random samples for channel 1
+            for (int j = 0; j < samplesFromChannel1.length; j++) {
+                samplesFromChannel1[j] = rand.nextInt(1000);
+            }
 
-            // print some header info
-            System.out.println(fileWriter.getHeader());
-            // print some writing info
-            System.out.println(fileWriter.getWritingInfo());
-        } catch (IOException e) {
-            e.printStackTrace();
+            // write samples from both channels to the edf file
+            fileWriter.writeDigitalSamples(samplesFromChannel0);
+            fileWriter.writeDigitalSamples(samplesFromChannel1);
         }
+
+        // close EdfFileWriter. Always must be called after finishing writing DataRecords.
+        fileWriter.close();
+
+        // print some header info
+        System.out.println(fileWriter.getHeader());
+        // print some writing info
+        System.out.println(fileWriter.getWritingInfo());
 
     }
 

@@ -1,7 +1,5 @@
 package com.biorecorder.edflib;
 
-import java.io.IOException;
-
 /**
  * This abstract class is the superclass of all classes representing an output stream of DataRecords.
  * An output stream accepts a digital DataRecord and send (write) it to some sink.
@@ -26,9 +24,8 @@ public abstract class EdfWriter {
      * This function MUST be called before writing any data.
      *
      * @param headerInfo - HeaderInfo object describing DataRecords structure
-     * @throws IOException
      */
-    public void setHeader(HeaderInfo headerInfo) throws IOException {
+    public void setHeader(HeaderInfo headerInfo)  {
         this.headerInfo = headerInfo;
     }
 
@@ -59,9 +56,8 @@ public abstract class EdfWriter {
      * and written at once.
      *
      * @param digitalSamples digital samples belonging to some signal or entire DataRecord
-     * @throws IOException
      */
-    public abstract void writeDigitalSamples(int[] digitalSamples) throws IOException;
+    public abstract void writeDigitalSamples(int[] digitalSamples);
 
 
 
@@ -83,9 +79,8 @@ public abstract class EdfWriter {
      * and written at once.
      *
      * @param physicalSamples physical samples belonging to some signal or entire DataRecord
-     * @throws IOException
      */
-    public void writePhysicalSamples(double[] physicalSamples) throws IOException {
+    public void writePhysicalSamples(double[] physicalSamples)  {
         int[] digSamples = new int[physicalSamples.length];
         int signalNumber;
         for (int i = 0; i < physicalSamples.length; i++) {
@@ -110,8 +105,6 @@ public abstract class EdfWriter {
      * it. This writer may no longer be used for writing DataRecords.
      * This method MUST be called after finishing writing DataRecords.
      * Failing to do so will cause unnessesary memory usage and corrupted and incomplete data writing.
-     *
-     * @throws IOException
      */
-    public abstract void close() throws IOException;
+    public abstract void close();
 }

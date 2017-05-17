@@ -43,7 +43,7 @@ public class EdfJoiner extends EdfFilter {
     }
 
     @Override
-    public void setHeader(HeaderInfo headerInfo) throws IOException {
+    public void setHeader(HeaderInfo headerInfo) {
         super.setHeader(headerInfo);
         outDataRecord = new int[headerInfo.getDataRecordLength() * numberOfRecordsToJoin];
     }
@@ -64,10 +64,9 @@ public class EdfJoiner extends EdfFilter {
      * and written at once.
      *
      * @param digitalSamples array with digital data samples
-     * @throws IOException
      */
     @Override
-    public void writeDigitalSamples(int[] digitalSamples) throws IOException {
+    public void writeDigitalSamples(int[] digitalSamples)  {
         for (int sample : digitalSamples) {
             int samplePosition = (int) (sampleCounter % headerInfo.getDataRecordLength());
             int joinedRecords = getNumberOfWrittenDataRecords() % numberOfRecordsToJoin;

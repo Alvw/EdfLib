@@ -1,13 +1,13 @@
 package com.biorecorder.edflib.exceptions;
 
 /**
- * Possible types of EdfHeaderParsingRuntimeException.
+ * Possible types of InvalidEdfFileRuntimeException.
  */
-public enum  HeaderExceptionType {
+public enum ExceptionType {
     HEADER_NOT_FULL,
-    VERSION_FORMAT_WRONG,
-    DATE_FORMAT_WRONG,
-    TIME_FORMAT_WRONG,
+    VERSION_FORMAT_INVALID,
+    DATE_FORMAT_INVALID,
+    TIME_FORMAT_INVALID,
     RECORD_DURATION_NAN,
     RECORD_DURATION_NONPOSITIVE,
     NUMBER_OF_SIGNALS_NAN,
@@ -16,8 +16,8 @@ public enum  HeaderExceptionType {
     SIGNAL_PHYSICAL_MAX_NAN,
     SIGNAL_DIGITAL_MIN_NAN,
     SIGNAL_DIGITAL_MAX_NAN,
-    SIGNAL_PHYSICAL_RANGE_WRONG,
-    SIGNAL_DIGITAL_RANGE_WRONG,
+    SIGNAL_PHYSICAL_RANGE_INVALID,
+    SIGNAL_DIGITAL_RANGE_INVALID,
     SIGNAL_DIGITAL_MIN_OUT_OF_PERMITED_RANGE,
     SIGNAL_DIGITAL_MAX_OUT_OF_PERMITED_RANGE,
     SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NAN,

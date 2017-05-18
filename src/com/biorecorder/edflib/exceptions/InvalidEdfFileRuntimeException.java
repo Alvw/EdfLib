@@ -1,10 +1,11 @@
 package com.biorecorder.edflib.exceptions;
 
 /**
- * This exception is a <b>Runtime Exception!</b> and signals that during parsing of EDF/BDF file header some sort of error has occurred
- * and appropriate data can not be extracted from the header.
+ * This exception signals that the file is not a valid Edf/Bdf file because
+ * its header record has some sort of error
+ * and the required data can not be extracted correctly.
  * <p>
- * It has multiple types. Idea is that appropriate
+ * This exception has multiple types. Idea is that appropriate
  * exception message for the user could be generated on any app level only on the base
  * of exception type and some additional info from the exception itself (value, expectedValue, signalNumber, range).
  * <p>
@@ -16,10 +17,10 @@ package com.biorecorder.edflib.exceptions;
  * в исключении параметров. Message string служит лишь информацией для разработчиков и не должен
  * выводиться клиенты
  *
- * @see HeaderExceptionType
+ * @see ExceptionType
  */
-public class EdfHeaderParsingRuntimeException extends IORuntimeException {
-    HeaderExceptionType exceptionType;
+public class InvalidEdfFileRuntimeException extends RuntimeException {
+    ExceptionType exceptionType;
     String value;
     String expectedValue;
     Double min;
@@ -27,16 +28,16 @@ public class EdfHeaderParsingRuntimeException extends IORuntimeException {
     int signalNumber = -1;
 
 
-    public EdfHeaderParsingRuntimeException(HeaderExceptionType exceptionType, String message) {
+    public InvalidEdfFileRuntimeException(ExceptionType exceptionType, String message) {
         super(message);
         this.exceptionType = exceptionType;
     }
-    public EdfHeaderParsingRuntimeException(HeaderExceptionType exceptionType, String message, Throwable cause) {
+    public InvalidEdfFileRuntimeException(ExceptionType exceptionType, String message, Throwable cause) {
         super(message, cause);
         this.exceptionType = exceptionType;
     }
 
-    public HeaderExceptionType getExceptionType() {
+    public ExceptionType getExceptionType() {
         return exceptionType;
     }
 
@@ -64,9 +65,9 @@ public class EdfHeaderParsingRuntimeException extends IORuntimeException {
         this.signalNumber = signalNumber;
     }
 
-    public double getMin() {return min;}
+    public double getRangeMin() {return min;}
 
-    public double getMax() {return max;}
+    public double getRangeMax() {return max;}
 
     public void setRange(double min, double max) {
         this.min = min;

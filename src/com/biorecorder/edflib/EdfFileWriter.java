@@ -1,7 +1,7 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
-import com.biorecorder.edflib.exceptions.IORuntimeException;
+import com.biorecorder.edflib.exceptions.EdfRepositoryNotFoundRuntimeException;
+import com.biorecorder.edflib.exceptions.EdfRuntimeException;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -53,11 +53,11 @@ public class EdfFileWriter extends EdfWriter {
      *
      * @param file       the file to be opened for writing
      * @param headerInfo object containing all necessary information for the header record
-     * @throws FileNotFoundRuntimeException if the file exists but is a directory rather
+     * @throws EdfRepositoryNotFoundRuntimeException if the file exists but is a directory rather
      * than a regular file, does not exist but cannot be created,
      * or cannot be opened for any other reason
      */
-    public EdfFileWriter(File file, HeaderInfo headerInfo) throws FileNotFoundRuntimeException {
+    public EdfFileWriter(File file, HeaderInfo headerInfo) throws EdfRepositoryNotFoundRuntimeException {
         this(file);
         this.headerInfo = headerInfo;
     }
@@ -70,12 +70,12 @@ public class EdfFileWriter extends EdfWriter {
      * Use the method {@link #setHeader(HeaderInfo)}.
      *
      * @param file the file to be opened for writing
-     * @throws FileNotFoundRuntimeException if the file exists but is a directory rather
+     * @throws EdfRepositoryNotFoundRuntimeException if the file exists but is a directory rather
      * than a regular file, does not exist but cannot be created,
      * or cannot be opened for any other reason
      */
 
-    public EdfFileWriter(File file) throws FileNotFoundRuntimeException {
+    public EdfFileWriter(File file) throws EdfRepositoryNotFoundRuntimeException {
         try {
             this.file = file;
             File dir = file.getParentFile();
@@ -85,7 +85,7 @@ public class EdfFileWriter extends EdfWriter {
             fileOutputStream = new FileOutputStream(file);
         } catch (Exception e) {
             String errMsg = MessageFormat.format("Writable file: {0} can not be created", file);
-            throw new FileNotFoundRuntimeException(errMsg, e);
+            throw new EdfRepositoryNotFoundRuntimeException(errMsg, e);
         }
     }
 
@@ -105,20 +105,20 @@ public class EdfFileWriter extends EdfWriter {
     /**
      *
      * @param physicalSamples physical samples belonging to some signal or entire DataRecord
-     * @throws IORuntimeException  if an I/O  occurs while writing data to the file
+     * @throws EdfRuntimeException  if an I/O  occurs while writing data to the file
      */
     @Override
-    public void writePhysicalSamples(double[] physicalSamples) throws IORuntimeException {
+    public void writePhysicalSamples(double[] physicalSamples) throws EdfRuntimeException {
         super.writePhysicalSamples(physicalSamples);
     }
 
     /**
      *
      * @param digitalSamples digital samples belonging to some signal or entire DataRecord
-     * @throws IORuntimeException  if an I/O  occurs while writing data to the file
+     * @throws EdfRuntimeException  if an I/O  occurs while writing data to the file
      */
     @Override
-    public synchronized void writeDigitalSamples(int[] digitalSamples) throws IORuntimeException {
+    public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException {
         try {
             if (sampleCounter == 0) {
                 // 1 second = 1000 msec
@@ -135,7 +135,7 @@ public class EdfFileWriter extends EdfWriter {
             fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while writing data to the file: {0}. Check available HD space.", file);
-            throw new IORuntimeException(errMsg, e);
+            throw new EdfRuntimeException(errMsg, e);
         }
         stopTime = System.currentTimeMillis();
         if (getNumberOfWrittenDataRecords() > 0) {
@@ -146,10 +146,10 @@ public class EdfFileWriter extends EdfWriter {
 
     /**
      *
-     * @throws IORuntimeException  if an I/O  occurs while closing the file writer
+     * @throws EdfRuntimeException  if an I/O  occurs while closing the file writer
      */
     @Override
-    public synchronized void close() throws IORuntimeException {
+    public synchronized void close() throws EdfRuntimeException {
         if (headerInfo.getNumberOfDataRecords() == -1) {
             headerInfo.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
         }
@@ -164,7 +164,7 @@ public class EdfFileWriter extends EdfWriter {
             fileOutputStream.close();
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while closing the file: {0}.", file);
-            new IORuntimeException(errMsg, e);
+            new EdfRuntimeException(errMsg, e);
         }
     }
 

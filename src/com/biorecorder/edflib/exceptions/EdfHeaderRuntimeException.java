@@ -1,9 +1,7 @@
 package com.biorecorder.edflib.exceptions;
 
 /**
- * This exception signals that the file is not a valid Edf/Bdf file because
- * its header record has some sort of error
- * and the required data can not be extracted correctly.
+ * This exception signals that the edf header has some sort of error or invalid info.
  * <p>
  * This exception has multiple types. Idea is that appropriate
  * exception message for the user could be generated on any app level only on the base
@@ -19,7 +17,7 @@ package com.biorecorder.edflib.exceptions;
  *
  * @see ExceptionType
  */
-public class InvalidEdfFileRuntimeException extends RuntimeException {
+public class EdfHeaderRuntimeException extends EdfRuntimeException {
     ExceptionType exceptionType;
     String value;
     String expectedValue;
@@ -28,11 +26,11 @@ public class InvalidEdfFileRuntimeException extends RuntimeException {
     int signalNumber = -1;
 
 
-    public InvalidEdfFileRuntimeException(ExceptionType exceptionType, String message) {
+    public EdfHeaderRuntimeException(ExceptionType exceptionType, String message) {
         super(message);
         this.exceptionType = exceptionType;
     }
-    public InvalidEdfFileRuntimeException(ExceptionType exceptionType, String message, Throwable cause) {
+    public EdfHeaderRuntimeException(ExceptionType exceptionType, String message, Throwable cause) {
         super(message, cause);
         this.exceptionType = exceptionType;
     }

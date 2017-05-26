@@ -1,8 +1,8 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.exceptions.InvalidEdfFileRuntimeException;
-import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
-import com.biorecorder.edflib.exceptions.IORuntimeException;
+import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
+import com.biorecorder.edflib.exceptions.EdfRepositoryNotFoundRuntimeException;
+import com.biorecorder.edflib.exceptions.EdfRuntimeException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -33,22 +33,22 @@ public class EdfFileReader {
      * {@link #isReadableValidEdfFile(File)}
      *
      * @param file Edf or Bdf file to be opened for reading
-     * @throws FileNotFoundRuntimeException   if the file does not exist,
+     * @throws EdfRepositoryNotFoundRuntimeException   if the file does not exist,
      *                                        is a directory rather than a regular file,
      *                                        or for some other reason cannot be opened for reading.
-     * @throws InvalidEdfFileRuntimeException if the the file is not valid EDF/BDF file
+     * @throws EdfHeaderRuntimeException if the the file is not valid EDF/BDF file
      *                                        due to some errors in its header record
      */
-    public EdfFileReader(File file) throws FileNotFoundRuntimeException, InvalidEdfFileRuntimeException {
+    public EdfFileReader(File file) throws EdfRepositoryNotFoundRuntimeException, EdfHeaderRuntimeException {
         this.file = file;
         try {
             fileInputStream = new FileInputStream(file);
             headerInfo = new HeaderInfo(file);
-        } catch (InvalidEdfFileRuntimeException e) {
+        } catch (EdfHeaderRuntimeException e) {
             throw e;
         } catch (Exception e) {
             String errMsg = MessageFormat.format("File: {0} can not be opened for reading", file);
-            throw new FileNotFoundRuntimeException(errMsg, e);
+            throw new EdfRepositoryNotFoundRuntimeException(errMsg, e);
         }
         samplesPositionList = new long[headerInfo.getNumberOfSignals()];
     }
@@ -143,9 +143,9 @@ public class EdfFileReader {
      *
      * @param buffer array where read samples will be stored
      * @return the amount of read samples (this can be less than buffer.length or zero!)
-     * @throws IORuntimeException if data could not be read
+     * @throws EdfRuntimeException if data could not be read
      */
-    public int readDigitalDataRecord(int[] buffer) throws IORuntimeException {
+    public int readDigitalDataRecord(int[] buffer) throws EdfRuntimeException {
         int numberOfBytesPerSample = headerInfo.getFileType().getNumberOfBytesPerSample();
         long realPosition = headerInfo.getNumberOfBytesInHeaderRecord() +
                 headerInfo.getDataRecordLength() * recordPosition * numberOfBytesPerSample;
@@ -165,7 +165,7 @@ public class EdfFileReader {
             }
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while reading data from the file: {0}.", file);
-            throw new IORuntimeException(errMsg, e);
+            throw new EdfRuntimeException(errMsg, e);
         }
         return 0;
     }
@@ -180,9 +180,9 @@ public class EdfFileReader {
      *
      * @param buffer array where resultant physical samples will be stored
      * @return the amount of read samples (this can be less than buffer.length or zero!)
-     * @throws IORuntimeException if data could not be read
+     * @throws EdfRuntimeException if data could not be read
      */
-    public int readPhysicalDataRecord(double[] buffer) throws IORuntimeException {
+    public int readPhysicalDataRecord(double[] buffer) throws EdfRuntimeException {
         int recordLength = headerInfo.getDataRecordLength();
         int[] digRecord = new int[recordLength];
         if (readDigitalDataRecord(digRecord) == recordLength) {
@@ -204,9 +204,9 @@ public class EdfFileReader {
      * @param recordPosition position of the DataRecord
      * @param buffer         buffer where read samples will be saved
      * @return amount of read samples
-     * @throws IORuntimeException if data can not be read
+     * @throws EdfRuntimeException if data can not be read
      */
-    private int readSamplesFromRecord(int signalNumber, int recordPosition, ByteBuffer buffer) throws IORuntimeException {
+    private int readSamplesFromRecord(int signalNumber, int recordPosition, ByteBuffer buffer) throws EdfRuntimeException {
         long signalPosition = headerInfo.getDataRecordLength() * recordPosition;
         for (int i = 0; i < signalNumber; i++) {
             signalPosition += headerInfo.getNumberOfSamplesInEachDataRecord(i);
@@ -217,7 +217,7 @@ public class EdfFileReader {
             readByteNumber = fileInputStream.getChannel().read(buffer, signalPosition);
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while reading data from the file: {0}.", file);
-            throw new IORuntimeException(errMsg, e);
+            throw new EdfRuntimeException(errMsg, e);
         }
         return readByteNumber;
     }
@@ -236,9 +236,9 @@ public class EdfFileReader {
      * @param offset          offset within the buffer array at which saving starts
      * @param numberOfSamples number of samples to read
      * @return the amount of read samples (this can be less than given numberOfSamples or zero!)
-     * @throws IORuntimeException if data can not be read
+     * @throws EdfRuntimeException if data can not be read
      */
-    public int readDigitalSamples(int signalNumber, int[] buffer, int offset, int numberOfSamples) throws IORuntimeException {
+    public int readDigitalSamples(int signalNumber, int[] buffer, int offset, int numberOfSamples) throws EdfRuntimeException {
         int readTotal = 0;
         int samplesPerRecord = headerInfo.getNumberOfSamplesInEachDataRecord(signalNumber);
         byte[] rowData = new byte[samplesPerRecord * headerInfo.getFileType().getNumberOfBytesPerSample()];
@@ -274,9 +274,9 @@ public class EdfFileReader {
      * @param signalNumber channel (signal) number whose samples must be read. Numbering starts from 0!
      * @param buffer       buffer where read samples are saved
      * @return the amount of read samples (this can be less than buffer.length or zero!)
-     * @throws IORuntimeException if data can not be read
+     * @throws EdfRuntimeException if data can not be read
      */
-    public int readDigitalSamples(int signalNumber, int[] buffer) throws IORuntimeException {
+    public int readDigitalSamples(int signalNumber, int[] buffer) throws EdfRuntimeException {
         return readDigitalSamples(signalNumber, buffer, 0, buffer.length);
     }
 
@@ -295,9 +295,9 @@ public class EdfFileReader {
      * @param offset          offset within the buffer array at which saving starts
      * @param numberOfSamples number of samples to read
      * @return the amount of read samples (this can be less than given numberOfSamples or zero!)
-     * @throws IORuntimeException if data can not be read
+     * @throws EdfRuntimeException if data can not be read
      */
-    public int readPhysicalSamples(int signalNumber, double[] buffer, int offset, int numberOfSamples) throws IORuntimeException {
+    public int readPhysicalSamples(int signalNumber, double[] buffer, int offset, int numberOfSamples) throws EdfRuntimeException {
         int[] digSamples = new int[numberOfSamples];
         int numberOfReadSamples = readDigitalSamples(signalNumber, digSamples, 0, numberOfSamples);
         for (int i = 0; i < numberOfReadSamples; i++) {
@@ -322,7 +322,7 @@ public class EdfFileReader {
      * @param buffer       buffer where resultant values are saved
      * @return the amount of read samples (this can be less than buffer.length or zero!)
      */
-    public int readPhysicalSamples(int signalNumber, double[] buffer) throws IORuntimeException {
+    public int readPhysicalSamples(int signalNumber, double[] buffer) throws EdfRuntimeException {
         return readPhysicalSamples(signalNumber, buffer, 0, buffer.length);
     }
 
@@ -344,9 +344,9 @@ public class EdfFileReader {
      * @param newHeaderInfo config object containing info for the new header
      * @throws IllegalArgumentException if the number of channels in the new HeaderInfo object
      *                                  does not equal the number of channels in the existent one
-     * @throws IORuntimeException       if the header record failed to be re-written
+     * @throws EdfRuntimeException       if the header record failed to be re-written
      */
-    public void rewriteHeader(HeaderInfo newHeaderInfo) throws IORuntimeException {
+    public void rewriteHeader(HeaderInfo newHeaderInfo) throws EdfRuntimeException {
         if (newHeaderInfo.getNumberOfSignals() != headerInfo.getNumberOfSignals()) {
             String errMsg = MessageFormat.format("The number of signals {0} can not be changed! New number of signals: {1}", headerInfo.getNumberOfSignals(), newHeaderInfo.getNumberOfSignals());
             throw new IllegalArgumentException(errMsg);
@@ -358,7 +358,7 @@ public class EdfFileReader {
             fileOutputStream.close();
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while re-writing header record to the file: {0}.", file);
-            throw new IORuntimeException(errMsg, e);
+            throw new EdfRuntimeException(errMsg, e);
         }
         headerInfo = newHeaderInfo;
     }
@@ -413,14 +413,14 @@ public class EdfFileReader {
      * it. This method MUST be called after finishing reading DataRecords.
      * Failing to do so will cause unnessesary memory usage and corrupted and incomplete data writing.
      *
-     * @throws IORuntimeException if an I/O  occurs while closing the file reader
+     * @throws EdfRuntimeException if an I/O  occurs while closing the file reader
      */
-    public void close() throws IORuntimeException {
+    public void close() throws EdfRuntimeException {
         try {
             fileInputStream.close();
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while closing the file: {0}.", file);
-            new IORuntimeException(errMsg, e);
+            new EdfRuntimeException(errMsg, e);
         }
     }
 }

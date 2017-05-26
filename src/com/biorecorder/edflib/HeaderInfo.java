@@ -1,8 +1,8 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.exceptions.InvalidEdfFileRuntimeException;
+import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
 import com.biorecorder.edflib.exceptions.ExceptionType;
-import com.biorecorder.edflib.exceptions.IORuntimeException;
+import com.biorecorder.edflib.exceptions.EdfRuntimeException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -181,7 +181,7 @@ public class HeaderInfo {
 
     private void readBuffer(Reader reader, char[] buffer) throws IOException {
         String errMsg = MessageFormat.format("{0}Header does not contain the required information.", ERR_MSG_START);
-        InvalidEdfFileRuntimeException headerNotFullException = new InvalidEdfFileRuntimeException(ExceptionType.HEADER_NOT_FULL, errMsg);
+        EdfHeaderRuntimeException headerNotFullException = new EdfHeaderRuntimeException(ExceptionType.HEADER_NOT_FULL, errMsg);
         int numberCharactersRead = reader.read(buffer);
         if(numberCharactersRead < buffer.length) {
             throw headerNotFullException;
@@ -193,10 +193,10 @@ public class HeaderInfo {
      * Create HeaderInfo object on the base of header record of the given EDF or BDF file
      *
      * @param file Edf/Bdf file to read
-     * @throws IORuntimeException  if the file can not be read
-     * @throws InvalidEdfFileRuntimeException  if the header record has some errors.
+     * @throws EdfRuntimeException  if the file can not be read
+     * @throws EdfHeaderRuntimeException  if the header record has some errors.
      */
-    HeaderInfo(File file) throws IORuntimeException, InvalidEdfFileRuntimeException {
+    HeaderInfo(File file) throws EdfRuntimeException, EdfHeaderRuntimeException {
         try {
             Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), ASCII));
             char[] buffer;
@@ -210,7 +210,7 @@ public class HeaderInfo {
                     fileType = FileType.BDF_24BIT;
                 } else {
                     String errMsg = MessageFormat.format("{0}Header has unknown version: \"{1}\". Expected: \"{2}\"", ERR_MSG_START, version, expectedVersion);
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.VERSION_FORMAT_INVALID, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.VERSION_FORMAT_INVALID, errMsg);
                     ex.setValue(version);
                     ex.setExpectedValue(expectedVersion);
                     throw ex;
@@ -222,7 +222,7 @@ public class HeaderInfo {
                     fileType = FileType.EDF_16BIT;
                 } else {
                     String errMsg = MessageFormat.format("{0}Header has unknown version: \"{1}\". Expected: \"{2}\"", ERR_MSG_START, version, expectedVersion);
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.VERSION_FORMAT_INVALID, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.VERSION_FORMAT_INVALID, errMsg);
                     ex.setValue(version);
                     ex.setExpectedValue(expectedVersion);
                     throw ex;
@@ -248,7 +248,7 @@ public class HeaderInfo {
             } catch (ParseException e) {
                 String expectedDateString = "dd.mm.yy";
                 String errMsg = MessageFormat.format("{0}Invalid date: \"{1}\". Expected: \"{2}\"", ERR_MSG_START, dateString, expectedDateString);
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.DATE_FORMAT_INVALID, errMsg, e);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.DATE_FORMAT_INVALID, errMsg, e);
                 ex.setValue(dateString);
                 ex.setExpectedValue(expectedDateString);
                 throw ex;
@@ -264,7 +264,7 @@ public class HeaderInfo {
             } catch (ParseException e) {
                 String expectedTimeString = "hh.mm.ss";
                 String errMsg = MessageFormat.format("{0}Invalid time: \"{1}\". Expected: \"{2}\"", ERR_MSG_START, timeString, expectedTimeString);
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.TIME_FORMAT_INVALID, errMsg, e);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.TIME_FORMAT_INVALID, errMsg, e);
                 ex.setValue(timeString);
                 ex.setExpectedValue(expectedTimeString);
                 throw ex;
@@ -298,14 +298,14 @@ public class HeaderInfo {
                 durationOfDataRecord = (stringToDouble(recordDurationString));
             } catch (NumberFormatException e) {
                 String errMsg = MessageFormat.format("{0}Record duration field is invalid: \"{1}\". Expected: {2}", ERR_MSG_START, recordDurationString, "double");
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.RECORD_DURATION_NAN, errMsg, e);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.RECORD_DURATION_NAN, errMsg, e);
                 ex.setValue(recordDurationString);
                 ex.setExpectedValue("double");
                 throw ex;
             }
             if (durationOfDataRecord <= 0) {
                 String errMsg = MessageFormat.format("{0}Record duration is invalid: {1}. Expected {2}", ERR_MSG_START, Double.toString(durationOfDataRecord), ">0");
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.RECORD_DURATION_NONPOSITIVE, errMsg);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.RECORD_DURATION_NONPOSITIVE, errMsg);
                 ex.setValue(String.valueOf(durationOfDataRecord));
                 ex.setExpectedValue(">0");
                 throw ex;
@@ -320,7 +320,7 @@ public class HeaderInfo {
                 numberOfSignals = stringToInt(numberOfSignalsString);
             } catch (NumberFormatException e) {
                 String errMsg = MessageFormat.format("{0}Number of signals field is invalid: \"{1}\". Expected: {2}", ERR_MSG_START, numberOfSignalsString, "integer");
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NAN, errMsg, e);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NAN, errMsg, e);
                 ex.setValue(numberOfSignalsString);
                 ex.setExpectedValue("integer");
                 throw ex;
@@ -328,7 +328,7 @@ public class HeaderInfo {
 
             if (numberOfSignals <= 0) {
                 String errMsg = MessageFormat.format("{0}Number of signals is invalid: {1}. Expected {2}", ERR_MSG_START, Integer.toString(numberOfSignals), ">0");
-                InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NONPOSITIVE, errMsg);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NONPOSITIVE, errMsg);
                 ex.setValue(Integer.toString(numberOfSignals));
                 ex.setExpectedValue(">0");
                 throw ex;
@@ -366,7 +366,7 @@ public class HeaderInfo {
                     physMinList[signalNumber] = stringToDouble(physMinString);
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Physical minimum field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, physMinString, "double");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_PHYSICAL_MIN_NAN, errMsg, e);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_PHYSICAL_MIN_NAN, errMsg, e);
                     ex.setValue(physMinString);
                     ex.setExpectedValue("double");
                     ex.setSignalNumber(signalNumber);
@@ -383,7 +383,7 @@ public class HeaderInfo {
                     physMaxList[signalNumber] = stringToDouble(physMaxString);
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Physical maximum field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, physMaxString, "double");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_PHYSICAL_MAX_NAN, errMsg, e);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_PHYSICAL_MAX_NAN, errMsg, e);
                     ex.setValue(physMaxString);
                     ex.setExpectedValue("double");
                     ex.setSignalNumber(signalNumber);
@@ -399,7 +399,7 @@ public class HeaderInfo {
                     digMinList[signalNumber] = stringToInt(digMinString);
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Digital minimum field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, digMinString, "integer");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_DIGITAL_MIN_NAN, errMsg, e);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_DIGITAL_MIN_NAN, errMsg, e);
                     ex.setValue(digMinString);
                     ex.setExpectedValue("integer");
                     ex.setSignalNumber(signalNumber);
@@ -417,7 +417,7 @@ public class HeaderInfo {
                     digMaxList[signalNumber] = stringToInt(digMaxString);
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Digital maximum field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, digMaxString, "integer");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_DIGITAL_MAX_NAN, errMsg, e);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_DIGITAL_MAX_NAN, errMsg, e);
                     ex.setValue(digMaxString);
                     ex.setExpectedValue("integer");
                     ex.setSignalNumber(signalNumber);
@@ -430,7 +430,7 @@ public class HeaderInfo {
             for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
                 if(physMaxList[signalNumber] <= physMinList[signalNumber]) {
                     String errMsg = MessageFormat.format("{0}Physical min/max range of signal {1} is invalid. Min = {2}, Max = {3}. Expected: {4}", ERR_MSG_START, signalNumber, Double.toString(physMinList[signalNumber]), Double.toString(physMaxList[signalNumber]), "min < max");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_PHYSICAL_RANGE_INVALID, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_PHYSICAL_RANGE_INVALID, errMsg);
                     ex.setRange(physMinList[signalNumber], physMaxList[signalNumber]);
                     ex.setExpectedValue("min < max");
                     ex.setSignalNumber(signalNumber);
@@ -442,7 +442,7 @@ public class HeaderInfo {
                 if(digMinList[signalNumber] < fileType.getDigitalMin() || digMinList[signalNumber] >= fileType.getDigitalMax()) {
                     String expected = fileType.getDigitalMin()+" <= digital min < "+fileType.getDigitalMax();
                     String errMsg = MessageFormat.format("{0}Digital min of signal {1} is invalid: {2}. Expected: {3}", ERR_MSG_START, signalNumber, Integer.toString(digMinList[signalNumber]), expected);
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_DIGITAL_MIN_OUT_OF_PERMITED_RANGE, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_DIGITAL_MIN_OUT_OF_PERMITED_RANGE, errMsg);
                     ex.setRange(fileType.getDigitalMin(), fileType.getDigitalMax());
                     ex.setValue(String.valueOf(digMinList[signalNumber]));
                     ex.setExpectedValue(expected);
@@ -453,7 +453,7 @@ public class HeaderInfo {
                 if(digMaxList[signalNumber] <= fileType.getDigitalMin() || digMaxList[signalNumber] > fileType.getDigitalMax()) {
                     String expected = fileType.getDigitalMin()+" < digital max <= "+fileType.getDigitalMax();
                     String errMsg = MessageFormat.format("{0}Digital max of signal {1} is invalid: {2}. Expected: {3}", ERR_MSG_START, signalNumber, Integer.toString(digMaxList[signalNumber]), expected);
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_DIGITAL_MAX_OUT_OF_PERMITED_RANGE, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_DIGITAL_MAX_OUT_OF_PERMITED_RANGE, errMsg);
                     ex.setRange(fileType.getDigitalMin(), fileType.getDigitalMax());
                     ex.setValue(String.valueOf(digMaxList[signalNumber]));
                     ex.setExpectedValue(expected);
@@ -464,7 +464,7 @@ public class HeaderInfo {
 
                 if(digMaxList[signalNumber] <= digMinList[signalNumber]) {
                     String errMsg = MessageFormat.format("{0}Digital min/max range of signal {1} is invalid. Min = {2}, Max = {3}. Expected: {4}", ERR_MSG_START, signalNumber, Integer.toString(digMinList[signalNumber]), Integer.toString(digMaxList[signalNumber]), "min < max");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_DIGITAL_RANGE_INVALID, errMsg);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_DIGITAL_RANGE_INVALID, errMsg);
                     ex.setRange(digMinList[signalNumber], digMaxList[signalNumber]);
                     ex.setExpectedValue("min < max");
                     ex.setSignalNumber(signalNumber);
@@ -489,7 +489,7 @@ public class HeaderInfo {
                     int numberOfSamples = stringToInt(numberOfSamplesString);
                     if (numberOfSamples <= 0) {
                         String errMsg = MessageFormat.format("{0}Number of samples in datarecord of signal {1} is invalid: {2}. Expected {3}", ERR_MSG_START, signalNumber, Integer.toString(numberOfSamples), ">0");
-                        InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NONPOSITIVE, errMsg);
+                        EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NONPOSITIVE, errMsg);
                         ex.setValue(Integer.toString(numberOfSamples));
                         ex.setExpectedValue(">0");
                         ex.setSignalNumber(signalNumber);
@@ -499,7 +499,7 @@ public class HeaderInfo {
 
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Number of samples in datarecord field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, numberOfSamplesString, "integer");
-                    InvalidEdfFileRuntimeException ex = new InvalidEdfFileRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NAN, errMsg, e);
+                    EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NAN, errMsg, e);
                     ex.setValue(numberOfSamplesString);
                     ex.setExpectedValue("integer");
                     ex.setSignalNumber(signalNumber);
@@ -515,7 +515,7 @@ public class HeaderInfo {
             }
             reader.close();
         } catch (IOException e) {
-           throw new IORuntimeException(e);
+           throw new EdfRuntimeException(e);
         }
     }
 
@@ -523,22 +523,29 @@ public class HeaderInfo {
      * Creates byte array with the header info ready to write in Edf/Bdf file
      *
      * @return byte array with the header info
-     * @throws IllegalStateException if this HeaderInfo object is not completely formed:
+     * @throws EdfHeaderRuntimeException if this HeaderInfo object is not correctly formed:
      * Number of signals = 0, or number of samples in data record
      * for some signal = 0.
      */
-    public byte[] createFileHeader() throws IllegalStateException{
+    public byte[] createFileHeader() throws EdfHeaderRuntimeException{
         // check if this HeaderInfo object was completely formed
         if (signals.size() == 0) {
             String errMsg = MessageFormat.format("{0}Number of Signals = 0. Expected: > 0", ERR_MSG_START);
-            throw new IllegalStateException(errMsg);
+            EdfHeaderRuntimeException ex =  new EdfHeaderRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NONPOSITIVE, errMsg);
+            ex.setValue("0");
+            ex.setExpectedValue(">0");
+            throw ex;
         }
 
         for (int signalNumber = 0; signalNumber < signals.size(); signalNumber++) {
             int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
             if (numberOfSamples <= 0) {
                 String errMsg = MessageFormat.format("{0}Number of samples in datarecord of signal {1} is invalid: {2}. Expected >0", ERR_MSG_START, signalNumber, Integer.toString(numberOfSamples));
-                throw new IllegalStateException(errMsg);
+                EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NONPOSITIVE, errMsg);
+                ex.setValue(String.valueOf(numberOfSamples));
+                ex.setExpectedValue(">0");
+                ex.setSignalNumber(signalNumber);
+                throw ex;
             }
         }
 

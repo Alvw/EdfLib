@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.exceptions;
 
 /**
- * Possible types of InvalidEdfFileRuntimeException.
+ * Possible types of EdfHeaderRuntimeException.
  */
 public enum ExceptionType {
     HEADER_NOT_FULL,

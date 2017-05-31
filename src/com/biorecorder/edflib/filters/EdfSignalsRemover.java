@@ -1,13 +1,16 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.filters;
 
-import java.io.IOException;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.EdfWriter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Permit to omit samples from some channels (delete signals)
  */
-public class EdfSignalsRemover extends EdfFilter{
+public class EdfSignalsRemover extends EdfFilter {
     private List<Integer> signalsToRemove = new ArrayList<Integer>();
 
     public EdfSignalsRemover(EdfWriter out) {
@@ -24,14 +27,14 @@ public class EdfSignalsRemover extends EdfFilter{
         signalsToRemove.add(signalNumber);
     }
 
-    protected HeaderInfo createOutputRecordingConfig() {
-        HeaderInfo outHeaderInfo = new HeaderInfo(headerInfo);
-        for (int signalNamber = headerInfo.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(config);
+        for (int signalNamber = config.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
             if(signalsToRemove.contains(Integer.valueOf(signalNamber))) {
-                outHeaderInfo.removeSignal(signalNamber);
+                outConfig.removeSignal(signalNamber);
             }
         }
-        return outHeaderInfo;
+        return outConfig;
     }
 
     /**
@@ -44,7 +47,7 @@ public class EdfSignalsRemover extends EdfFilter{
     private int[] createResultantSamples(int[] digitalSamples) {
        List<Integer> resultantSamples = new ArrayList<Integer>();
        for (int sample : digitalSamples) {
-           int signalNumber = headerInfo.sampleNumberToSignalNumber(sampleCounter + 1);
+           int signalNumber = config.sampleNumberToSignalNumber(sampleCounter + 1);
            if(!signalsToRemove.contains(signalNumber)) {
                resultantSamples.add(sample);
            }

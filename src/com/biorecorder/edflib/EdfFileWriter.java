@@ -1,6 +1,8 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.exceptions.EdfRepositoryNotFoundRuntimeException;
+import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.EdfWriter;
+import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
 
 import java.io.*;
@@ -38,6 +40,7 @@ import java.util.Random;
 public class EdfFileWriter extends EdfWriter {
 
     private File file;
+    private FileType fileType;
     private long startTime;
     private long stopTime;
     private double durationOfDataRecord;
@@ -49,17 +52,17 @@ public class EdfFileWriter extends EdfWriter {
      * the specified File object. HeaderInfo object specifies the type of the file
      * (EDF_16BIT or BDF_24BIT) and provides all necessary information for the file header record.
      * A HeaderInfo object must be passed to the EdfFileWriter before writing any data samples.
-     * We may do that in the constructor or by method {@link #setHeader(HeaderInfo)}.
+     * We may do that in the constructor or by method {@link EdfWriter#setConfig(EdfConfig)}.
      *
      * @param file       the file to be opened for writing
      * @param headerInfo object containing all necessary information for the header record
-     * @throws EdfRepositoryNotFoundRuntimeException if the file exists but is a directory rather
+     * @throws FileNotFoundRuntimeException if the file exists but is a directory rather
      * than a regular file, does not exist but cannot be created,
      * or cannot be opened for any other reason
      */
-    public EdfFileWriter(File file, HeaderInfo headerInfo) throws EdfRepositoryNotFoundRuntimeException {
-        this(file);
-        this.headerInfo = headerInfo;
+    public EdfFileWriter(File file, HeaderInfo headerInfo) throws FileNotFoundRuntimeException {
+        this(file, headerInfo.getFileType());
+        this.config = headerInfo;
     }
 
     /**
@@ -67,17 +70,19 @@ public class EdfFileWriter extends EdfWriter {
      * the specified File object.  A HeaderInfo object specifying the type of the file
      * (EDF_16BIT or BDF_24BIT) and providing all necessary information for the file header record
      * must be passed to the EdfFileWriter before writing any data samples.
-     * Use the method {@link #setHeader(HeaderInfo)}.
+     * Use the method {@link EdfWriter#setConfig(EdfConfig)}.
      *
      * @param file the file to be opened for writing
-     * @throws EdfRepositoryNotFoundRuntimeException if the file exists but is a directory rather
+     *  @param fileType    EDF_16BIT or BDF_24BIT
+     * @throws FileNotFoundRuntimeException if the file exists but is a directory rather
      * than a regular file, does not exist but cannot be created,
      * or cannot be opened for any other reason
      */
 
-    public EdfFileWriter(File file) throws EdfRepositoryNotFoundRuntimeException {
+    public EdfFileWriter(File file, FileType fileType) throws FileNotFoundRuntimeException {
         try {
             this.file = file;
+            this.fileType = fileType;
             File dir = file.getParentFile();
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -85,10 +90,19 @@ public class EdfFileWriter extends EdfWriter {
             fileOutputStream = new FileOutputStream(file);
         } catch (Exception e) {
             String errMsg = MessageFormat.format("Writable file: {0} can not be created", file);
-            throw new EdfRepositoryNotFoundRuntimeException(errMsg, e);
+            throw new FileNotFoundRuntimeException(errMsg, e);
         }
     }
 
+    @Override
+    public HeaderInfo getConfig() {
+        return (HeaderInfo) config;
+    }
+
+    @Override
+    public void setConfig(EdfConfig edfConfig) {
+       config = new HeaderInfo(edfConfig, fileType);
+    }
 
     /**
      * If true the average duration of DataRecords during writing process will be calculated
@@ -120,19 +134,20 @@ public class EdfFileWriter extends EdfWriter {
     @Override
     public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException {
         try {
+            HeaderInfo config = (HeaderInfo) this.config;
             if (sampleCounter == 0) {
                 // 1 second = 1000 msec
-                startTime = System.currentTimeMillis() - (long) headerInfo.getDurationOfDataRecord() * 1000;
+                startTime = System.currentTimeMillis() - (long) config.getDurationOfDataRecord() * 1000;
                 // setRecordingStartDateTimeMs делаем только если bdfHeader.getRecordingStartDateTimeMs == -1
                 // если например идет копирование данных из файла в файл и
                 // bdfHeader.getRecordingStartDateTimeMs имеет нормальное значение то изменять его не нужно
-                if (headerInfo.getRecordingStartDateTimeMs() < 0) {
-                    headerInfo.setRecordingStartDateTimeMs(startTime);
+                if (config.getRecordingStartDateTimeMs() < 0) {
+                    config.setRecordingStartDateTimeMs(startTime);
                 }
-                headerInfo.setNumberOfDataRecords(-1);
-                fileOutputStream.write(headerInfo.createFileHeader());
+                config.setNumberOfDataRecords(-1);
+                fileOutputStream.write(config.createFileHeader());
             }
-            fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, headerInfo.getFileType().getNumberOfBytesPerSample()));
+            fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, config.getFileType().getNumberOfBytesPerSample()));
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while writing data to the file: {0}. Check available HD space.", file);
             throw new EdfRuntimeException(errMsg, e);
@@ -150,17 +165,18 @@ public class EdfFileWriter extends EdfWriter {
      */
     @Override
     public synchronized void close() throws EdfRuntimeException {
-        if (headerInfo.getNumberOfDataRecords() == -1) {
-            headerInfo.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
+        HeaderInfo config = (HeaderInfo) this.config;
+        if (config.getNumberOfDataRecords() == -1) {
+            config.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
         }
         if (isDurationOfDataRecordsComputable && durationOfDataRecord > 0) {
-            headerInfo.setDurationOfDataRecord(durationOfDataRecord);
+            config.setDurationOfDataRecord(durationOfDataRecord);
         }
         FileChannel channel = fileOutputStream.getChannel();
 
         try {
             channel.position(0);
-            fileOutputStream.write(headerInfo.createFileHeader());
+            fileOutputStream.write(config.createFileHeader());
             fileOutputStream.close();
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while closing the file: {0}.", file);
@@ -249,7 +265,7 @@ public class EdfFileWriter extends EdfWriter {
         fileWriter.close();
 
         // print some header info
-        System.out.println(fileWriter.getHeader());
+        System.out.println(fileWriter.getConfig());
         // print some writing info
         System.out.println(fileWriter.getWritingInfo());
 

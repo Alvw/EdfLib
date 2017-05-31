@@ -1,5 +1,7 @@
 package com.biorecorder.edflib;
 
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
 import com.biorecorder.edflib.exceptions.ExceptionType;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -11,8 +13,6 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -91,14 +91,9 @@ import java.util.Date;
  * <p>
  */
 
-public class HeaderInfo {
+public class HeaderInfo extends DefaultEdfConfig {
     private static final String ERR_MSG_START = "Header error! ";
-    private String patientIdentification = "Default patient";
-    private String recordingIdentification = "Default record";
-    private long recordingStartTime = -1;
     private int numberOfDataRecords = -1;
-    private double durationOfDataRecord = 1; // sec
-    private ArrayList<SignalInfo> signals = new ArrayList<SignalInfo>();
     private FileType fileType = FileType.EDF_16BIT;
 
     private static Charset ASCII = Charset.forName("US-ASCII");
@@ -131,6 +126,7 @@ public class HeaderInfo {
      * with 0 channels (signals). So all channels should be added as necessary.
      * <p>
      * See method: {@link #addSignal()}
+     *  @param fileType EDF_16BIT or BDF_24BIT
      */
     public HeaderInfo(FileType fileType) {
         this.fileType = fileType;
@@ -142,7 +138,7 @@ public class HeaderInfo {
      * with the given number of channels (signals)
      *
      * @param numberOfSignals number of signals in data records
-     * @param fileType        EDF_16BIT or BDF_24BIT
+     * @param fileType  EDF_16BIT or BDF_24BIT
      * @throws IllegalArgumentException if numberOfSignals <= 0
      */
     public HeaderInfo(int numberOfSignals, FileType fileType) throws IllegalArgumentException {
@@ -159,23 +155,22 @@ public class HeaderInfo {
     /**
      * Constructor to make a copy of the given HeaderInfo instance
      *
-     * @param headerInfo HeaderInfo instance that will be copied
+     * @param edfConfig HeaderInfo instance that will be copied
      */
-    public HeaderInfo(HeaderInfo headerInfo) {
-        this(headerInfo.getNumberOfSignals(), headerInfo.getFileType());
-        patientIdentification = headerInfo.getPatientIdentification();
-        recordingIdentification = headerInfo.getRecordingIdentification();
-        recordingStartTime = headerInfo.getRecordingStartDateTimeMs();
-        durationOfDataRecord = headerInfo.getDurationOfDataRecord();
-        numberOfDataRecords = headerInfo.getNumberOfDataRecords();
-        for (int i = 0; i < headerInfo.getNumberOfSignals(); i++) {
-            setNumberOfSamplesInEachDataRecord(i, headerInfo.getNumberOfSamplesInEachDataRecord(i));
-            setPrefiltering(i, headerInfo.getPrefiltering(i));
-            setTransducer(i, headerInfo.getTransducer(i));
-            setLabel(i, headerInfo.getLabel(i));
-            setDigitalRange(i, headerInfo.getDigitalMin(i), headerInfo.getDigitalMax(i));
-            setPhysicalRange(i, headerInfo.getPhysicalMin(i), headerInfo.getPhysicalMax(i));
-            setPhysicalDimension(i, headerInfo.getPhysicalDimension(i));
+    public HeaderInfo(EdfConfig edfConfig, FileType fileType) {
+        this(edfConfig.getNumberOfSignals(), fileType);
+        setPatientIdentification(edfConfig.getPatientIdentification());
+        setRecordingIdentification(edfConfig.getRecordingIdentification());
+        setRecordingStartDateTimeMs(edfConfig.getRecordingStartDateTimeMs());
+        setDurationOfDataRecord(edfConfig.getDurationOfDataRecord());
+        for (int i = 0; i < edfConfig.getNumberOfSignals(); i++) {
+            setNumberOfSamplesInEachDataRecord(i, edfConfig.getNumberOfSamplesInEachDataRecord(i));
+            setPrefiltering(i, edfConfig.getPrefiltering(i));
+            setTransducer(i, edfConfig.getTransducer(i));
+            setLabel(i, edfConfig.getLabel(i));
+            setDigitalRange(i, edfConfig.getDigitalMin(i), edfConfig.getDigitalMax(i));
+            setPhysicalRange(i, edfConfig.getPhysicalMin(i), edfConfig.getPhysicalMax(i));
+            setPhysicalDimension(i, edfConfig.getPhysicalDimension(i));
         }
     }
 
@@ -231,11 +226,11 @@ public class HeaderInfo {
 /*******************************************************************************/
             buffer = new char[PATIENT_LENGTH];
             readBuffer(reader, buffer);
-            patientIdentification = new String(buffer).trim();
+            setPatientIdentification(new String(buffer).trim());
 
             buffer = new char[RECORD_LENGTH];
             readBuffer(reader, buffer);
-            recordingIdentification = new String(buffer).trim();
+            setRecordingIdentification(new String(buffer).trim());
 
 /******************** START DATE AND TIME *********************************************/
             buffer = new char[STARTDATE_LENGTH];
@@ -273,7 +268,7 @@ public class HeaderInfo {
             SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yy HH.mm.ss");
             String dateTimeString = dateString + " " + timeString;
             try {
-                recordingStartTime = dateTimeFormat.parse(dateTimeString).getTime();
+                setRecordingStartDateTimeMs(dateTimeFormat.parse(dateTimeString).getTime());
             } catch (ParseException e) {
                 // This situation never should take place. If happens it is an error
                 // and we should detect it apart
@@ -295,7 +290,7 @@ public class HeaderInfo {
             readBuffer(reader, buffer);
             String recordDurationString = new String(buffer);
             try {
-                durationOfDataRecord = (stringToDouble(recordDurationString));
+                setDurationOfDataRecord(stringToDouble(recordDurationString));
             } catch (NumberFormatException e) {
                 String errMsg = MessageFormat.format("{0}Record duration field is invalid: \"{1}\". Expected: {2}", ERR_MSG_START, recordDurationString, "double");
                 EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.RECORD_DURATION_NAN, errMsg, e);
@@ -303,10 +298,10 @@ public class HeaderInfo {
                 ex.setExpectedValue("double");
                 throw ex;
             }
-            if (durationOfDataRecord <= 0) {
-                String errMsg = MessageFormat.format("{0}Record duration is invalid: {1}. Expected {2}", ERR_MSG_START, Double.toString(durationOfDataRecord), ">0");
+            if (getDurationOfDataRecord() <= 0) {
+                String errMsg = MessageFormat.format("{0}Record duration is invalid: {1}. Expected {2}", ERR_MSG_START, Double.toString(getDurationOfDataRecord()), ">0");
                 EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.RECORD_DURATION_NONPOSITIVE, errMsg);
-                ex.setValue(String.valueOf(durationOfDataRecord));
+                ex.setValue(String.valueOf(getDurationOfDataRecord()));
                 ex.setExpectedValue(">0");
                 throw ex;
             }
@@ -340,7 +335,7 @@ public class HeaderInfo {
             double[] physMaxList = new double[numberOfSignals];
             double[] physMinList = new double[numberOfSignals];
             for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
-                signals.add(new SignalInfo());
+                addSignal();
             }
             for (int signalNumber = 0; signalNumber < numberOfSignals; signalNumber++) {
                 buffer = new char[SIGNAL_LABEL_LENGTH];
@@ -437,7 +432,7 @@ public class HeaderInfo {
                     throw ex;
 
                 }
-                signals.get(signalNumber).setPhysicalRange(physMinList[signalNumber], physMaxList[signalNumber]);
+                setPhysicalRange(signalNumber, physMinList[signalNumber], physMaxList[signalNumber]);
 
                 if(digMinList[signalNumber] < fileType.getDigitalMin() || digMinList[signalNumber] >= fileType.getDigitalMax()) {
                     String expected = fileType.getDigitalMin()+" <= digital min < "+fileType.getDigitalMax();
@@ -470,7 +465,7 @@ public class HeaderInfo {
                     ex.setSignalNumber(signalNumber);
                     throw ex;
                 }
-                signals.get(signalNumber).setDigitalRange(digMinList[signalNumber],digMaxList[signalNumber]);
+                setDigitalRange(signalNumber, digMinList[signalNumber],digMaxList[signalNumber]);
             }
 /*******************************************************************************/
 
@@ -495,7 +490,7 @@ public class HeaderInfo {
                         ex.setSignalNumber(signalNumber);
                         throw ex;
                     }
-                    signals.get(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamples);
+                    setNumberOfSamplesInEachDataRecord(signalNumber, numberOfSamples);
 
                 } catch (NumberFormatException e) {
                     String errMsg = MessageFormat.format("{0}Number of samples in datarecord field of signal {1} is invalid: \"{2}\". Expected: {3}", ERR_MSG_START, signalNumber, numberOfSamplesString, "integer");
@@ -529,7 +524,7 @@ public class HeaderInfo {
      */
     public byte[] createFileHeader() throws EdfHeaderRuntimeException{
         // check if this HeaderInfo object was completely formed
-        if (signals.size() == 0) {
+        if (getNumberOfSignals() == 0) {
             String errMsg = MessageFormat.format("{0}Number of Signals = 0. Expected: > 0", ERR_MSG_START);
             EdfHeaderRuntimeException ex =  new EdfHeaderRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NONPOSITIVE, errMsg);
             ex.setValue("0");
@@ -537,8 +532,8 @@ public class HeaderInfo {
             throw ex;
         }
 
-        for (int signalNumber = 0; signalNumber < signals.size(); signalNumber++) {
-            int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
+        for (int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
+            int numberOfSamples = getNumberOfSamplesInEachDataRecord(signalNumber);
             if (numberOfSamples <= 0) {
                 String errMsg = MessageFormat.format("{0}Number of samples in datarecord of signal {1} is invalid: {2}. Expected >0", ERR_MSG_START, signalNumber, Integer.toString(numberOfSamples));
                 EdfHeaderRuntimeException ex = new EdfHeaderRuntimeException(ExceptionType.SIGNAL_NUMBER_OF_SAMPLES_IN_RECORD_NONPOSITIVE, errMsg);
@@ -550,13 +545,13 @@ public class HeaderInfo {
         }
 
         // convert this HeaderInfo object to byte array
-        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(recordingStartTime));
-        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(recordingStartTime));
+        String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(getRecordingStartDateTimeMs()));
+        String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(getRecordingStartDateTimeMs()));
 
         StringBuilder headerBuilder = new StringBuilder();
         headerBuilder.append(adjustLength(fileType.getVersion(), VERSION_LENGTH - 1));  // -1 because first non ascii byte (or "0" for edf) we will add later
-        headerBuilder.append(adjustLength(patientIdentification, PATIENT_LENGTH));
-        headerBuilder.append(adjustLength(recordingIdentification, RECORD_LENGTH));
+        headerBuilder.append(adjustLength(getPatientIdentification(), PATIENT_LENGTH));
+        headerBuilder.append(adjustLength(getRecordingIdentification(), RECORD_LENGTH));
         headerBuilder.append(startDateOfRecording);
         headerBuilder.append(startTimeOfRecording);
         headerBuilder.append(adjustLength(Integer.toString(getNumberOfBytesInHeaderRecord()), NUMBER_OF_BYTES_IN_HEADER_LENGTH));
@@ -607,7 +602,14 @@ public class HeaderInfo {
         return byteBuffer.array();
     }
 
-
+    /**
+     * Get the number of bytes in the EDF/BDF header record (when we will create it on the base of this HeaderInfo)
+     *
+     * @return number of bytes in EDF/BDF header = (number of signals + 1) * 256
+     */
+    public int getNumberOfBytesInHeaderRecord() {
+        return 256 + (getNumberOfSignals() * 256);
+    }
 
     /**
      * Gets the type of the file: EDF_16BIT or BDF_24BIT
@@ -616,89 +618,6 @@ public class HeaderInfo {
      */
     public FileType getFileType() {
         return fileType;
-    }
-
-    /**
-     * Gets the patient identification string (name, surname, etc).
-     *
-     * @return patient identification string
-     */
-    public String getPatientIdentification() {
-        return patientIdentification;
-    }
-
-    /**
-     * Sets the patient identification string (name, surname, etc).
-     * This method is optional
-     *
-     * @param patientIdentification patient identification string
-     */
-    public void setPatientIdentification(String patientIdentification) {
-        this.patientIdentification = patientIdentification;
-    }
-
-    /**
-     * Gets the recording identification string.
-     *
-     * @return recording (experiment) identification string
-     */
-    public String getRecordingIdentification() {
-        return recordingIdentification;
-    }
-
-    /**
-     * Sets the recording identification string.
-     * This method is optional
-     *
-     * @param recordingIdentification recording (experiment) identification string
-     */
-    public void setRecordingIdentification(String recordingIdentification) {
-        this.recordingIdentification = recordingIdentification;
-    }
-
-    /**
-     * Gets recording start date and time measured in milliseconds,
-     * since midnight, January 1, 1970 UTC.
-     *
-     * @return the difference, measured in milliseconds,
-     * between the recording start time
-     * and midnight, January 1, 1970 UTC.
-     */
-    public long getRecordingStartDateTimeMs() {
-        return recordingStartTime;
-    }
-
-
-    /**
-     * Sets recording start date and time.
-     * If not called, EdfFileWriter will use the system date and time at runtime
-     * since midnight, January 1, 1970 UTC.
-     *
-     * @param year   1970 - 3000
-     * @param month  1 - 12
-     * @param day    1 - 31
-     * @param hour   0 - 23
-     * @param minute 0 - 59
-     * @param second 0 - 59
-     */
-    public void setRecordingStartDateTime(int year, int month, int day, int hour, int minute, int second) {
-        Calendar calendar = Calendar.getInstance();
-        // in java month indexing from 0
-        calendar.set(year, month - 1, day, hour, minute, second);
-        this.recordingStartTime = calendar.getTimeInMillis();
-    }
-
-
-    /**
-     * Sets recording start date and time measured in milliseconds,
-     * since midnight, January 1, 1970 UTC.
-     *
-     * @param recordingStartTime the difference, measured in milliseconds,
-     *                           between the recording start time
-     *                           and midnight, January 1, 1970 UTC.
-     */
-    public void setRecordingStartDateTimeMs(long recordingStartTime) {
-        this.recordingStartTime = recordingStartTime;
     }
 
     /**
@@ -724,29 +643,6 @@ public class HeaderInfo {
         this.numberOfDataRecords = numberOfDataRecords;
     }
 
-    /**
-     * Gets duration of DataRecords (data packages).
-     *
-     * @return duration of DataRecords in seconds
-     */
-    public double getDurationOfDataRecord() {
-        return durationOfDataRecord;
-    }
-
-
-    /**
-     * Sets duration of DataRecords (data packages) in seconds.
-     * Default value = 1 sec.
-     * @param durationOfDataRecord duration of DataRecords in seconds
-     * @throws IllegalArgumentException  if durationOfDataRecord <= 0.
-     */
-    public void setDurationOfDataRecord(double durationOfDataRecord) throws IllegalArgumentException {
-        if (durationOfDataRecord <= 0) {
-            String errMsg = MessageFormat.format("Record duration is invalid: {0}. Expected {1}", Double.toString(durationOfDataRecord), ">0");
-            throw new IllegalArgumentException(errMsg);
-        }
-        this.durationOfDataRecord = durationOfDataRecord;
-    }
 
     /**
      * Sets the digital minimum and maximum values of the signal.
@@ -767,6 +663,7 @@ public class HeaderInfo {
      *                            <br>if  8388607 <= digitalMin  or digitalMin < -8388608 (BDF_24BIT  file format).
      *                            <br>if  8388607 < digitalMax  or digitalMax <= -8388608 (BDF_24BIT  file format).
      */
+    @Override
     public void setDigitalRange(int signalNumber, int digitalMin, int digitalMax) throws IllegalArgumentException {
         if(digitalMin < fileType.getDigitalMin() || digitalMin >= fileType.getDigitalMax()) {
             String expected = fileType.getDigitalMin()+" <= digital min < "+fileType.getDigitalMax();
@@ -780,343 +677,21 @@ public class HeaderInfo {
             String errMsg = MessageFormat.format("Digital max of signal {0} is invalid: {1}. Expected: {2}", signalNumber, Integer.toString(digitalMax), expected);
             throw new IllegalArgumentException(errMsg);
         }
-
-
-        if(digitalMax <= digitalMin) {
-            String errMsg = MessageFormat.format("Digital min/max range of signal {0} is invalid. Min = {1}, Max = {2}. Expected: {3}",signalNumber, Integer.toString(digitalMin), Integer.toString(digitalMax), "max > min");
-            throw new IllegalArgumentException(errMsg);
-
-        }
-        signals.get(signalNumber).setDigitalRange(digitalMin, digitalMax);
-    }
-
-    /**
-     * Sets the physical minimum and maximum values of the signal (the values of the input
-     * of the ADC when the output equals the value of "digital minimum" and "digital maximum").
-     * Usually physicalMin = - physicalMax.
-     * <p>
-     * Physical min and max must be set for every signal!!!
-     *
-     * @param signalNumber number of the signal(channel). Numeration starts from 0
-     * @param physicalMin  the minimum physical value of the signal
-     * @param physicalMax  the maximum physical value of the signal
-     * @throws IllegalArgumentException  if physicalMin >= physicalMax
-     */
-    public void setPhysicalRange(int signalNumber, double physicalMin, double physicalMax) throws IllegalArgumentException {
-        if(physicalMax <= physicalMin) {
-            String errMsg = MessageFormat.format("Physical min/max range of signal {0} is invalid. Min = {1}, Max = {2}. Expected: {3}",  signalNumber, Double.toString(physicalMin), Double.toString(physicalMax), "max > min");
-            throw new IllegalArgumentException(errMsg);
-        }
-        signals.get(signalNumber).setPhysicalRange(physicalMin, physicalMax);
-    }
-
-
-    /**
-     * Sets the physical dimension of the signal ("uV", "BPM", "mA", "Degr.", etc.).
-     * It is recommended to set physical dimension for every signal.
-     *
-     * @param signalNumber      number of the signal (channel). Numeration starts from 0
-     * @param physicalDimension physical dimension of the signal ("uV", "BPM", "mA", "Degr.", etc.)
-     */
-    public void setPhysicalDimension(int signalNumber, String physicalDimension) {
-        signals.get(signalNumber).setPhysicalDimension(physicalDimension);
-    }
-
-    /**
-     * Sets the transducer of the signal ("AgAgCl cup electrodes", etc.).
-     * This method is optional.
-     *
-     * @param signalNumber number of the signal (channel). Numeration starts from 0
-     * @param transducer   string describing transducer (electrodes) used for measuring
-     */
-    public void setTransducer(int signalNumber, String transducer) {
-        signals.get(signalNumber).setTransducer(transducer);
-    }
-
-    /**
-     * Sets the prefilter of the signal ("HP:0.1Hz", "LP:75Hz N:50Hz", etc.).
-     * This method is optional.
-     *
-     * @param signalNumber number of the signal (channel). Numeration starts from 0
-     * @param prefiltering string describing filters that were applied to the signal
-     */
-    public void setPrefiltering(int signalNumber, String prefiltering) {
-        signals.get(signalNumber).setPrefiltering(prefiltering);
-    }
-
-
-    /**
-     * Sets the label (name) of signal.
-     * It is recommended to set labels for every signal.
-     *
-     * @param signalNumber number of the signal (channel). Numeration starts from 0
-     * @param label        label of the signal
-     */
-    public void setLabel(int signalNumber, String label) {
-        signals.get(signalNumber).setLabel(label);
-    }
-
-    /**
-     * Gets the label of the signal
-     *
-     * @param signalNumber number of the signal (channel). Numeration starts from 0
-     * @return label of the signal
-     */
-    public String getLabel(int signalNumber) {
-        return signals.get(signalNumber).getLabel();
-    }
-
-    public String getTransducer(int signalNumber) {
-        return signals.get(signalNumber).getTransducer();
-    }
-
-    public String getPrefiltering(int signalNumber) {
-        return signals.get(signalNumber).getPrefiltering();
-    }
-
-    public int getDigitalMin(int signalNumber) {
-        return signals.get(signalNumber).getDigitalMin();
-    }
-
-    public int getDigitalMax(int signalNumber) {
-        return signals.get(signalNumber).getDigitalMax();
-    }
-
-    public double getPhysicalMin(int signalNumber) {
-        return signals.get(signalNumber).getPhysicalMin();
-    }
-
-    public double getPhysicalMax(int signalNumber) {
-        return signals.get(signalNumber).getPhysicalMax();
-    }
-
-    public String getPhysicalDimension(int signalNumber) {
-        return signals.get(signalNumber).getPhysicalDimension();
-    }
-
-
-    /**
-     * Gets the number of samples belonging to the signal
-     * in each DataRecord (data package).
-     * See also {@link #getSampleFrequency(int)}.
-     * <p>
-     * When duration of DataRecords = 1 sec (default):
-     * NumberOfSamplesInEachDataRecord = sampleFrequency
-     *
-     * @param signalNumber number of the signal (channel). Numeration starts from 0
-     * @return number of samples belonging to the signal with the given sampleNumberToSignalNumber
-     * in each DataRecord (data package)
-     */
-    public int getNumberOfSamplesInEachDataRecord(int signalNumber) {
-        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
-    }
-
-
-    /**
-     * Sets the number of samples belonging to the signal
-     * in each DataRecord (data package).
-     * See also {@link #setSampleFrequency(int, int)}.
-     * <p>
-     * When duration of DataRecords = 1 sec (default):
-     * NumberOfSamplesInEachDataRecord = sampleFrequency
-     * <p>
-     * SampleFrequency o NumberOfSamplesInEachDataRecord must be set for every signal!!!
-     *
-     * @param signalNumber                    number of the signal(channel). Numeration starts from 0
-     * @param numberOfSamplesInEachDataRecord number of samples belonging to the signal with the given sampleNumberToSignalNumber
-     *                                        in each DataRecord
-     * @throws IllegalArgumentException  if the given numberOfSamplesInEachDataRecord <= 0
-     */
-    public void setNumberOfSamplesInEachDataRecord(int signalNumber, int numberOfSamplesInEachDataRecord) throws IllegalArgumentException {
-        if (numberOfSamplesInEachDataRecord <= 0) {
-            String errMsg = MessageFormat.format("Number of samples in datarecord of signal {0} is invalid: {1}. Expected {2}", signalNumber, Integer.toString(numberOfSamplesInEachDataRecord), ">0");
-            throw new IllegalArgumentException(errMsg);
-        }
-        signals.get(signalNumber).setNumberOfSamplesInEachDataRecord(numberOfSamplesInEachDataRecord);
-    }
-
-    /**
-     * Get the frequency of the samples belonging to the signal.
-     *
-     * @param signalNumber number of the signal(channel). Numeration starts from 0
-     * @return frequency of the samples (number of samples per second) belonging to the signal with the given number
-     */
-    public double getSampleFrequency(int signalNumber) {
-        return signals.get(signalNumber).getNumberOfSamplesInEachDataRecord() / getDurationOfDataRecord();
-    }
-
-
-    /**
-     * Sets the sample frequency of the signal.
-     * This method is just a user friendly wrapper of the method
-     * {@link #setNumberOfSamplesInEachDataRecord(int, int)}
-     * <p>
-     * When duration of DataRecords = 1 sec (default):
-     * NumberOfSamplesInEachDataRecord = sampleFrequency
-     * <p>
-     * SampleFrequency o NumberOfSamplesInEachDataRecord must be set for every signal!!!
-     *
-     * @param signalNumber    number of the signal(channel). Numeration starts from 0
-     * @param sampleFrequency frequency of the samples (number of samples per second) belonging to that channel
-     * @throws IllegalArgumentException  if the given sampleFrequency <= 0
-     */
-    public void setSampleFrequency(int signalNumber, int sampleFrequency) throws IllegalArgumentException {
-        if (sampleFrequency <= 0) {
-            String errMsg =  MessageFormat.format("Sample frequency of signal {0} is invalid: {1}. Expected {2}", signalNumber, Double.toString(sampleFrequency), ">0");
-            throw new IllegalArgumentException(errMsg);
-        }
-        Long numberOfSamplesInEachDataRecord = Math.round(sampleFrequency * durationOfDataRecord);
-        setNumberOfSamplesInEachDataRecord(signalNumber, numberOfSamplesInEachDataRecord.intValue());
-    }
-
-
-    /**
-     * Add new signal to the inner "signals list".
-     */
-    public void addSignal() {
-        SignalInfo signalInfo = new SignalInfo();
-        signalInfo.setLabel("Channel_" + signals.size());
-        signalInfo.setDigitalRange(fileType.getDigitalMin(), fileType.getDigitalMax());
-        signalInfo.setPhysicalRange(fileType.getDigitalMin(), fileType.getDigitalMax());
-        signals.add(signalInfo);
-
-    }
-
-    /**
-     * Removes the signal from the inner "signals list".
-     * @param signalNumber number of the signal(channel) to remove. Numeration starts from 0
-     */
-    public void removeSignal(int signalNumber) {
-        signals.remove(signalNumber);
-    }
-
-
-    /**
-     * Return the number of measuring channels (signals).
-     *
-     * @return the number of measuring channels
-     */
-    public int getNumberOfSignals() {
-        return signals.size();
-    }
-
-
-    /**
-     * Helper method. Calculate total number of samples from all channels (signals) in each data record
-     *
-     * @return sum of samples from all channels
-     */
-    public int getDataRecordLength() {
-        int totalNumberOfSamplesInRecord = 0;
-        for (int i = 0; i < signals.size(); i++) {
-            totalNumberOfSamplesInRecord += signals.get(i).getNumberOfSamplesInEachDataRecord();
-        }
-        return totalNumberOfSamplesInRecord;
-    }
-
-    /**
-     * Helper method. Calculates  the signal to which the given sample belongs to.
-     *
-     * @param sampleNumber the number of the sample calculated from the beginning of recording
-     * @return the signal number to which the given sample belongs to
-     * @throws IllegalArgumentException if sampleNumber < 1
-     */
-    public int sampleNumberToSignalNumber(long sampleNumber) throws IllegalArgumentException{
-        if (sampleNumber < 1) {
-            String errMsg =  MessageFormat.format("Sample number is invalid: {0}. Expected {1}", sampleNumber, ">=1");
-            throw new IllegalArgumentException(errMsg);
-        }
-        int recordLength = getDataRecordLength();
-        sampleNumber = (sampleNumber % recordLength == 0) ? recordLength : sampleNumber % recordLength;
-
-        int samplesCounter = 0;
-        for (int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
-            samplesCounter += getNumberOfSamplesInEachDataRecord(signalNumber);
-            if (sampleNumber <= samplesCounter) {
-                return signalNumber;
-            }
-        }
-        return 0;
-    }
-
-
-    /**
-     * Helper method. Convert the physical value to digital one for the given signal.
-     *
-     * @param physValue    physical value that has to be converted to digital one
-     * @param signalNumber number of the signal(channel). Numeration starts from 0
-     * @return resultant digital value
-     */
-    public int physicalValueToDigital(int signalNumber, double physValue) {
-        return signals.get(signalNumber).physicalValueToDigital(physValue);
-
-    }
-
-    /**
-     * Helper method. Converts the digital value to physical one for the given signal.
-     *
-     * @param digValue     digital value that has to be converted to physical one
-     * @param signalNumber number of the signal(channel). Numeration starts from 0
-     * @return resultant physical value
-     */
-    public double digitalValueToPhysical(int signalNumber, int digValue) {
-        return signals.get(signalNumber).digitalValueToPhysical(digValue);
-    }
-
-    /**
-     * Helper method. Converts the given physical DataRecord to digital DataRecord
-     * @param physRecord array with physical values from all signals (physical DataRecord)
-     * @param digRecord array where resultant digital values will be stored
-     */
-    public void physicalDataRecordToDigital(double[] physRecord, int[] digRecord) {
-        int sampleCounter = 0;
-        for(int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
-            int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
-            for(int i = 0; i < numberOfSamples; i++) {
-                digRecord[sampleCounter] = physicalValueToDigital(signalNumber, physRecord[sampleCounter]);
-                sampleCounter++;
-            }
-        }
-    }
-
-    /**
-     * Helper method. Converts the given digital DataRecord to physical DataRecord
-     * @param digRecord array with digital values from all signals (digital DataRecord)
-     * @param physRecord array where resultant physical values will be stored
-     */
-    public void digitalDataRecordToPhysical(int[] digRecord, double[] physRecord) {
-        int sampleCounter = 0;
-        for(int signalNumber = 0; signalNumber < getNumberOfSignals(); signalNumber++) {
-            int numberOfSamples = signals.get(signalNumber).getNumberOfSamplesInEachDataRecord();
-            for(int i = 0; i < numberOfSamples; i++) {
-                physRecord[sampleCounter] = digitalValueToPhysical(signalNumber, digRecord[sampleCounter]);
-                sampleCounter++;
-            }
-        }
-    }
-
-
-    /**
-     * Get the number of bytes in the EDF/BDF header record (when we will create it on the base of this HeaderInfo)
-     *
-     * @return number of bytes in EDF/BDF header = (number of signals + 1) * 256
-     */
-    public int getNumberOfBytesInHeaderRecord() {
-        return 256 + (getNumberOfSignals() * 256);
+        super.setDigitalRange(signalNumber, digitalMin, digitalMax);
     }
 
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(super.toString());
-        sb.append("\nfile type = " + getFileType());
+      //  sb.append(super.toString());
+        sb.append("file type = " + getFileType());
+        sb.append("\nNumber of DataRecords = " + getNumberOfDataRecords());
         DateFormat dateFormat = new SimpleDateFormat("dd:MM:yyyy HH:mm:ss");
         String timeStamp = dateFormat.format(new Date(getRecordingStartDateTimeMs()));
         sb.append("\nStart date and time = " + timeStamp + " (" + getRecordingStartDateTimeMs() + " ms)");
         sb.append("\nPatient identification = " + getPatientIdentification());
         sb.append("\nRecording identification = " + getRecordingIdentification());
-        sb.append("\nNumber of DataRecords = " + getNumberOfDataRecords());
         sb.append("\nDuration of DataRecords = " + getDurationOfDataRecord());
         sb.append("\nNumber of signals = " + getNumberOfSignals());
         for (int i = 0; i < getNumberOfSignals(); i++) {
@@ -1129,13 +704,11 @@ public class HeaderInfo {
                     + "; transducer: " + getTransducer(i)
                     + "; dimension: " + getPhysicalDimension(i));
         }
-        sb.append("\n");
         return sb.toString();
     }
 
-
     /**
-     * Convert String to in
+     * Convert String to int
      *
      * @param str string to convert
      * @return resultant int
@@ -1145,7 +718,6 @@ public class HeaderInfo {
         str = str.trim();
         return Integer.valueOf(str);
     }
-
 
     /**
      * Convert String to double

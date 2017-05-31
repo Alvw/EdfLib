@@ -1,12 +1,12 @@
 package example;
 
 import com.biorecorder.edflib.*;
-import com.biorecorder.edflib.EdfJoiner;
-import com.biorecorder.edflib.EdfSignalsFilter;
-import com.biorecorder.edflib.EdfSignalsRemover;
+import com.biorecorder.edflib.filters.EdfJoiner;
+import com.biorecorder.edflib.filters.EdfSignalsFilter;
+import com.biorecorder.edflib.filters.EdfSignalsRemover;
 import com.biorecorder.edflib.HeaderInfo;
-import com.biorecorder.edflib.filters.HighPassFilter;
-import com.biorecorder.edflib.filters.MovingAverageFilter;
+import com.biorecorder.edflib.filters.signalfilters.HighPassFilter;
+import com.biorecorder.edflib.filters.signalfilters.MovingAverageFilter;
 
 import java.io.*;
 import java.util.Arrays;
@@ -150,10 +150,10 @@ public class EdfExample {
  *****************************************************************************************/
 
         File resultantFile4 = new File(recordsDir, "ekg_joined.bdf");
-        EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4);
+        EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4, headerInfo.getFileType());
         int numberOfRecordsToJoin = 5;
         EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, fileWriter4);
-        joiner.setHeader(headerInfo);
+        joiner.setConfig(headerInfo);
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
         doubleBuffer1 = new double[originalDataRecordLength];
@@ -205,7 +205,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant joined Edf-file:");
-        System.out.println(fileWriter4.getHeader());
+        System.out.println(fileWriter4.getConfig());
 
 
 /*****************************************************************************************
@@ -215,10 +215,10 @@ public class EdfExample {
  *****************************************************************************************/
 
         File resultantFile5 = new File(recordsDir, "ekg_1channel.bdf");
-        EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5);
+        EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5, headerInfo.getFileType());
         EdfSignalsRemover signalsRemover = new EdfSignalsRemover(fileWriter5);
         signalsRemover.removeSignal(0);
-        signalsRemover.setHeader(headerInfo);
+        signalsRemover.setConfig(headerInfo);
         doubleBuffer1 = new double[originalDataRecordLength];
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -253,7 +253,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant Edf-file with removed channel:");
-        System.out.println(fileWriter5.getHeader());
+        System.out.println(fileWriter5.getConfig());
 
 /*****************************************************************************************
  *     EdfSignalsFilter usage example. Read data, apply two filters to
@@ -263,12 +263,12 @@ public class EdfExample {
  *     and write the resultant clean records to ekg_filtered.bdf
  *****************************************************************************************/
         File resultantFile6 = new File(recordsDir, "ekg_filtered.bdf");
-        EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6);
+        EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6, headerInfo.getFileType());
         EdfSignalsFilter signalsFilter = new EdfSignalsFilter(fileWriter6);
         signalsFilter.addSignalFilter(0, new HighPassFilter(1, headerInfo.getSampleFrequency(0)));
         signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
 
-        signalsFilter.setHeader(headerInfo);
+        signalsFilter.setConfig(headerInfo);
 
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -285,7 +285,7 @@ public class EdfExample {
 
         // Print some header info from resultant file after filtering
         System.out.println("Header info of the resultant filtered Edf-file:");
-        System.out.println(fileWriter6.getHeader());
+        System.out.println(fileWriter6.getConfig());
 
         originalFileReader.close();
     }

@@ -1,7 +1,7 @@
 package com.biorecorder.edflib;
 
 import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
-import com.biorecorder.edflib.exceptions.EdfRepositoryNotFoundRuntimeException;
+import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
 
 import java.io.*;
@@ -33,13 +33,13 @@ public class EdfFileReader {
      * {@link #isReadableValidEdfFile(File)}
      *
      * @param file Edf or Bdf file to be opened for reading
-     * @throws EdfRepositoryNotFoundRuntimeException   if the file does not exist,
+     * @throws FileNotFoundRuntimeException   if the file does not exist,
      *                                        is a directory rather than a regular file,
      *                                        or for some other reason cannot be opened for reading.
      * @throws EdfHeaderRuntimeException if the the file is not valid EDF/BDF file
      *                                        due to some errors in its header record
      */
-    public EdfFileReader(File file) throws EdfRepositoryNotFoundRuntimeException, EdfHeaderRuntimeException {
+    public EdfFileReader(File file) throws FileNotFoundRuntimeException, EdfHeaderRuntimeException {
         this.file = file;
         try {
             fileInputStream = new FileInputStream(file);
@@ -48,7 +48,7 @@ public class EdfFileReader {
             throw e;
         } catch (Exception e) {
             String errMsg = MessageFormat.format("File: {0} can not be opened for reading", file);
-            throw new EdfRepositoryNotFoundRuntimeException(errMsg, e);
+            throw new FileNotFoundRuntimeException(errMsg, e);
         }
         samplesPositionList = new long[headerInfo.getNumberOfSignals()];
     }

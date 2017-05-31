@@ -1,11 +1,14 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.base;
+
 
 /**
- * This abstract class is the superclass of all classes representing an output stream of DataRecords.
- * An output stream accepts a digital DataRecord and send (write) it to some sink.
+ * This abstract class is the superclass of all classes representing an output stream of
+ * data packages (DataRecords).
+ * An output stream accepts samples belonging to DataRecord
+ * and sends (writes) them to some sink.
  * <p>
  * To write data samples to the stream we must set
- * a {@link HeaderInfo} object with the configuration information.
+ * a {@link EdfConfig} object with the configuration information.
  * Only after that data samples could be written correctly.
  * <p>
  * We may write <b>digital</b> or <b>physical</b>  samples.
@@ -15,28 +18,28 @@ package com.biorecorder.edflib;
  *
  */
 public abstract class EdfWriter {
-    protected HeaderInfo headerInfo;
+    protected EdfConfig config;
     protected long sampleCounter;
 
 
     /**
-     * Sets a HeaderInfo object with the configuration information.
+     * Sets a EdfConfig object with the configuration information.
      * This function MUST be called before writing any data.
      *
-     * @param headerInfo - HeaderInfo object describing DataRecords structure
+     * @param edfConfig - HeaderInfo object describing DataRecords structure
      */
-    public void setHeader(HeaderInfo headerInfo)  {
-        this.headerInfo = headerInfo;
+    public void setConfig(EdfConfig edfConfig)  {
+        this.config = edfConfig;
     }
 
 
     /**
-     * Gets the HeaderInfo object with the configuration information.
+     * Gets the EdfConfig object with the configuration information.
      *
      * @return the object containing EDF/BDF header information
      */
-    public HeaderInfo getHeader(){
-        return new HeaderInfo(headerInfo);
+    public EdfConfig getConfig(){
+        return new DefaultEdfConfig(config);
     }
 
 
@@ -44,7 +47,11 @@ public abstract class EdfWriter {
     /**
      * Write "raw" digital (integer) samples from the given array to the stream/file.
      * <p>
-     * Call this method for every signal (channel) of the stream/file. The order is important!
+     * The entire DataRecord (data pack) containing digital data from all signals
+     * can be placed in one array and written at once.
+     * <p>
+     * Or this method can be called for every signal (channel) to write the samples belonging
+     * to that signal. In this case the order is important!
      * When there are 4 signals,  the order of calling this method must be:
      * <br>samples belonging to signal 0, samples belonging to signal 1, samples belonging to signal 2, samples belonging to  signal 3,
      * <br>samples belonging to signal 0, samples belonging to signal 1, samples belonging to signal 2, samples belonging to  signal 3,
@@ -52,8 +59,6 @@ public abstract class EdfWriter {
      * <p>
      * Number of samples for every signal: n_i = (sample frequency of the signal_i) * (duration of DataRecord).
      * <p>
-     * The entire DataRecord (data pack) containing digital data from all signals also can be placed in one array
-     * and written at once.
      *
      * @param digitalSamples digital samples belonging to some signal or entire DataRecord
      */
@@ -64,10 +69,11 @@ public abstract class EdfWriter {
     /**
      * Write physical samples (uV, mA, Ohm) from the given array to the stream/file.
      * <p>
-     * Call this method for every signal (channel) of the stream/file. The order is important!
-     * The physical samples will be converted to digital samples using the
-     * values of physical maximum, physical minimum, digital maximum and digital minimum of
-     * of the signal.
+     * The entire DataRecord (data pack) containing physical data from all signals
+     * can be placed in one array and written at once.
+     * <p>
+     * * r this method can be called for every signal (channel) to write the samples belonging
+     * to that signal. In this case the order is important!
      * When there are 4 signals,  the order of calling this method must be:
      * <br>samples belonging to signal 0, samples belonging to signal 1, samples belonging to signal 2, samples belonging to  signal 3,
      * <br>samples belonging to signal 0, samples belonging to signal 1, samples belonging to signal 2, samples belonging to  signal 3,
@@ -75,8 +81,9 @@ public abstract class EdfWriter {
      * <p>
      * Number of samples for every signal: n_i = (sample frequency of the signal_i) * (duration of DataRecord).
      * <p>
-     * The entire DataRecord (data pack) containing physical data from all signals also can be placed in one array
-     * and written at once.
+     * The physical samples will be converted to digital samples using the
+     * values of physical maximum, physical minimum, digital maximum and digital minimum of
+     * of the signal.
      *
      * @param physicalSamples physical samples belonging to some signal or entire DataRecord
      */
@@ -84,8 +91,8 @@ public abstract class EdfWriter {
         int[] digSamples = new int[physicalSamples.length];
         int signalNumber;
         for (int i = 0; i < physicalSamples.length; i++) {
-            signalNumber = headerInfo.sampleNumberToSignalNumber(sampleCounter + i + 1);
-            digSamples[i] = headerInfo.physicalValueToDigital(signalNumber, physicalSamples[i]);
+            signalNumber = config.sampleNumberToSignalNumber(sampleCounter + i + 1);
+            digSamples[i] = config.physicalValueToDigital(signalNumber, physicalSamples[i]);
         }
 
         writeDigitalSamples(digSamples);
@@ -96,7 +103,10 @@ public abstract class EdfWriter {
      * @return number of  written data records
      */
     public int getNumberOfWrittenDataRecords() {
-        return  headerInfo.getDataRecordLength() == 0 ?  0 :  (int) (sampleCounter / headerInfo.getDataRecordLength());
+        if(config == null || config.getDataRecordLength()== 0) {
+            return 0;
+        }
+        return (int) (sampleCounter / config.getDataRecordLength());
     }
 
 

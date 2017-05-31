@@ -1,9 +1,11 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.filters.MovingAverageFilter;
-import com.biorecorder.edflib.filters.SignalFilter;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.EdfWriter;
+import com.biorecorder.edflib.filters.signalfilters.MovingAverageFilter;
+import com.biorecorder.edflib.filters.signalfilters.SignalFilter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,12 +47,12 @@ public class EdfSignalsFilter extends EdfFilter {
      * Add filters names to «prefiltering» field of the channels
      * @return Header config with filter names
      */
-    protected HeaderInfo createOutputRecordingConfig() {
-        HeaderInfo outHeaderInfo = new HeaderInfo(headerInfo);
-        for (int signalNumber = 0; signalNumber < headerInfo.getNumberOfSignals(); signalNumber++) {
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(config);
+        for (int signalNumber = 0; signalNumber < config.getNumberOfSignals(); signalNumber++) {
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if (signalFilters != null) {
-                String prefiltering = outHeaderInfo.getPrefiltering(signalNumber);
+                String prefiltering = outConfig.getPrefiltering(signalNumber);
                 StringBuilder prefilteringBuilder = new StringBuilder();
                 if(!prefiltering.equalsIgnoreCase("none")) {
                     prefilteringBuilder.append(prefiltering);
@@ -61,10 +63,10 @@ public class EdfSignalsFilter extends EdfFilter {
                     }
                     prefilteringBuilder.append(filter.getName());
                 }
-                outHeaderInfo.setPrefiltering(signalNumber, prefilteringBuilder.toString());
+                outConfig.setPrefiltering(signalNumber, prefilteringBuilder.toString());
             }
         }
-        return outHeaderInfo;
+        return outConfig;
     }
 
     /**
@@ -76,7 +78,7 @@ public class EdfSignalsFilter extends EdfFilter {
      */
     private int[] createResultantSamples(int[] digitalSamples) {
         for (int i = 0; i < digitalSamples.length; i++) {
-            int signalNumber = headerInfo.sampleNumberToSignalNumber(sampleCounter + 1);
+            int signalNumber = config.sampleNumberToSignalNumber(sampleCounter + 1);
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if(signalFilters != null) {
                 for (SignalFilter filter : signalFilters) {

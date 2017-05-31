@@ -1,6 +1,8 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.filters;
 
-import java.io.IOException;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.EdfWriter;
 
 /**
  * Permits to join (piece together) given number of incoming DataRecords.
@@ -33,19 +35,19 @@ public class EdfJoiner extends EdfFilter {
     }
 
     @Override
-    protected HeaderInfo createOutputRecordingConfig() {
-        HeaderInfo outHeaderInfo = new HeaderInfo(headerInfo); // copy header config
-        outHeaderInfo.setDurationOfDataRecord(headerInfo.getDurationOfDataRecord() * numberOfRecordsToJoin);
-        for (int i = 0; i < headerInfo.getNumberOfSignals(); i++) {
-            outHeaderInfo.setNumberOfSamplesInEachDataRecord(i, headerInfo.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(config); // copy header config
+        outConfig.setDurationOfDataRecord(config.getDurationOfDataRecord() * numberOfRecordsToJoin);
+        for (int i = 0; i < config.getNumberOfSignals(); i++) {
+            outConfig.setNumberOfSamplesInEachDataRecord(i, config.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
         }
-        return outHeaderInfo;
+        return outConfig;
     }
 
     @Override
-    public void setHeader(HeaderInfo headerInfo) {
-        super.setHeader(headerInfo);
-        outDataRecord = new int[headerInfo.getDataRecordLength() * numberOfRecordsToJoin];
+    public void setConfig(EdfConfig edfConfig) {
+        super.setConfig(edfConfig);
+        outDataRecord = new int[edfConfig.getDataRecordLength() * numberOfRecordsToJoin];
     }
 
     /**
@@ -68,23 +70,23 @@ public class EdfJoiner extends EdfFilter {
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
         for (int sample : digitalSamples) {
-            int samplePosition = (int) (sampleCounter % headerInfo.getDataRecordLength());
+            int samplePosition = (int) (sampleCounter % config.getDataRecordLength());
             int joinedRecords = getNumberOfWrittenDataRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
-            while (samplePosition >= counter + headerInfo.getNumberOfSamplesInEachDataRecord(channelNumber)) {
-                counter += headerInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
+            while (samplePosition >= counter + config.getNumberOfSamplesInEachDataRecord(channelNumber)) {
+                counter += config.getNumberOfSamplesInEachDataRecord(channelNumber);
                  channelNumber++;
             }
 
             int outSamplePosition = counter * numberOfRecordsToJoin;
-            outSamplePosition += joinedRecords * headerInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
+            outSamplePosition += joinedRecords * config.getNumberOfSamplesInEachDataRecord(channelNumber);
             outSamplePosition += samplePosition - counter;
 
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 
-            if(sampleCounter % headerInfo.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % config.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

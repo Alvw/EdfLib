@@ -1,9 +1,8 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.EdfWriter;
-import com.biorecorder.edflib.HeaderInfo;
-
-import java.io.IOException;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.EdfWriter;
 
 /**
  * A base decorator class (pattern Decorator) that is actually just a wrapper around some other
@@ -38,22 +37,22 @@ public class EdfFilter extends EdfWriter {
      *
      * @return HeaderInfo object describing resultant output DataRecords configuration
      */
-    protected HeaderInfo createOutputRecordingConfig() {
-        return new HeaderInfo(new HeaderInfo(headerInfo));
+    protected EdfConfig createOutputConfig() {
+        return new DefaultEdfConfig(config);
 
     }
 
 
     /**
-     * The setHeader method of EdfFilter create HeaderInfo object describing the
+     * The setConfig method of EdfFilter create HeaderInfo object describing the
      * structure of resultant DataRecords and pass it to underlying EdfWriter
      *
-     * @param headerInfo HeaderInfo object with the information describing input DataRecords structure
+     * @param edfConfig HeaderInfo object with the information describing input DataRecords structure
      */
     @Override
-    public void setHeader(HeaderInfo headerInfo)  {
-        super.setHeader(headerInfo);
-        out.setHeader(createOutputRecordingConfig());
+    public void setConfig(EdfConfig edfConfig)  {
+        super.setConfig(edfConfig);
+        out.setConfig(createOutputConfig());
     }
 
 
@@ -64,8 +63,8 @@ public class EdfFilter extends EdfWriter {
      */
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
-        if(headerInfo == null) {
-            throw new RuntimeException("File header is not specified! HeaderInfo = "+headerInfo);
+        if(config == null) {
+            throw new RuntimeException("File header is not specified! HeaderInfo = "+ config);
         }
         out.writeDigitalSamples(digitalSamples);
     }

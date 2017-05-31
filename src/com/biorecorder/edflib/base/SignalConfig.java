@@ -1,4 +1,4 @@
-package com.biorecorder.edflib;
+package com.biorecorder.edflib.base;
 
 /**
  * Class (data-structure) that allows to store information about measuring channels (signals).
@@ -15,15 +15,15 @@ package com.biorecorder.edflib;
  *     <li>number of samples in each data record</li>
  * </ul>
  */
-class SignalInfo {
+class SignalConfig {
     private int numberOfSamplesInEachDataRecord;
     private String prefiltering = "None";
     private String transducerType = "Unknown";
     private String label = "";
-    private int digitalMin = FileType.EDF_16BIT.getDigitalMin();
-    private int digitalMax = FileType.EDF_16BIT.getDigitalMax();
-    private double physicalMin = FileType.EDF_16BIT.getDigitalMin();
-    private double physicalMax = FileType.EDF_16BIT.getDigitalMax();;
+    private int digitalMin;
+    private int digitalMax;
+    private double physicalMin;
+    private double physicalMax;
     private String physicalDimension = "";  // uV or Ohm
 
 
@@ -68,7 +68,7 @@ class SignalInfo {
 
 
     public void setNumberOfSamplesInEachDataRecord(int numberOfSamplesInEachDataRecord) {
-       this.numberOfSamplesInEachDataRecord = numberOfSamplesInEachDataRecord;
+        this.numberOfSamplesInEachDataRecord = numberOfSamplesInEachDataRecord;
     }
 
     public String getPrefiltering() {
@@ -94,51 +94,4 @@ class SignalInfo {
     public void setLabel(String label) {
         this.label = label;
     }
-
-    /**
-     * Calculate the gain calibration (adjust) factor on the base
-     * of physical and digital maximums and minimums
-     *
-     * @return gain = (physMax - physMin) / (digMax - digMin)
-     */
-    public  double gain() {
-        return (physicalMax - physicalMin) / (digitalMax - digitalMin);
-
-    }
-
-    /**
-     * Calculate the offset calibration (adjust) factor on the base
-     * of physical and digital maximums and minimums
-     *
-     * @return offset = (physMin - digMin * gain) where
-     * gain = (physMax - physMin) / (digMax - digMin)
-     */
-    public double offset() {
-        return physicalMin - digitalMin * gain();
-
-    }
-
-    /**
-     * Convert physical value to digital on the base
-     * of physical and digital maximums and minimums (gain and offset)
-     *
-     * @return digital value
-     */
-    public int physicalValueToDigital(double physValue) {
-        Long value =  Math.round((physValue - offset()) / gain());
-        return value.intValue();
-
-    }
-
-    /**
-     * Convert digital value to physical on the base
-     * of physical and digital maximums and minimums (gain and offset)
-     *
-     * @return physical value
-     */
-    public  double digitalValueToPhysical(int digValue) {
-        return digValue * gain() + offset();
-
-    }
-
 }

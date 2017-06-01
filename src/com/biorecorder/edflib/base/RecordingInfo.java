@@ -3,6 +3,26 @@ package com.biorecorder.edflib.base;
 import java.text.MessageFormat;
 
 /**
+ * Provides the the following base info:
+ * <ul>
+ * <li>patient identification</li>
+ * <li>recording identification</li>
+ * <li>recording start date and time</li>
+ * <li>duration of  data records (in seconds)</li>
+ * </ul>
+ * And the information about every measuring channel (signal). Such as:
+ * <ul>
+ * <li>signal label</li>
+ * <li>transducer type (e.g. AgAgCI electrode)</li>
+ * <li>physical dimension(e.g. uV or degree C)</li>
+ * <li>physical minimum (e.g. -500 or 34)</li>
+ * <li>physical maximum (e.g. 500 or 40)</li>
+ * <li>digital minimum (e.g. -2048)</li>
+ * <li>digital maximum (e.g. 2047)</li>
+ * <li>prefiltering (e.g. HP:0.1Hz LP:75Hz)</li>
+ * <li>number of samples in each data record</li>
+ * </ul>
+ * </p>
  * Describes the structure of edf data records or packages.
  * Each data record contains data from multiple signals
  * and has the following structure:
@@ -39,33 +59,9 @@ import java.text.MessageFormat;
  * Detailed information about EDF/BDF format:
  * <a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
  * <a href="https://www.biosemi.com/faq/file_format.htm">BioSemi or BDF file format</a>
- * <p>
- *  Edf config or header normally contains the following base info:
- *  <ul>
- * <li>patient identification</li>
- * <li>recording identification</li>
- * <li>recording recordingStartTime</li>
- * <li>number of data records</li>
- * <li>duration of a data record (in seconds)</li>
- * </ul>
- * <p>
- * And the information about every measuring channel (signal). Such as:
- * <ul>
- * <li>signal label</li>
- * <li>transducer type (e.g. AgAgCI electrode)</li>
- * <li>physical dimension(e.g. uV or degree C)</li>
- * <li>physical minimum (e.g. -500 or 34)</li>
- * <li>physical maximum (e.g. 500 or 40)</li>
- * <li>digital minimum (e.g. -2048)</li>
- * <li>digital maximum (e.g. 2047)</li>
- * <li>prefiltering (e.g. HP:0.1Hz LP:75Hz)</li>
- * <li>number of samples in each data record</li>
- * </ul>
- * </p>
- * <p>
  *
  */
-public abstract class EdfConfig {
+public abstract class RecordingInfo {
 
     /**
      * Return the number of measuring channels (signals).

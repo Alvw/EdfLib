@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfConfig;
-import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.DefaultRecordingInfo;
+import com.biorecorder.edflib.base.RecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 
 import java.util.ArrayList;
@@ -27,8 +27,8 @@ public class EdfSignalsRemover extends EdfFilter {
         signalsToRemove.add(signalNumber);
     }
 
-    protected EdfConfig createOutputConfig() {
-        DefaultEdfConfig outConfig = new DefaultEdfConfig(config);
+    protected RecordingInfo createOutputConfig() {
+        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(config);
         for (int signalNamber = config.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
             if(signalsToRemove.contains(Integer.valueOf(signalNamber))) {
                 outConfig.removeSignal(signalNamber);

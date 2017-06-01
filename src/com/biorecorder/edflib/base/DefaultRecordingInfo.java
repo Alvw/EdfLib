@@ -4,70 +4,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-/**
- * Describes the structure of edf data records or packages.
- * Each data record contains data from multiple signals
- * and has the following structure:
- * <br>samples belonging to signal 0,
- * <br>samples belonging to signal 1,
- * <br>...
- * <br>samples belonging to  signal n
- * <p>
- * Where number of samples for every signal:
- * <br>n_i = (sample frequency of the signal_i) * (duration of DataRecord).
- * <p>
- * EDF/BDF format assumes a linear relationship between physical and digital values,
- * and the scaling factors (gain and offset) for every channel are calculated
- * on the base of its <b> physical minimum and maximum </b> and the corresponding
- * <b> digital minimum and maximum </b>. So for every channel:
- * <p>
- * (physValue - physMin) / (digValue - digMin)  = constant [Gain] = (physMax - physMin) / (digMax - digMin)
- * <p>
- * physValue = digValue * gain + offset
- * <br>digValue = (physValue - offset) / gain
- * <p>
- * where:
- * <br>gain = (physMax - physMin) / (digMax - digMin)
- * <br>offset = (physMin - digMin * gain);
- * <p>
- * In general "gain" refers to multiplication of a signal
- * and "offset"  refer to addition to a signal, i.e. out = in * gain + offset
- * <p>
- * To get the number of the signals in data record use method {@link #getNumberOfSignals()}
- * <p>
- * Contains helper methods to convert physical (floating point) values
- * to digital (integer) ones and vice versa.
- * <p>
- * Detailed information about EDF/BDF format:
- * <a href="http://www.edfplus.info/specs/edf.html">European Data Format. Full specification of EDF</a>
- * <a href="https://www.biosemi.com/faq/file_format.htm">BioSemi or BDF file format</a>
- * <p>
- *  Edf config or header normally contains the following base info:
- *  <ul>
- * <li>patient identification</li>
- * <li>recording identification</li>
- * <li>recording recordingStartTime</li>
- * <li>number of data records</li>
- * <li>duration of a data record (in seconds)</li>
- * </ul>
- * <p>
- * And the information about every measuring channel (signal). Such as:
- * <ul>
- * <li>signal label</li>
- * <li>transducer type (e.g. AgAgCI electrode)</li>
- * <li>physical dimension(e.g. uV or degree C)</li>
- * <li>physical minimum (e.g. -500 or 34)</li>
- * <li>physical maximum (e.g. 500 or 40)</li>
- * <li>digital minimum (e.g. -2048)</li>
- * <li>digital maximum (e.g. 2047)</li>
- * <li>prefiltering (e.g. HP:0.1Hz LP:75Hz)</li>
- * <li>number of samples in each data record</li>
- * </ul>
- * </p>
- * <p>
- *
- */
-public class DefaultEdfConfig extends EdfConfig {
+public class DefaultRecordingInfo extends RecordingInfo {
     private String patientIdentification = "Default patient";
     private String recordingIdentification = "Default record";
     private double durationOfDataRecord = 1; // sec
@@ -76,23 +13,23 @@ public class DefaultEdfConfig extends EdfConfig {
 
 
     /**
-     * Default constructor that creates a DefaultEdfConfig instance
+     * Default constructor that creates a DefaultRecordingInfo instance
      * with 0 channels (signals). So all channels should be added as necessary.
      * <p>
      * See method: {@link #addSignal()}
      */
-    public DefaultEdfConfig() {
+    public DefaultRecordingInfo() {
 
     }
 
     /**
-     * This constructor creates a DefaultEdfConfig instance of the given type (EDF_16BIT or BDF_24BIT)
+     * This constructor creates a DefaultRecordingInfo instance of the given type (EDF_16BIT or BDF_24BIT)
      * with the given number of channels (signals)
      *
      * @param numberOfSignals number of signals in data records
      * @throws IllegalArgumentException if numberOfSignals <= 0
      */
-    public DefaultEdfConfig(int numberOfSignals) throws IllegalArgumentException {
+    public DefaultRecordingInfo(int numberOfSignals) throws IllegalArgumentException {
         if (numberOfSignals <= 0) {
             String errMsg = MessageFormat.format("Number of signals is invalid: {0}. Expected {1}", numberOfSignals, ">0");
             throw new IllegalArgumentException(errMsg);
@@ -103,21 +40,21 @@ public class DefaultEdfConfig extends EdfConfig {
     }
 
     /**
-     * Constructor to make a copy of the given DefaultEdfConfig instance
+     * Constructor to make a copy of the given DefaultRecordingInfo instance
      *
-     * @param edfConfig DefaultEdfConfig instance that will be copied
+     * @param recordingInfo DefaultRecordingInfo instance that will be copied
      */
-    public DefaultEdfConfig(EdfConfig edfConfig) {
-        this(edfConfig.getNumberOfSignals());
-        durationOfDataRecord = edfConfig.getDurationOfDataRecord();
-        for (int i = 0; i < edfConfig.getNumberOfSignals(); i++) {
-            setNumberOfSamplesInEachDataRecord(i, edfConfig.getNumberOfSamplesInEachDataRecord(i));
-            setPrefiltering(i, edfConfig.getPrefiltering(i));
-            setTransducer(i, edfConfig.getTransducer(i));
-            setLabel(i, edfConfig.getLabel(i));
-            setDigitalRange(i, edfConfig.getDigitalMin(i), edfConfig.getDigitalMax(i));
-            setPhysicalRange(i, edfConfig.getPhysicalMin(i), edfConfig.getPhysicalMax(i));
-            setPhysicalDimension(i, edfConfig.getPhysicalDimension(i));
+    public DefaultRecordingInfo(RecordingInfo recordingInfo) {
+        this(recordingInfo.getNumberOfSignals());
+        durationOfDataRecord = recordingInfo.getDurationOfDataRecord();
+        for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
+            setNumberOfSamplesInEachDataRecord(i, recordingInfo.getNumberOfSamplesInEachDataRecord(i));
+            setPrefiltering(i, recordingInfo.getPrefiltering(i));
+            setTransducer(i, recordingInfo.getTransducer(i));
+            setLabel(i, recordingInfo.getLabel(i));
+            setDigitalRange(i, recordingInfo.getDigitalMin(i), recordingInfo.getDigitalMax(i));
+            setPhysicalRange(i, recordingInfo.getPhysicalMin(i), recordingInfo.getPhysicalMax(i));
+            setPhysicalDimension(i, recordingInfo.getPhysicalDimension(i));
         }
     }
 

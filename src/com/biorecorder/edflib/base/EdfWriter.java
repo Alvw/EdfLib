@@ -8,7 +8,7 @@ package com.biorecorder.edflib.base;
  * and sends (writes) them to some sink.
  * <p>
  * To write data samples to the stream we must set
- * a {@link EdfConfig} object with the configuration information.
+ * a {@link RecordingInfo} object with the configuration information.
  * Only after that data samples could be written correctly.
  * <p>
  * We may write <b>digital</b> or <b>physical</b>  samples.
@@ -18,30 +18,26 @@ package com.biorecorder.edflib.base;
  *
  */
 public abstract class EdfWriter {
-    protected EdfConfig config;
+    protected RecordingInfo config;
     protected long sampleCounter;
 
 
     /**
-     * Sets a EdfConfig object with the configuration information.
+     * Sets the RecordingInfo object describing the structure of
+     * the data records (data packages) that will be written.
      * This function MUST be called before writing any data.
      *
-     * @param edfConfig - HeaderInfo object describing DataRecords structure
+     * @param recordingInfo - RecordingInfo object describing DataRecords structure
      */
-    public void setConfig(EdfConfig edfConfig)  {
-        this.config = edfConfig;
+    public void setRecordingInfo(RecordingInfo recordingInfo)  {
+        this.config = recordingInfo;
     }
-
 
     /**
-     * Gets the EdfConfig object with the configuration information.
-     *
-     * @return the object containing EDF/BDF header information
+     * Get the RecordingInfo object with base info about recording process
+     * @return RecordingInfo object
      */
-    public EdfConfig getConfig(){
-        return new DefaultEdfConfig(config);
-    }
-
+    public abstract RecordingInfo getRecordingInfo();
 
 
     /**

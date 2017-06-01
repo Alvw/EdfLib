@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfConfig;
-import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.DefaultRecordingInfo;
+import com.biorecorder.edflib.base.RecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 
 /**
@@ -37,22 +37,31 @@ public class EdfFilter extends EdfWriter {
      *
      * @return HeaderInfo object describing resultant output DataRecords configuration
      */
-    protected EdfConfig createOutputConfig() {
-        return new DefaultEdfConfig(config);
-
+    protected RecordingInfo createOutputConfig() {
+        return config == null? null : new DefaultRecordingInfo(config);
     }
 
 
     /**
-     * The setConfig method of EdfFilter create HeaderInfo object describing the
+     * The setRecordingInfo method of EdfFilter create the configuration object describing the
      * structure of resultant DataRecords and pass it to underlying EdfWriter
      *
-     * @param edfConfig HeaderInfo object with the information describing input DataRecords structure
+     * @param recordingInfo HeaderInfo object with the information describing input DataRecords structure
      */
     @Override
-    public void setConfig(EdfConfig edfConfig)  {
-        super.setConfig(edfConfig);
-        out.setConfig(createOutputConfig());
+    public void setRecordingInfo(RecordingInfo recordingInfo)  {
+        super.setRecordingInfo(recordingInfo);
+        out.setRecordingInfo(createOutputConfig());
+    }
+
+    /**
+     * Gets the RecordingInfo object describing the structure of
+     * RESULTANT data records (data packages)
+     *
+     * @return the object containing EDF/BDF header information
+     */
+    public RecordingInfo getRecordingInfo(){
+        return out.getRecordingInfo();
     }
 
 

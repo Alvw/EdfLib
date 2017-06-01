@@ -1,6 +1,6 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.RecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -52,7 +52,7 @@ public class EdfFileWriter extends EdfWriter {
      * the specified File object. HeaderInfo object specifies the type of the file
      * (EDF_16BIT or BDF_24BIT) and provides all necessary information for the file header record.
      * A HeaderInfo object must be passed to the EdfFileWriter before writing any data samples.
-     * We may do that in the constructor or by method {@link EdfWriter#setConfig(EdfConfig)}.
+     * We may do that in the constructor or by method {@link EdfWriter#setRecordingInfo(RecordingInfo)}.
      *
      * @param file       the file to be opened for writing
      * @param headerInfo object containing all necessary information for the header record
@@ -70,7 +70,7 @@ public class EdfFileWriter extends EdfWriter {
      * the specified File object.  A HeaderInfo object specifying the type of the file
      * (EDF_16BIT or BDF_24BIT) and providing all necessary information for the file header record
      * must be passed to the EdfFileWriter before writing any data samples.
-     * Use the method {@link EdfWriter#setConfig(EdfConfig)}.
+     * Use the method {@link EdfWriter#setRecordingInfo(RecordingInfo)}.
      *
      * @param file the file to be opened for writing
      *  @param fileType    EDF_16BIT or BDF_24BIT
@@ -95,13 +95,13 @@ public class EdfFileWriter extends EdfWriter {
     }
 
     @Override
-    public HeaderInfo getConfig() {
+    public HeaderInfo getRecordingInfo() {
         return (HeaderInfo) config;
     }
 
     @Override
-    public void setConfig(EdfConfig edfConfig) {
-       config = new HeaderInfo(edfConfig, fileType);
+    public void setRecordingInfo(RecordingInfo recordingInfo) {
+       config = new HeaderInfo(recordingInfo, fileType);
     }
 
     /**
@@ -265,7 +265,7 @@ public class EdfFileWriter extends EdfWriter {
         fileWriter.close();
 
         // print some header info
-        System.out.println(fileWriter.getConfig());
+        System.out.println(fileWriter.getRecordingInfo());
         // print some writing info
         System.out.println(fileWriter.getWritingInfo());
 

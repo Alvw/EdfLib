@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfConfig;
-import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.DefaultRecordingInfo;
+import com.biorecorder.edflib.base.RecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 import com.biorecorder.edflib.filters.signalfilters.MovingAverageFilter;
 import com.biorecorder.edflib.filters.signalfilters.SignalFilter;
@@ -47,8 +47,8 @@ public class EdfSignalsFilter extends EdfFilter {
      * Add filters names to «prefiltering» field of the channels
      * @return Header config with filter names
      */
-    protected EdfConfig createOutputConfig() {
-        DefaultEdfConfig outConfig = new DefaultEdfConfig(config);
+    protected RecordingInfo createOutputConfig() {
+        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(config);
         for (int signalNumber = 0; signalNumber < config.getNumberOfSignals(); signalNumber++) {
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if (signalFilters != null) {

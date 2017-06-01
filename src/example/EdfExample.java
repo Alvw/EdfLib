@@ -153,7 +153,7 @@ public class EdfExample {
         EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4, headerInfo.getFileType());
         int numberOfRecordsToJoin = 5;
         EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, fileWriter4);
-        joiner.setConfig(headerInfo);
+        joiner.setRecordingInfo(headerInfo);
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
         doubleBuffer1 = new double[originalDataRecordLength];
@@ -205,7 +205,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant joined Edf-file:");
-        System.out.println(fileWriter4.getConfig());
+        System.out.println(joiner.getRecordingInfo());
 
 
 /*****************************************************************************************
@@ -218,7 +218,7 @@ public class EdfExample {
         EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5, headerInfo.getFileType());
         EdfSignalsRemover signalsRemover = new EdfSignalsRemover(fileWriter5);
         signalsRemover.removeSignal(0);
-        signalsRemover.setConfig(headerInfo);
+        signalsRemover.setRecordingInfo(headerInfo);
         doubleBuffer1 = new double[originalDataRecordLength];
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -253,7 +253,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant Edf-file with removed channel:");
-        System.out.println(fileWriter5.getConfig());
+        System.out.println(signalsRemover.getRecordingInfo());
 
 /*****************************************************************************************
  *     EdfSignalsFilter usage example. Read data, apply two filters to
@@ -268,7 +268,7 @@ public class EdfExample {
         signalsFilter.addSignalFilter(0, new HighPassFilter(1, headerInfo.getSampleFrequency(0)));
         signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
 
-        signalsFilter.setConfig(headerInfo);
+        signalsFilter.setRecordingInfo(headerInfo);
 
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -285,7 +285,7 @@ public class EdfExample {
 
         // Print some header info from resultant file after filtering
         System.out.println("Header info of the resultant filtered Edf-file:");
-        System.out.println(fileWriter6.getConfig());
+        System.out.println(signalsFilter.getRecordingInfo());
 
         originalFileReader.close();
     }

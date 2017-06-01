@@ -1,7 +1,7 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.DefaultEdfConfig;
-import com.biorecorder.edflib.base.EdfConfig;
+import com.biorecorder.edflib.base.DefaultRecordingInfo;
+import com.biorecorder.edflib.base.RecordingInfo;
 import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
 import com.biorecorder.edflib.exceptions.ExceptionType;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -91,7 +91,7 @@ import java.util.Date;
  * <p>
  */
 
-public class HeaderInfo extends DefaultEdfConfig {
+public class HeaderInfo extends DefaultRecordingInfo {
     private static final String ERR_MSG_START = "Header error! ";
     private int numberOfDataRecords = -1;
     private FileType fileType = FileType.EDF_16BIT;
@@ -155,22 +155,22 @@ public class HeaderInfo extends DefaultEdfConfig {
     /**
      * Constructor to make a copy of the given HeaderInfo instance
      *
-     * @param edfConfig HeaderInfo instance that will be copied
+     * @param recordingInfo HeaderInfo instance that will be copied
      */
-    public HeaderInfo(EdfConfig edfConfig, FileType fileType) {
-        this(edfConfig.getNumberOfSignals(), fileType);
-        setPatientIdentification(edfConfig.getPatientIdentification());
-        setRecordingIdentification(edfConfig.getRecordingIdentification());
-        setRecordingStartDateTimeMs(edfConfig.getRecordingStartDateTimeMs());
-        setDurationOfDataRecord(edfConfig.getDurationOfDataRecord());
-        for (int i = 0; i < edfConfig.getNumberOfSignals(); i++) {
-            setNumberOfSamplesInEachDataRecord(i, edfConfig.getNumberOfSamplesInEachDataRecord(i));
-            setPrefiltering(i, edfConfig.getPrefiltering(i));
-            setTransducer(i, edfConfig.getTransducer(i));
-            setLabel(i, edfConfig.getLabel(i));
-            setDigitalRange(i, edfConfig.getDigitalMin(i), edfConfig.getDigitalMax(i));
-            setPhysicalRange(i, edfConfig.getPhysicalMin(i), edfConfig.getPhysicalMax(i));
-            setPhysicalDimension(i, edfConfig.getPhysicalDimension(i));
+    public HeaderInfo(RecordingInfo recordingInfo, FileType fileType) {
+        this(recordingInfo.getNumberOfSignals(), fileType);
+        setPatientIdentification(recordingInfo.getPatientIdentification());
+        setRecordingIdentification(recordingInfo.getRecordingIdentification());
+        setRecordingStartDateTimeMs(recordingInfo.getRecordingStartDateTimeMs());
+        setDurationOfDataRecord(recordingInfo.getDurationOfDataRecord());
+        for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
+            setNumberOfSamplesInEachDataRecord(i, recordingInfo.getNumberOfSamplesInEachDataRecord(i));
+            setPrefiltering(i, recordingInfo.getPrefiltering(i));
+            setTransducer(i, recordingInfo.getTransducer(i));
+            setLabel(i, recordingInfo.getLabel(i));
+            setDigitalRange(i, recordingInfo.getDigitalMin(i), recordingInfo.getDigitalMax(i));
+            setPhysicalRange(i, recordingInfo.getPhysicalMin(i), recordingInfo.getPhysicalMax(i));
+            setPhysicalDimension(i, recordingInfo.getPhysicalDimension(i));
         }
     }
 

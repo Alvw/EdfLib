@@ -337,11 +337,11 @@ public class EdfFileReader {
     }
 
     /**
-     * On the base of information from the given config object
+     * On the base of information from the given recordingInfo object
      * a new header will be created and rewritten to the file.
      * Note that the number of channels (signals) can not be changed!
      *
-     * @param newHeaderInfo config object containing info for the new header
+     * @param newHeaderInfo recordingInfo object containing info for the new header
      * @throws IllegalArgumentException if the number of channels in the new HeaderInfo object
      *                                  does not equal the number of channels in the existent one
      * @throws EdfRuntimeException       if the header record failed to be re-written

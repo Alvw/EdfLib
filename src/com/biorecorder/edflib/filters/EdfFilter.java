@@ -38,7 +38,7 @@ public class EdfFilter extends EdfWriter {
      * @return HeaderInfo object describing resultant output DataRecords configuration
      */
     protected RecordingInfo createOutputConfig() {
-        return config == null? null : new DefaultRecordingInfo(config);
+        return recordingInfo == null? null : new DefaultRecordingInfo(recordingInfo);
     }
 
 
@@ -72,8 +72,8 @@ public class EdfFilter extends EdfWriter {
      */
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
-        if(config == null) {
-            throw new RuntimeException("File header is not specified! HeaderInfo = "+ config);
+        if(recordingInfo == null) {
+            throw new RuntimeException("File header is not specified! HeaderInfo = "+ recordingInfo);
         }
         out.writeDigitalSamples(digitalSamples);
     }

@@ -18,7 +18,7 @@ package com.biorecorder.edflib.base;
  *
  */
 public abstract class EdfWriter {
-    protected RecordingInfo config;
+    protected RecordingInfo recordingInfo;
     protected long sampleCounter;
 
 
@@ -30,7 +30,7 @@ public abstract class EdfWriter {
      * @param recordingInfo - RecordingInfo object describing DataRecords structure
      */
     public void setRecordingInfo(RecordingInfo recordingInfo)  {
-        this.config = recordingInfo;
+        this.recordingInfo = recordingInfo;
     }
 
     /**
@@ -87,8 +87,8 @@ public abstract class EdfWriter {
         int[] digSamples = new int[physicalSamples.length];
         int signalNumber;
         for (int i = 0; i < physicalSamples.length; i++) {
-            signalNumber = config.sampleNumberToSignalNumber(sampleCounter + i + 1);
-            digSamples[i] = config.physicalValueToDigital(signalNumber, physicalSamples[i]);
+            signalNumber = recordingInfo.sampleNumberToSignalNumber(sampleCounter + i + 1);
+            digSamples[i] = recordingInfo.physicalValueToDigital(signalNumber, physicalSamples[i]);
         }
 
         writeDigitalSamples(digSamples);
@@ -99,10 +99,10 @@ public abstract class EdfWriter {
      * @return number of  written data records
      */
     public int getNumberOfWrittenDataRecords() {
-        if(config == null || config.getDataRecordLength()== 0) {
+        if(recordingInfo == null || recordingInfo.getDataRecordLength()== 0) {
             return 0;
         }
-        return (int) (sampleCounter / config.getDataRecordLength());
+        return (int) (sampleCounter / recordingInfo.getDataRecordLength());
     }
 
 

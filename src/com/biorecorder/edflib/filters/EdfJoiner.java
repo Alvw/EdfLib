@@ -36,10 +36,10 @@ public class EdfJoiner extends EdfFilter {
 
     @Override
     protected RecordingInfo createOutputConfig() {
-        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(config); // copy header config
-        outConfig.setDurationOfDataRecord(config.getDurationOfDataRecord() * numberOfRecordsToJoin);
-        for (int i = 0; i < config.getNumberOfSignals(); i++) {
-            outConfig.setNumberOfSamplesInEachDataRecord(i, config.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
+        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(recordingInfo); // copy header recordingInfo
+        outConfig.setDurationOfDataRecord(recordingInfo.getDurationOfDataRecord() * numberOfRecordsToJoin);
+        for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
+            outConfig.setNumberOfSamplesInEachDataRecord(i, recordingInfo.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
         }
         return outConfig;
     }
@@ -70,23 +70,23 @@ public class EdfJoiner extends EdfFilter {
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
         for (int sample : digitalSamples) {
-            int samplePosition = (int) (sampleCounter % config.getDataRecordLength());
+            int samplePosition = (int) (sampleCounter % recordingInfo.getDataRecordLength());
             int joinedRecords = getNumberOfWrittenDataRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
-            while (samplePosition >= counter + config.getNumberOfSamplesInEachDataRecord(channelNumber)) {
-                counter += config.getNumberOfSamplesInEachDataRecord(channelNumber);
+            while (samplePosition >= counter + recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber)) {
+                counter += recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
                  channelNumber++;
             }
 
             int outSamplePosition = counter * numberOfRecordsToJoin;
-            outSamplePosition += joinedRecords * config.getNumberOfSamplesInEachDataRecord(channelNumber);
+            outSamplePosition += joinedRecords * recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
             outSamplePosition += samplePosition - counter;
 
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 
-            if(sampleCounter % config.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % recordingInfo.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

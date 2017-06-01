@@ -28,8 +28,8 @@ public class EdfSignalsRemover extends EdfFilter {
     }
 
     protected RecordingInfo createOutputConfig() {
-        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(config);
-        for (int signalNamber = config.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
+        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(recordingInfo);
+        for (int signalNamber = recordingInfo.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
             if(signalsToRemove.contains(Integer.valueOf(signalNamber))) {
                 outConfig.removeSignal(signalNamber);
             }
@@ -47,7 +47,7 @@ public class EdfSignalsRemover extends EdfFilter {
     private int[] createResultantSamples(int[] digitalSamples) {
        List<Integer> resultantSamples = new ArrayList<Integer>();
        for (int sample : digitalSamples) {
-           int signalNumber = config.sampleNumberToSignalNumber(sampleCounter + 1);
+           int signalNumber = recordingInfo.sampleNumberToSignalNumber(sampleCounter + 1);
            if(!signalsToRemove.contains(signalNumber)) {
                resultantSamples.add(sample);
            }

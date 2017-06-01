@@ -62,7 +62,7 @@ public class EdfFileWriter extends EdfWriter {
      */
     public EdfFileWriter(File file, HeaderInfo headerInfo) throws FileNotFoundRuntimeException {
         this(file, headerInfo.getFileType());
-        this.config = headerInfo;
+        this.recordingInfo = headerInfo;
     }
 
     /**
@@ -96,12 +96,12 @@ public class EdfFileWriter extends EdfWriter {
 
     @Override
     public HeaderInfo getRecordingInfo() {
-        return (HeaderInfo) config;
+        return (HeaderInfo) recordingInfo;
     }
 
     @Override
     public void setRecordingInfo(RecordingInfo recordingInfo) {
-       config = new HeaderInfo(recordingInfo, fileType);
+       this.recordingInfo = new HeaderInfo(recordingInfo, fileType);
     }
 
     /**
@@ -134,7 +134,7 @@ public class EdfFileWriter extends EdfWriter {
     @Override
     public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException {
         try {
-            HeaderInfo config = (HeaderInfo) this.config;
+            HeaderInfo config = (HeaderInfo) this.recordingInfo;
             if (sampleCounter == 0) {
                 // 1 second = 1000 msec
                 startTime = System.currentTimeMillis() - (long) config.getDurationOfDataRecord() * 1000;
@@ -165,7 +165,7 @@ public class EdfFileWriter extends EdfWriter {
      */
     @Override
     public synchronized void close() throws EdfRuntimeException {
-        HeaderInfo config = (HeaderInfo) this.config;
+        HeaderInfo config = (HeaderInfo) this.recordingInfo;
         if (config.getNumberOfDataRecords() == -1) {
             config.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
         }

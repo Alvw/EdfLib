@@ -45,11 +45,11 @@ public class EdfSignalsFilter extends EdfFilter {
 
     /**
      * Add filters names to «prefiltering» field of the channels
-     * @return Header config with filter names
+     * @return Header recordingInfo with filter names
      */
     protected RecordingInfo createOutputConfig() {
-        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(config);
-        for (int signalNumber = 0; signalNumber < config.getNumberOfSignals(); signalNumber++) {
+        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(recordingInfo);
+        for (int signalNumber = 0; signalNumber < recordingInfo.getNumberOfSignals(); signalNumber++) {
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if (signalFilters != null) {
                 String prefiltering = outConfig.getPrefiltering(signalNumber);
@@ -78,7 +78,7 @@ public class EdfSignalsFilter extends EdfFilter {
      */
     private int[] createResultantSamples(int[] digitalSamples) {
         for (int i = 0; i < digitalSamples.length; i++) {
-            int signalNumber = config.sampleNumberToSignalNumber(sampleCounter + 1);
+            int signalNumber = recordingInfo.sampleNumberToSignalNumber(sampleCounter + 1);
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if(signalFilters != null) {
                 for (SignalFilter filter : signalFilters) {

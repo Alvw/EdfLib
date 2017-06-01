@@ -37,7 +37,9 @@ public abstract class EdfWriter {
      * Get the RecordingInfo object with base info about recording process
      * @return RecordingInfo object
      */
-    public abstract RecordingInfo getRecordingInfo();
+    public RecordingInfo getRecordingInfo() {
+        return recordingInfo;
+    }
 
 
     /**

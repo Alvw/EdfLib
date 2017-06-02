@@ -46,6 +46,7 @@ public class EdfFileWriter extends EdfWriter {
     private double durationOfDataRecord;
     private boolean isDurationOfDataRecordsComputable;
     private FileOutputStream fileOutputStream;
+    private volatile boolean isClosed = false;
 
     /**
      * Creates EdfFileWriter to write data samples to the file represented by
@@ -95,12 +96,12 @@ public class EdfFileWriter extends EdfWriter {
     }
 
     @Override
-    public HeaderInfo getRecordingInfo() {
+    public synchronized HeaderInfo getRecordingInfo() {
         return (HeaderInfo) recordingInfo;
     }
 
     @Override
-    public void setRecordingInfo(RecordingInfo recordingInfo) {
+    public synchronized void setRecordingInfo(RecordingInfo recordingInfo) {
        this.recordingInfo = new HeaderInfo(recordingInfo, fileType);
     }
 
@@ -122,17 +123,27 @@ public class EdfFileWriter extends EdfWriter {
      * @throws EdfRuntimeException  if an I/O  occurs while writing data to the file
      */
     @Override
-    public void writePhysicalSamples(double[] physicalSamples) throws EdfRuntimeException {
+    public synchronized void writePhysicalSamples(double[] physicalSamples) throws EdfRuntimeException {
+        if(isClosed) {
+            return;
+        }
         super.writePhysicalSamples(physicalSamples);
     }
 
     /**
      *
      * @param digitalSamples digital samples belonging to some signal or entire DataRecord
+     * @throws IllegalStateException if RecordingInfo was not set
      * @throws EdfRuntimeException  if an I/O  occurs while writing data to the file
      */
     @Override
-    public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException {
+    public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException, IllegalStateException {
+        if(isClosed) {
+            return;
+        }
+        if(recordingInfo == null) {
+            throw new IllegalStateException("Recording configuration info is not specified! RecordingInfo = "+ recordingInfo);
+        }
         try {
             HeaderInfo config = (HeaderInfo) this.recordingInfo;
             if (sampleCounter == 0) {
@@ -165,6 +176,9 @@ public class EdfFileWriter extends EdfWriter {
      */
     @Override
     public synchronized void close() throws EdfRuntimeException {
+        if(isClosed) {
+            return;
+        }
         HeaderInfo config = (HeaderInfo) this.recordingInfo;
         if (config.getNumberOfDataRecords() == -1) {
             config.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
@@ -178,6 +192,7 @@ public class EdfFileWriter extends EdfWriter {
             channel.position(0);
             fileOutputStream.write(config.createFileHeader());
             fileOutputStream.close();
+            isClosed = true;
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while closing the file: {0}.", file);
             new EdfRuntimeException(errMsg, e);

@@ -18,8 +18,8 @@ package com.biorecorder.edflib.base;
  *
  */
 public abstract class EdfWriter {
-    protected RecordingInfo recordingInfo;
-    protected long sampleCounter;
+    protected volatile RecordingInfo recordingInfo;
+    protected volatile long sampleCounter;
 
 
     /**
@@ -84,8 +84,12 @@ public abstract class EdfWriter {
      * of the signal.
      *
      * @param physicalSamples physical samples belonging to some signal or entire DataRecord
+     * @throws IllegalStateException if RecordingInfo was not set
      */
-    public void writePhysicalSamples(double[] physicalSamples)  {
+    public void writePhysicalSamples(double[] physicalSamples) throws IllegalStateException {
+        if(recordingInfo == null) {
+            throw new IllegalStateException("Recording configuration info is not specified! RecordingInfo = "+ recordingInfo);
+        }
         int[] digSamples = new int[physicalSamples.length];
         int signalNumber;
         for (int i = 0; i < physicalSamples.length; i++) {
@@ -97,7 +101,7 @@ public abstract class EdfWriter {
     }
 
     /**
-     * Gets the number of actually written data records (data packages).
+     * Gets the number of  written data records (data packages).
      * @return number of  written data records
      */
     public int getNumberOfWrittenDataRecords() {

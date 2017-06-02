@@ -60,23 +60,34 @@ public class EdfFilter extends EdfWriter {
      *
      * @return the object containing EDF/BDF header information
      */
+    @Override
     public RecordingInfo getRecordingInfo(){
         return out.getRecordingInfo();
     }
 
+    /**
+     * Gets the number of  written RESULTANT data records (data packages).
+     * @return number of written RESULTANT data records
+     */
+    @Override
+    public int getNumberOfWrittenDataRecords() {
+        return out.getNumberOfWrittenDataRecords();
+    }
 
     /**
      * Calls the same method of its underlying EdfWriter and pass to it data samples.
      *
      * @param digitalSamples array with digital data samples
+     * @throws IllegalStateException if RecordingInfo was not set
      */
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
         if(recordingInfo == null) {
-            throw new RuntimeException("File header is not specified! HeaderInfo = "+ recordingInfo);
+            throw new IllegalStateException("Recording configuration info is not specified! RecordingInfo = "+ recordingInfo);
         }
         out.writeDigitalSamples(digitalSamples);
     }
+
 
     /**
      * Calls the same method of its

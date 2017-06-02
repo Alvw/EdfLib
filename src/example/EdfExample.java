@@ -205,7 +205,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant joined Edf-file:");
-        System.out.println(joiner.getRecordingInfo());
+        System.out.println(joiner.getResultantRecordingInfo());
 
 
 /*****************************************************************************************
@@ -253,7 +253,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant Edf-file with removed channel:");
-        System.out.println(signalsRemover.getRecordingInfo());
+        System.out.println(signalsRemover.getResultantRecordingInfo());
 
 /*****************************************************************************************
  *     EdfSignalsFilter usage example. Read data, apply two filters to
@@ -285,7 +285,7 @@ public class EdfExample {
 
         // Print some header info from resultant file after filtering
         System.out.println("Header info of the resultant filtered Edf-file:");
-        System.out.println(signalsFilter.getRecordingInfo());
+        System.out.println(signalsFilter.getResultantRecordingInfo());
 
         originalFileReader.close();
     }

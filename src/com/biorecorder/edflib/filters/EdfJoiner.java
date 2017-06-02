@@ -71,7 +71,7 @@ public class EdfJoiner extends EdfFilter {
     public void writeDigitalSamples(int[] digitalSamples)  {
         for (int sample : digitalSamples) {
             int samplePosition = (int) (sampleCounter % recordingInfo.getDataRecordLength());
-            int joinedRecords = getNumberOfWrittenDataRecords() % numberOfRecordsToJoin;
+            int joinedRecords = getNumberOfReceivedDataRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
             while (samplePosition >= counter + recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber)) {
@@ -86,7 +86,7 @@ public class EdfJoiner extends EdfFilter {
             outDataRecord[outSamplePosition] = sample;
             sampleCounter ++;
 
-            if(sampleCounter % recordingInfo.getDataRecordLength() == 0 &&  getNumberOfWrittenDataRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % recordingInfo.getDataRecordLength() == 0 &&  getNumberOfReceivedDataRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

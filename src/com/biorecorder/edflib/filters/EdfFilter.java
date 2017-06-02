@@ -58,20 +58,25 @@ public class EdfFilter extends EdfWriter {
      * Gets the RecordingInfo object describing the structure of
      * RESULTANT data records (data packages)
      *
-     * @return the object containing EDF/BDF header information
+     * @return RecordingInfo object describing the structure of
+     * RESULTANT data records
      */
-    @Override
-    public RecordingInfo getRecordingInfo(){
-        return out.getRecordingInfo();
+    public RecordingInfo getResultantRecordingInfo(){
+        if( out instanceof EdfFilter) {
+            return ((EdfFilter) out).getResultantRecordingInfo();
+        }
+        return createOutputConfig();
     }
 
     /**
-     * Gets the number of  written RESULTANT data records (data packages).
+     * Gets the number of written RESULTANT data records (data packages).
      * @return number of written RESULTANT data records
      */
-    @Override
     public int getNumberOfWrittenDataRecords() {
-        return out.getNumberOfWrittenDataRecords();
+        if( out instanceof EdfFilter) {
+            return ((EdfFilter) out).getNumberOfWrittenDataRecords();
+        }
+        return out.getNumberOfReceivedDataRecords();
     }
 
     /**

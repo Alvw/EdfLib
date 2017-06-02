@@ -33,14 +33,6 @@ public abstract class EdfWriter {
         this.recordingInfo = recordingInfo;
     }
 
-    /**
-     * Get the RecordingInfo object with base info about recording process
-     * @return RecordingInfo object
-     */
-    public RecordingInfo getRecordingInfo() {
-        return recordingInfo;
-    }
-
 
     /**
      * Write "raw" digital (integer) samples from the given array to the stream/file.
@@ -101,10 +93,10 @@ public abstract class EdfWriter {
     }
 
     /**
-     * Gets the number of  written data records (data packages).
-     * @return number of  written data records
+     * Gets the number of received data records (data packages).
+     * @return number of received data records
      */
-    public int getNumberOfWrittenDataRecords() {
+    public int getNumberOfReceivedDataRecords() {
         if(recordingInfo == null || recordingInfo.getDataRecordLength()== 0) {
             return 0;
         }

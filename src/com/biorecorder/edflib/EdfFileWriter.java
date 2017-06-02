@@ -96,11 +96,6 @@ public class EdfFileWriter extends EdfWriter {
     }
 
     @Override
-    public synchronized HeaderInfo getRecordingInfo() {
-        return (HeaderInfo) recordingInfo;
-    }
-
-    @Override
     public synchronized void setRecordingInfo(RecordingInfo recordingInfo) {
        this.recordingInfo = new HeaderInfo(recordingInfo, fileType);
     }
@@ -164,8 +159,8 @@ public class EdfFileWriter extends EdfWriter {
             throw new EdfRuntimeException(errMsg, e);
         }
         stopTime = System.currentTimeMillis();
-        if (getNumberOfWrittenDataRecords() > 0) {
-            durationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfWrittenDataRecords();
+        if (getNumberOfReceivedDataRecords() > 0) {
+            durationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfReceivedDataRecords();
         }
         sampleCounter += digitalSamples.length;
     }
@@ -181,7 +176,7 @@ public class EdfFileWriter extends EdfWriter {
         }
         HeaderInfo config = (HeaderInfo) this.recordingInfo;
         if (config.getNumberOfDataRecords() == -1) {
-            config.setNumberOfDataRecords(getNumberOfWrittenDataRecords());
+            config.setNumberOfDataRecords(getNumberOfReceivedDataRecords());
         }
         if (isDurationOfDataRecordsComputable && durationOfDataRecord > 0) {
             config.setDurationOfDataRecord(durationOfDataRecord);
@@ -210,7 +205,7 @@ public class EdfFileWriter extends EdfWriter {
         StringBuilder stringBuilder = new StringBuilder("\n");
         stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
         stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
-        stringBuilder.append("Number of data records = " + getNumberOfWrittenDataRecords() + "\n");
+        stringBuilder.append("Number of data records = " + getNumberOfReceivedDataRecords() + "\n");
         stringBuilder.append("Actual duration of a data record = " + durationOfDataRecord);
         return stringBuilder.toString();
     }
@@ -279,9 +274,9 @@ public class EdfFileWriter extends EdfWriter {
         // close EdfFileWriter. Always must be called after finishing writing DataRecords.
         fileWriter.close();
 
-        // print some header info
-        System.out.println(fileWriter.getRecordingInfo());
-        // print some writing info
+        // print header info
+        System.out.println(headerInfo);
+        // print writing info
         System.out.println(fileWriter.getWritingInfo());
 
     }

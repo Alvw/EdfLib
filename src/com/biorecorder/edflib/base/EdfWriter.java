@@ -8,7 +8,7 @@ package com.biorecorder.edflib.base;
  * and sends (writes) them to some sink.
  * <p>
  * To write data samples to the stream we must set
- * a {@link RecordingInfo} object with the configuration information.
+ * a {@link EdfRecordingInfo} object with the configuration information.
  * Only after that data samples could be written correctly.
  * <p>
  * We may write <b>digital</b> or <b>physical</b>  samples.
@@ -18,18 +18,18 @@ package com.biorecorder.edflib.base;
  *
  */
 public abstract class EdfWriter {
-    protected volatile RecordingInfo recordingInfo;
+    protected volatile EdfRecordingInfo recordingInfo;
     protected volatile long sampleCounter;
 
 
     /**
-     * Sets the RecordingInfo object describing the structure of
+     * Sets the EdfRecordingInfo object describing the structure of
      * the data records (data packages) that will be written.
      * This function MUST be called before writing any data.
      *
-     * @param recordingInfo - RecordingInfo object describing DataRecords structure
+     * @param recordingInfo - EdfRecordingInfo object describing DataRecords structure
      */
-    public void setRecordingInfo(RecordingInfo recordingInfo)  {
+    public void setRecordingInfo(EdfRecordingInfo recordingInfo)  {
         this.recordingInfo = recordingInfo;
     }
 
@@ -76,11 +76,11 @@ public abstract class EdfWriter {
      * of the signal.
      *
      * @param physicalSamples physical samples belonging to some signal or entire DataRecord
-     * @throws IllegalStateException if RecordingInfo was not set
+     * @throws IllegalStateException if EdfRecordingInfo was not set
      */
     public void writePhysicalSamples(double[] physicalSamples) throws IllegalStateException {
         if(recordingInfo == null) {
-            throw new IllegalStateException("Recording configuration info is not specified! RecordingInfo = "+ recordingInfo);
+            throw new IllegalStateException("Recording configuration info is not specified! EdfRecordingInfo = "+ recordingInfo);
         }
         int[] digSamples = new int[physicalSamples.length];
         int signalNumber;

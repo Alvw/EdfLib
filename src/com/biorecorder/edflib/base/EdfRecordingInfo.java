@@ -61,7 +61,7 @@ import java.text.MessageFormat;
  * <a href="https://www.biosemi.com/faq/file_format.htm">BioSemi or BDF file format</a>
  *
  */
-public abstract class RecordingInfo {
+public abstract class EdfRecordingInfo {
 
     /**
      * Return the number of measuring channels (signals).

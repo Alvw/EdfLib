@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultRecordingInfo;
-import com.biorecorder.edflib.base.RecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
+import com.biorecorder.edflib.base.EdfRecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 
 /**
@@ -35,8 +35,8 @@ public class EdfJoiner extends EdfFilter {
     }
 
     @Override
-    protected RecordingInfo createOutputConfig() {
-        DefaultRecordingInfo outConfig = new DefaultRecordingInfo(recordingInfo); // copy header recordingInfo
+    protected EdfRecordingInfo createOutputConfig() {
+        DefaultEdfRecordingInfo outConfig = new DefaultEdfRecordingInfo(recordingInfo); // copy header recordingInfo
         outConfig.setDurationOfDataRecord(recordingInfo.getDurationOfDataRecord() * numberOfRecordsToJoin);
         for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
             outConfig.setNumberOfSamplesInEachDataRecord(i, recordingInfo.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
@@ -45,7 +45,7 @@ public class EdfJoiner extends EdfFilter {
     }
 
     @Override
-    public void setRecordingInfo(RecordingInfo recordingInfo) {
+    public void setRecordingInfo(EdfRecordingInfo recordingInfo) {
         super.setRecordingInfo(recordingInfo);
         outDataRecord = new int[recordingInfo.getDataRecordLength() * numberOfRecordsToJoin];
     }

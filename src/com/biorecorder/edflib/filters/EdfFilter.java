@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultRecordingInfo;
-import com.biorecorder.edflib.base.RecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
+import com.biorecorder.edflib.base.EdfRecordingInfo;
 import com.biorecorder.edflib.base.EdfWriter;
 
 /**
@@ -37,8 +37,8 @@ public class EdfFilter extends EdfWriter {
      *
      * @return HeaderInfo object describing resultant output DataRecords configuration
      */
-    protected RecordingInfo createOutputConfig() {
-        return recordingInfo == null? null : new DefaultRecordingInfo(recordingInfo);
+    protected EdfRecordingInfo createOutputConfig() {
+        return recordingInfo == null? null : new DefaultEdfRecordingInfo(recordingInfo);
     }
 
 
@@ -49,19 +49,19 @@ public class EdfFilter extends EdfWriter {
      * @param recordingInfo HeaderInfo object with the information describing input DataRecords structure
      */
     @Override
-    public void setRecordingInfo(RecordingInfo recordingInfo)  {
+    public void setRecordingInfo(EdfRecordingInfo recordingInfo)  {
         super.setRecordingInfo(recordingInfo);
         out.setRecordingInfo(createOutputConfig());
     }
 
     /**
-     * Gets the RecordingInfo object describing the structure of
+     * Gets the EdfRecordingInfo object describing the structure of
      * RESULTANT data records (data packages)
      *
-     * @return RecordingInfo object describing the structure of
+     * @return EdfRecordingInfo object describing the structure of
      * RESULTANT data records
      */
-    public RecordingInfo getResultantRecordingInfo(){
+    public EdfRecordingInfo getResultantRecordingInfo(){
         if( out instanceof EdfFilter) {
             return ((EdfFilter) out).getResultantRecordingInfo();
         }
@@ -83,12 +83,12 @@ public class EdfFilter extends EdfWriter {
      * Calls the same method of its underlying EdfWriter and pass to it data samples.
      *
      * @param digitalSamples array with digital data samples
-     * @throws IllegalStateException if RecordingInfo was not set
+     * @throws IllegalStateException if EdfRecordingInfo was not set
      */
     @Override
     public void writeDigitalSamples(int[] digitalSamples)  {
         if(recordingInfo == null) {
-            throw new IllegalStateException("Recording configuration info is not specified! RecordingInfo = "+ recordingInfo);
+            throw new IllegalStateException("Recording configuration info is not specified! EdfRecordingInfo = "+ recordingInfo);
         }
         out.writeDigitalSamples(digitalSamples);
     }

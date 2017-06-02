@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class DefaultRecordingInfo extends RecordingInfo {
+public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
     private String patientIdentification = "Default patient";
     private String recordingIdentification = "Default record";
     private double durationOfDataRecord = 1; // sec
@@ -13,23 +13,23 @@ public class DefaultRecordingInfo extends RecordingInfo {
 
 
     /**
-     * Default constructor that creates a DefaultRecordingInfo instance
+     * Default constructor that creates a DefaultEdfRecordingInfo instance
      * with 0 channels (signals). So all channels should be added as necessary.
      * <p>
      * See method: {@link #addSignal()}
      */
-    public DefaultRecordingInfo() {
+    public DefaultEdfRecordingInfo() {
 
     }
 
     /**
-     * This constructor creates a DefaultRecordingInfo instance of the given type (EDF_16BIT or BDF_24BIT)
+     * This constructor creates a DefaultEdfRecordingInfo instance of the given type (EDF_16BIT or BDF_24BIT)
      * with the given number of channels (signals)
      *
      * @param numberOfSignals number of signals in data records
      * @throws IllegalArgumentException if numberOfSignals <= 0
      */
-    public DefaultRecordingInfo(int numberOfSignals) throws IllegalArgumentException {
+    public DefaultEdfRecordingInfo(int numberOfSignals) throws IllegalArgumentException {
         if (numberOfSignals <= 0) {
             String errMsg = MessageFormat.format("Number of signals is invalid: {0}. Expected {1}", numberOfSignals, ">0");
             throw new IllegalArgumentException(errMsg);
@@ -40,11 +40,11 @@ public class DefaultRecordingInfo extends RecordingInfo {
     }
 
     /**
-     * Constructor to make a copy of the given DefaultRecordingInfo instance
+     * Constructor to make a copy of the given DefaultEdfRecordingInfo instance
      *
-     * @param recordingInfo DefaultRecordingInfo instance that will be copied
+     * @param recordingInfo DefaultEdfRecordingInfo instance that will be copied
      */
-    public DefaultRecordingInfo(RecordingInfo recordingInfo) {
+    public DefaultEdfRecordingInfo(EdfRecordingInfo recordingInfo) {
         this(recordingInfo.getNumberOfSignals());
         durationOfDataRecord = recordingInfo.getDurationOfDataRecord();
         for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {

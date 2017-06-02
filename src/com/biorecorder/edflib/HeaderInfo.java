@@ -1,7 +1,7 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.DefaultRecordingInfo;
-import com.biorecorder.edflib.base.RecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
+import com.biorecorder.edflib.base.EdfRecordingInfo;
 import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
 import com.biorecorder.edflib.exceptions.ExceptionType;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -91,7 +91,7 @@ import java.util.Date;
  * <p>
  */
 
-public class HeaderInfo extends DefaultRecordingInfo {
+public class HeaderInfo extends DefaultEdfRecordingInfo {
     private static final String ERR_MSG_START = "Header error! ";
     private int numberOfDataRecords = -1;
     private FileType fileType = FileType.EDF_16BIT;
@@ -157,7 +157,7 @@ public class HeaderInfo extends DefaultRecordingInfo {
      *
      * @param recordingInfo HeaderInfo instance that will be copied
      */
-    public HeaderInfo(RecordingInfo recordingInfo, FileType fileType) {
+    public HeaderInfo(EdfRecordingInfo recordingInfo, FileType fileType) {
         this(recordingInfo.getNumberOfSignals(), fileType);
         setPatientIdentification(recordingInfo.getPatientIdentification());
         setRecordingIdentification(recordingInfo.getRecordingIdentification());

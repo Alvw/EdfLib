@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.base.EdfWriter;
 
 /**
@@ -35,23 +35,23 @@ public class EdfJoiner extends EdfFilter {
     }
 
     @Override
-    protected EdfRecordingInfo createOutputConfig() {
-        DefaultEdfRecordingInfo outConfig = new DefaultEdfRecordingInfo(recordingInfo); // copy header recordingInfo
-        outConfig.setDurationOfDataRecord(recordingInfo.getDurationOfDataRecord() * numberOfRecordsToJoin);
-        for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
-            outConfig.setNumberOfSamplesInEachDataRecord(i, recordingInfo.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(edfConfig); // copy header edfConfig
+        outConfig.setDurationOfDataRecord(edfConfig.getDurationOfDataRecord() * numberOfRecordsToJoin);
+        for (int i = 0; i < edfConfig.getNumberOfSignals(); i++) {
+            outConfig.setNumberOfSamplesInEachDataRecord(i, edfConfig.getNumberOfSamplesInEachDataRecord(i) * numberOfRecordsToJoin);
         }
         return outConfig;
     }
 
     @Override
-    public void setRecordingInfo(EdfRecordingInfo recordingInfo) {
-        super.setRecordingInfo(recordingInfo);
+    public void setConfig(EdfConfig recordingInfo) {
+        super.setConfig(recordingInfo);
         outDataRecord = new int[recordingInfo.getDataRecordLength() * numberOfRecordsToJoin];
     }
 
     /**
-     * Accumulate and join the specified number of incoming DataRecords into one resultant
+     * Accumulate and join the specified number of incoming samples into one resultant
      * DataRecord and when it is ready write it to the underlying EdfWriter
      * <p>
      * Call this method for every signal (channel) of the stream/file. The order is important!
@@ -65,28 +65,30 @@ public class EdfJoiner extends EdfFilter {
      * The entire DataRecord (data pack) containing digital data from all signals also can be placed in one array
      * and written at once.
      *
-     * @param digitalSamples array with digital data samples
+     * @param digitalSamples data array with digital samples
+     * @param offset the start offset in the data.
+     * @param length the number of bytes to write.
      */
     @Override
-    public void writeDigitalSamples(int[] digitalSamples)  {
-        for (int sample : digitalSamples) {
-            int samplePosition = (int) (sampleCounter % recordingInfo.getDataRecordLength());
+    public void writeDigitalSamples(int[] digitalSamples, int offset, int length)  {
+        for (int i = offset; i < length; i++) {
+            int samplePosition = (int) (sampleCounter % edfConfig.getDataRecordLength());
             int joinedRecords = getNumberOfReceivedDataRecords() % numberOfRecordsToJoin;
             int counter = 0;
             int channelNumber = 0;
-            while (samplePosition >= counter + recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber)) {
-                counter += recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
+            while (samplePosition >= counter + edfConfig.getNumberOfSamplesInEachDataRecord(channelNumber)) {
+                counter += edfConfig.getNumberOfSamplesInEachDataRecord(channelNumber);
                  channelNumber++;
             }
 
             int outSamplePosition = counter * numberOfRecordsToJoin;
-            outSamplePosition += joinedRecords * recordingInfo.getNumberOfSamplesInEachDataRecord(channelNumber);
+            outSamplePosition += joinedRecords * edfConfig.getNumberOfSamplesInEachDataRecord(channelNumber);
             outSamplePosition += samplePosition - counter;
 
-            outDataRecord[outSamplePosition] = sample;
-            sampleCounter ++;
+            outDataRecord[outSamplePosition] = digitalSamples[i];
+            sampleCounter++;
 
-            if(sampleCounter % recordingInfo.getDataRecordLength() == 0 &&  getNumberOfReceivedDataRecords()%numberOfRecordsToJoin == 0) {
+            if(sampleCounter % edfConfig.getDataRecordLength() == 0 &&  getNumberOfReceivedDataRecords()%numberOfRecordsToJoin == 0) {
                 out.writeDigitalSamples(outDataRecord);
             }
         }

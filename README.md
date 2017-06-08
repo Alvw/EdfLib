@@ -93,25 +93,25 @@ int channel0Frequency = 50; // Hz
 int channel1Frequency = 5; // Hz
 
 // create header info for the file describing data records structure
-HeaderInfo headerInfo = new HeaderInfo(numberOfChannels, FileType.EDF_16BIT);
+HeaderInfo headerConfig = new HeaderInfo(numberOfChannels, FileType.EDF_16BIT);
 // Signal numbering starts from 0!
 
 // configure signal (channel) number 0
-headerInfo.setSampleFrequency(0, channel0Frequency);
-headerInfo.setLabel(0, "first channel");
-headerInfo.setPhysicalRange(0, -500, 500);
-headerInfo.setDigitalRange(0, -2048, -2047);
-headerInfo.setPhysicalDimension(0, "uV");
+headerConfig.setSampleFrequency(0, channel0Frequency);
+headerConfig.setLabel(0, "first channel");
+headerConfig.setPhysicalRange(0, -500, 500);
+headerConfig.setDigitalRange(0, -2048, -2047);
+headerConfig.setPhysicalDimension(0, "uV");
 
 // configure signal (channel) number 1
-headerInfo.setSampleFrequency(1, channel1Frequency);
-headerInfo.setLabel(1, "second channel");
-headerInfo.setPhysicalRange(1, 100, 300);
+headerConfig.setSampleFrequency(1, channel1Frequency);
+headerConfig.setLabel(1, "second channel");
+headerConfig.setPhysicalRange(1, 100, 300);
 
 
 // create EdfFileWriter
 File file = new File("filename.edf");
-EdfFileWriter edfFileWriter = new EdfFileWriter(file, headerInfo);
+EdfFileWriter edfFileWriter = new EdfFileWriter(file, headerConfig);
 ```
 
 Now we may write data samples to the EdfFileWriter. Lets write to the file 10 data records:
@@ -214,7 +214,7 @@ Class **EdfJoiner.java** combines a few short DataRecords into one:
 
 ```java
 HeaderInfo headerInfor;
-// create and configure headerInfo
+// create and configure headerConfig
 // ....
 
 // create edf file writer
@@ -224,8 +224,8 @@ EdfFileWriter edfFileWriter = new EdfFileWriter(new File("filename.edf"));
 int numberOfRecordsToJoin = 5;
 EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, edfFileWriter);
 
-// set headerInfo
-joiner.setHeader(headerInfo);
+// set headerConfig
+joiner.setHeader(headerConfig);
 
 // write digital or physical samples
 joiner.writeDigitalSamples(intArray);
@@ -239,7 +239,7 @@ Class **EdfSignalsFilter.java** permits to realize some kind of transformation w
 
 ```java
 HeaderInfo headerInfor;
-// create and configure headerInfo
+// create and configure headerConfig
 // ....
 
 // create edf file writer
@@ -250,8 +250,8 @@ EdfSignalsFilter signalsFilter = new EdfSignalsFilter(edfFileWriter);
 // set MovingAvg filter for signal number 0
 signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
 
-// set headerInfo
-signalsFilter.setHeader(headerInfo);
+// set headerConfig
+signalsFilter.setHeader(headerConfig);
 
 // write digital or physical samples
 signalsFilter.writeDigitalSamples(intArray);

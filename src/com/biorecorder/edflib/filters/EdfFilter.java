@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.base.EdfWriter;
 
 /**
@@ -31,39 +31,33 @@ public class EdfFilter extends EdfWriter {
 
 
     /**
-     * Create HeaderInfo describing the structure of resulting output DataRecords
+     * Create HeaderConfig describing the structure of resulting output DataRecords
      * (after corresponding transformations).
      * This method should be overwritten in all subclasses.
      *
-     * @return HeaderInfo object describing resultant output DataRecords configuration
+     * @return HeaderConfig object describing resultant output DataRecords configuration
      */
-    protected EdfRecordingInfo createOutputConfig() {
-        return recordingInfo == null? null : new DefaultEdfRecordingInfo(recordingInfo);
+    protected EdfConfig createOutputConfig() {
+        return edfConfig == null? null : new DefaultEdfConfig(edfConfig);
     }
 
 
-    /**
-     * The setRecordingInfo method of EdfFilter create the configuration object describing the
-     * structure of resultant DataRecords and pass it to underlying EdfWriter
-     *
-     * @param recordingInfo HeaderInfo object with the information describing input DataRecords structure
-     */
     @Override
-    public void setRecordingInfo(EdfRecordingInfo recordingInfo)  {
-        super.setRecordingInfo(recordingInfo);
-        out.setRecordingInfo(createOutputConfig());
+    public void setConfig(EdfConfig recordingInfo)  {
+        super.setConfig(recordingInfo);
+        out.setConfig(createOutputConfig());
     }
 
     /**
-     * Gets the EdfRecordingInfo object describing the structure of
+     * Gets the EdfConfig object describing the structure of
      * RESULTANT data records (data packages)
      *
-     * @return EdfRecordingInfo object describing the structure of
+     * @return EdfConfig object describing the structure of
      * RESULTANT data records
      */
-    public EdfRecordingInfo getResultantRecordingInfo(){
+    public EdfConfig getResultantConfig(){
         if( out instanceof EdfFilter) {
-            return ((EdfFilter) out).getResultantRecordingInfo();
+            return ((EdfFilter) out).getResultantConfig();
         }
         return createOutputConfig();
     }
@@ -79,18 +73,22 @@ public class EdfFilter extends EdfWriter {
         return out.getNumberOfReceivedDataRecords();
     }
 
+
+
     /**
      * Calls the same method of its underlying EdfWriter and pass to it data samples.
      *
-     * @param digitalSamples array with digital data samples
-     * @throws IllegalStateException if EdfRecordingInfo was not set
+     * @param digitalSamples data array with digital samples
+     * @param offset the start offset in the data.
+     * @param length the number of bytes to write.
+     * @throws IllegalStateException if EdfConfig was not set
      */
     @Override
-    public void writeDigitalSamples(int[] digitalSamples)  {
-        if(recordingInfo == null) {
-            throw new IllegalStateException("Recording configuration info is not specified! EdfRecordingInfo = "+ recordingInfo);
+    public void writeDigitalSamples(int[] digitalSamples, int offset, int length)  {
+        if(edfConfig == null) {
+            throw new IllegalStateException("Recording configuration info is not specified! EdfConfig = "+ edfConfig);
         }
-        out.writeDigitalSamples(digitalSamples);
+        out.writeDigitalSamples(digitalSamples, offset, length);
     }
 
 

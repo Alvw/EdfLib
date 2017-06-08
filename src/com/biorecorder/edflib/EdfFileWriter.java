@@ -1,6 +1,6 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.base.EdfWriter;
 import com.biorecorder.edflib.exceptions.FileNotFoundRuntimeException;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -22,7 +22,7 @@ import java.util.Random;
  * will be silently overwritten without advance warning!!
  * <p>
  * To write data samples to the file we must provide it
- * a {@link HeaderInfo} object with the configuration information.
+ * a {@link HeaderConfig} object with the configuration information.
  * Only after that data samples could be written correctly.
  * <p>
  * We may write <b>digital</b> or <b>physical</b>  samples.
@@ -50,28 +50,28 @@ public class EdfFileWriter extends EdfWriter {
 
     /**
      * Creates EdfFileWriter to write data samples to the file represented by
-     * the specified File object. HeaderInfo object specifies the type of the file
+     * the specified File object. HeaderConfig object specifies the type of the file
      * (EDF_16BIT or BDF_24BIT) and provides all necessary information for the file header record.
-     * A HeaderInfo object must be passed to the EdfFileWriter before writing any data samples.
-     * We may do that in the constructor or by method {@link EdfWriter#setRecordingInfo(EdfRecordingInfo)}.
+     * A HeaderConfig object must be passed to the EdfFileWriter before writing any data samples.
+     * We may do that in the constructor or by method {@link EdfWriter#setConfig(EdfConfig)}.
      *
      * @param file       the file to be opened for writing
-     * @param headerInfo object containing all necessary information for the header record
+     * @param headerConfig object containing all necessary information for the header record
      * @throws FileNotFoundRuntimeException if the file exists but is a directory rather
      * than a regular file, does not exist but cannot be created,
      * or cannot be opened for any other reason
      */
-    public EdfFileWriter(File file, HeaderInfo headerInfo) throws FileNotFoundRuntimeException {
-        this(file, headerInfo.getFileType());
-        this.recordingInfo = headerInfo;
+    public EdfFileWriter(File file, HeaderConfig headerConfig) throws FileNotFoundRuntimeException {
+        this(file, headerConfig.getFileType());
+        this.edfConfig = headerConfig;
     }
 
     /**
      * Creates EdfWriter to write data samples to the file represented by
-     * the specified File object.  A HeaderInfo object specifying the type of the file
+     * the specified File object.  A HeaderConfig object specifying the type of the file
      * (EDF_16BIT or BDF_24BIT) and providing all necessary information for the file header record
      * must be passed to the EdfFileWriter before writing any data samples.
-     * Use the method {@link EdfWriter#setRecordingInfo(EdfRecordingInfo)}.
+     * Use the method {@link EdfWriter#setConfig(EdfConfig)}.
      *
      * @param file the file to be opened for writing
      *  @param fileType    EDF_16BIT or BDF_24BIT
@@ -96,8 +96,8 @@ public class EdfFileWriter extends EdfWriter {
     }
 
     @Override
-    public synchronized void setRecordingInfo(EdfRecordingInfo recordingInfo) {
-       this.recordingInfo = new HeaderInfo(recordingInfo, fileType);
+    public synchronized void setConfig(EdfConfig recordingInfo) {
+       this.edfConfig = new HeaderConfig(recordingInfo, fileType);
     }
 
     /**
@@ -127,20 +127,22 @@ public class EdfFileWriter extends EdfWriter {
 
     /**
      *
-     * @param digitalSamples digital samples belonging to some signal or entire DataRecord
-     * @throws IllegalStateException if EdfRecordingInfo was not set
+     * @param digitalSamples data array with digital samples
+     * @param offset the start offset in the data.
+     * @param length the number of bytes to write.
+     * @throws IllegalStateException if EdfConfig was not set
      * @throws EdfRuntimeException  if an I/O  occurs while writing data to the file
      */
     @Override
-    public synchronized void writeDigitalSamples(int[] digitalSamples) throws EdfRuntimeException, IllegalStateException {
+    public synchronized void writeDigitalSamples(int[] digitalSamples, int offset, int length) throws EdfRuntimeException, IllegalStateException {
         if(isClosed) {
             return;
         }
-        if(recordingInfo == null) {
-            throw new IllegalStateException("Recording configuration info is not specified! EdfRecordingInfo = "+ recordingInfo);
+        if(edfConfig == null) {
+            throw new IllegalStateException("Recording configuration info is not specified! EdfConfig = "+ edfConfig);
         }
         try {
-            HeaderInfo config = (HeaderInfo) this.recordingInfo;
+            HeaderConfig config = (HeaderConfig) this.edfConfig;
             if (sampleCounter == 0) {
                 // 1 second = 1000 msec
                 startTime = System.currentTimeMillis() - (long) config.getDurationOfDataRecord() * 1000;
@@ -153,7 +155,11 @@ public class EdfFileWriter extends EdfWriter {
                 config.setNumberOfDataRecords(-1);
                 fileOutputStream.write(config.createFileHeader());
             }
-            fileOutputStream.write(EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, config.getFileType().getNumberOfBytesPerSample()));
+
+            int numberOfBytesPerSample = config.getFileType().getNumberOfBytesPerSample();
+            byte[] byteArray = new byte[numberOfBytesPerSample * length];
+            EndianBitConverter.intArrayToLittleEndianByteArray(digitalSamples, offset, byteArray, 0, length, numberOfBytesPerSample);
+            fileOutputStream.write(byteArray);
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while writing data to the file: {0}. Check available HD space.", file);
             throw new EdfRuntimeException(errMsg, e);
@@ -174,7 +180,7 @@ public class EdfFileWriter extends EdfWriter {
         if(isClosed) {
             return;
         }
-        HeaderInfo config = (HeaderInfo) this.recordingInfo;
+        HeaderConfig config = (HeaderConfig) this.edfConfig;
         if (config.getNumberOfDataRecords() == -1) {
             config.setNumberOfDataRecords(getNumberOfReceivedDataRecords());
         }
@@ -230,26 +236,26 @@ public class EdfFileWriter extends EdfWriter {
         int channel1Frequency = 5; // Hz
 
         // create header info for the file describing data records structure
-        HeaderInfo headerInfo = new HeaderInfo(2, FileType.EDF_16BIT);
+        HeaderConfig headerConfig = new HeaderConfig(2, FileType.EDF_16BIT);
         // Signal numbering starts from 0!
         // configure signal (channel) number 0
-        headerInfo.setSampleFrequency(0, channel0Frequency);
-        headerInfo.setLabel(0, "first channel");
-        headerInfo.setPhysicalRange(0, -500, 500);
-        headerInfo.setDigitalRange(0, -2048, -2047);
-        headerInfo.setPhysicalDimension(0, "uV");
+        headerConfig.setSampleFrequency(0, channel0Frequency);
+        headerConfig.setLabel(0, "first channel");
+        headerConfig.setPhysicalRange(0, -500, 500);
+        headerConfig.setDigitalRange(0, -2048, -2047);
+        headerConfig.setPhysicalDimension(0, "uV");
 
         // configure signal (channel) number 1
-        headerInfo.setSampleFrequency(1, channel1Frequency);
-        headerInfo.setLabel(1, "second channel");
-        headerInfo.setPhysicalRange(1, 100, 300);
+        headerConfig.setSampleFrequency(1, channel1Frequency);
+        headerConfig.setLabel(1, "second channel");
+        headerConfig.setPhysicalRange(1, 100, 300);
 
         // create file
         File recordsDir = new File(System.getProperty("user.dir"), "records");
         File file = new File(recordsDir, "test.edf");
 
         // create EdfFileWriter to write edf data to that file
-        EdfFileWriter fileWriter = new EdfFileWriter(file, headerInfo);
+        EdfFileWriter fileWriter = new EdfFileWriter(file, headerConfig);
 
         // create and write samples
         int[] samplesFromChannel0 = new int[channel0Frequency];
@@ -275,7 +281,8 @@ public class EdfFileWriter extends EdfWriter {
         fileWriter.close();
 
         // print header info
-        System.out.println(headerInfo);
+        System.out.println(headerConfig);
+        System.out.println();
         // print writing info
         System.out.println(fileWriter.getWritingInfo());
 

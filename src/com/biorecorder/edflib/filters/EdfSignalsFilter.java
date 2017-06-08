@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.base.EdfWriter;
 import com.biorecorder.edflib.filters.signalfilters.MovingAverageFilter;
 import com.biorecorder.edflib.filters.signalfilters.SignalFilter;
@@ -45,11 +45,11 @@ public class EdfSignalsFilter extends EdfFilter {
 
     /**
      * Add filters names to «prefiltering» field of the channels
-     * @return Header recordingInfo with filter names
+     * @return Header edfConfig with filter names
      */
-    protected EdfRecordingInfo createOutputConfig() {
-        DefaultEdfRecordingInfo outConfig = new DefaultEdfRecordingInfo(recordingInfo);
-        for (int signalNumber = 0; signalNumber < recordingInfo.getNumberOfSignals(); signalNumber++) {
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(edfConfig);
+        for (int signalNumber = 0; signalNumber < edfConfig.getNumberOfSignals(); signalNumber++) {
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if (signalFilters != null) {
                 String prefiltering = outConfig.getPrefiltering(signalNumber);
@@ -76,9 +76,9 @@ public class EdfSignalsFilter extends EdfFilter {
      * @param digitalSamples input array of digital samples
      * @return resultant array of digital samples
      */
-    private int[] createResultantSamples(int[] digitalSamples) {
-        for (int i = 0; i < digitalSamples.length; i++) {
-            int signalNumber = recordingInfo.sampleNumberToSignalNumber(sampleCounter + 1);
+    private int[] createResultantSamples(int[] digitalSamples, int offset, int length) {
+        for (int i = offset; i < length; i++) {
+            int signalNumber = edfConfig.sampleNumberToSignalNumber(sampleCounter + 1);
             List<SignalFilter> signalFilters = filters.get(signalNumber);
             if(signalFilters != null) {
                 for (SignalFilter filter : signalFilters) {
@@ -94,7 +94,7 @@ public class EdfSignalsFilter extends EdfFilter {
 
 
     @Override
-    public void writeDigitalSamples(int[] digitalSamples) {
-        out.writeDigitalSamples(createResultantSamples(digitalSamples));
+    public void writeDigitalSamples(int[] digitalSamples, int offset, int length) {
+        out.writeDigitalSamples(createResultantSamples(digitalSamples, offset, length));
     }
 }

@@ -1,7 +1,7 @@
 package com.biorecorder.edflib.filters;
 
-import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.base.EdfWriter;
 
 import java.util.ArrayList;
@@ -27,9 +27,9 @@ public class EdfSignalsRemover extends EdfFilter {
         signalsToRemove.add(signalNumber);
     }
 
-    protected EdfRecordingInfo createOutputConfig() {
-        DefaultEdfRecordingInfo outConfig = new DefaultEdfRecordingInfo(recordingInfo);
-        for (int signalNamber = recordingInfo.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
+    protected EdfConfig createOutputConfig() {
+        DefaultEdfConfig outConfig = new DefaultEdfConfig(edfConfig);
+        for (int signalNamber = edfConfig.getNumberOfSignals() - 1; signalNamber >=0 ; signalNamber--) {
             if(signalsToRemove.contains(Integer.valueOf(signalNamber))) {
                 outConfig.removeSignal(signalNamber);
             }
@@ -44,12 +44,12 @@ public class EdfSignalsRemover extends EdfFilter {
      * @param digitalSamples input array of digital samples
      * @return resultant array of digital samples
      */
-    private int[] createResultantSamples(int[] digitalSamples) {
+    private int[] createResultantSamples(int[] digitalSamples, int offset, int length) {
        List<Integer> resultantSamples = new ArrayList<Integer>();
-       for (int sample : digitalSamples) {
-           int signalNumber = recordingInfo.sampleNumberToSignalNumber(sampleCounter + 1);
+       for (int i = offset; i < length; i++) {
+           int signalNumber = edfConfig.sampleNumberToSignalNumber(sampleCounter + 1);
            if(!signalsToRemove.contains(signalNumber)) {
-               resultantSamples.add(sample);
+               resultantSamples.add(digitalSamples[i]);
            }
            sampleCounter++;
        }
@@ -63,7 +63,7 @@ public class EdfSignalsRemover extends EdfFilter {
 
 
     @Override
-    public void writeDigitalSamples(int[] digitalSamples) {
-        out.writeDigitalSamples(createResultantSamples(digitalSamples));
+    public void writeDigitalSamples(int[] digitalSamples, int offset, int length) {
+        out.writeDigitalSamples(createResultantSamples(digitalSamples, offset, length));
     }
 }

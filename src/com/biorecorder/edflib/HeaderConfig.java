@@ -1,7 +1,7 @@
 package com.biorecorder.edflib;
 
-import com.biorecorder.edflib.base.DefaultEdfRecordingInfo;
-import com.biorecorder.edflib.base.EdfRecordingInfo;
+import com.biorecorder.edflib.base.DefaultEdfConfig;
+import com.biorecorder.edflib.base.EdfConfig;
 import com.biorecorder.edflib.exceptions.EdfHeaderRuntimeException;
 import com.biorecorder.edflib.exceptions.ExceptionType;
 import com.biorecorder.edflib.exceptions.EdfRuntimeException;
@@ -91,7 +91,7 @@ import java.util.Date;
  * <p>
  */
 
-public class HeaderInfo extends DefaultEdfRecordingInfo {
+public class HeaderConfig extends DefaultEdfConfig {
     private static final String ERR_MSG_START = "Header error! ";
     private int numberOfDataRecords = -1;
     private FileType fileType = FileType.EDF_16BIT;
@@ -122,26 +122,26 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
 
 
     /**
-     * Default constructor that creates a HeaderInfo instance
+     * Default constructor that creates a HeaderConfig instance
      * with 0 channels (signals). So all channels should be added as necessary.
      * <p>
      * See method: {@link #addSignal()}
      *  @param fileType EDF_16BIT or BDF_24BIT
      */
-    public HeaderInfo(FileType fileType) {
+    public HeaderConfig(FileType fileType) {
         this.fileType = fileType;
     }
 
 
     /**
-     * This constructor creates a HeaderInfo instance of the given type (EDF_16BIT or BDF_24BIT)
+     * This constructor creates a HeaderConfig instance of the given type (EDF_16BIT or BDF_24BIT)
      * with the given number of channels (signals)
      *
      * @param numberOfSignals number of signals in data records
      * @param fileType  EDF_16BIT or BDF_24BIT
      * @throws IllegalArgumentException if numberOfSignals <= 0
      */
-    public HeaderInfo(int numberOfSignals, FileType fileType) throws IllegalArgumentException {
+    public HeaderConfig(int numberOfSignals, FileType fileType) throws IllegalArgumentException {
         if (numberOfSignals <= 0) {
             String errMsg =  MessageFormat.format("Number of signals is invalid: {0}. Expected {1}",  numberOfSignals, ">0");
             throw new IllegalArgumentException(errMsg);
@@ -153,11 +153,11 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
     }
 
     /**
-     * Constructor to make a copy of the given HeaderInfo instance
+     * Constructor to make a copy of the given HeaderConfig instance
      *
-     * @param recordingInfo HeaderInfo instance that will be copied
+     * @param recordingInfo HeaderConfig instance that will be copied
      */
-    public HeaderInfo(EdfRecordingInfo recordingInfo, FileType fileType) {
+    public HeaderConfig(EdfConfig recordingInfo, FileType fileType) {
         this(recordingInfo.getNumberOfSignals(), fileType);
         setPatientIdentification(recordingInfo.getPatientIdentification());
         setRecordingIdentification(recordingInfo.getRecordingIdentification());
@@ -185,13 +185,13 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
 
 
     /**
-     * Create HeaderInfo object on the base of header record of the given EDF or BDF file
+     * Create HeaderConfig object on the base of header record of the given EDF or BDF file
      *
      * @param file Edf/Bdf file to read
      * @throws EdfRuntimeException  if the file can not be read
      * @throws EdfHeaderRuntimeException  if the header record has some errors.
      */
-    HeaderInfo(File file) throws EdfRuntimeException, EdfHeaderRuntimeException {
+    HeaderConfig(File file) throws EdfRuntimeException, EdfHeaderRuntimeException {
         try {
             Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), ASCII));
             char[] buffer;
@@ -518,12 +518,12 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
      * Creates byte array with the header info ready to write in Edf/Bdf file
      *
      * @return byte array with the header info
-     * @throws EdfHeaderRuntimeException if this HeaderInfo object is not correctly formed:
+     * @throws EdfHeaderRuntimeException if this HeaderConfig object is not correctly formed:
      * Number of signals = 0, or number of samples in data record
      * for some signal = 0.
      */
     public byte[] createFileHeader() throws EdfHeaderRuntimeException{
-        // check if this HeaderInfo object was completely formed
+        // check if this HeaderConfig object was completely formed
         if (getNumberOfSignals() == 0) {
             String errMsg = MessageFormat.format("{0}Number of Signals = 0. Expected: > 0", ERR_MSG_START);
             EdfHeaderRuntimeException ex =  new EdfHeaderRuntimeException(ExceptionType.NUMBER_OF_SIGNALS_NONPOSITIVE, errMsg);
@@ -544,7 +544,7 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
             }
         }
 
-        // convert this HeaderInfo object to byte array
+        // convert this HeaderConfig object to byte array
         String startDateOfRecording = new SimpleDateFormat("dd.MM.yy").format(new Date(getRecordingStartDateTimeMs()));
         String startTimeOfRecording = new SimpleDateFormat("HH.mm.ss").format(new Date(getRecordingStartDateTimeMs()));
 
@@ -603,7 +603,7 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
     }
 
     /**
-     * Get the number of bytes in the EDF/BDF header record (when we will create it on the base of this HeaderInfo)
+     * Get the number of bytes in the EDF/BDF header record (when we will create it on the base of this HeaderConfig)
      *
      * @return number of bytes in EDF/BDF header = (number of signals + 1) * 256
      */
@@ -765,20 +765,21 @@ public class HeaderInfo extends DefaultEdfRecordingInfo {
     /**
      * Unit Test. Usage Example.
      * <p>
-     * Create and print default Edf and Bdf HeaderInfo
+     * Create and print default Edf and Bdf HeaderConfig
      *
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
         int numberOfSignals = 3;
-        HeaderInfo headerInfoEdf = new HeaderInfo(numberOfSignals, FileType.EDF_16BIT);
-        HeaderInfo headerInfoBdf = new HeaderInfo(numberOfSignals, FileType.BDF_24BIT);
+        HeaderConfig headerConfigEdf = new HeaderConfig(numberOfSignals, FileType.EDF_16BIT);
+        HeaderConfig headerConfigBdf = new HeaderConfig(numberOfSignals, FileType.BDF_24BIT);
 
-        // set start date and time for Bdf HeaderInfo
-        headerInfoBdf.setRecordingStartDateTime(1972, 6, 23, 23, 23, 50);
+        // set start date and time for Bdf HeaderConfig
+        headerConfigBdf.setRecordingStartDateTime(1972, 6, 23, 23, 23, 50);
         // print header info
-        System.out.println(headerInfoEdf);
-        System.out.println(headerInfoBdf);
+        System.out.println(headerConfigEdf);
+        System.out.println();
+        System.out.println(headerConfigBdf);
     }
 }
 

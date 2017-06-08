@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
+public class DefaultEdfConfig extends EdfConfig {
     private String patientIdentification = "Default patient";
     private String recordingIdentification = "Default record";
     private double durationOfDataRecord = 1; // sec
@@ -13,23 +13,23 @@ public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
 
 
     /**
-     * Default constructor that creates a DefaultEdfRecordingInfo instance
+     * Default constructor that creates a DefaultEdfConfig instance
      * with 0 channels (signals). So all channels should be added as necessary.
      * <p>
      * See method: {@link #addSignal()}
      */
-    public DefaultEdfRecordingInfo() {
+    public DefaultEdfConfig() {
 
     }
 
     /**
-     * This constructor creates a DefaultEdfRecordingInfo instance of the given type (EDF_16BIT or BDF_24BIT)
+     * This constructor creates a DefaultEdfConfig instance of the given type (EDF_16BIT or BDF_24BIT)
      * with the given number of channels (signals)
      *
      * @param numberOfSignals number of signals in data records
      * @throws IllegalArgumentException if numberOfSignals <= 0
      */
-    public DefaultEdfRecordingInfo(int numberOfSignals) throws IllegalArgumentException {
+    public DefaultEdfConfig(int numberOfSignals) throws IllegalArgumentException {
         if (numberOfSignals <= 0) {
             String errMsg = MessageFormat.format("Number of signals is invalid: {0}. Expected {1}", numberOfSignals, ">0");
             throw new IllegalArgumentException(errMsg);
@@ -40,11 +40,11 @@ public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
     }
 
     /**
-     * Constructor to make a copy of the given DefaultEdfRecordingInfo instance
+     * Constructor to make a copy of the given DefaultEdfConfig instance
      *
-     * @param recordingInfo DefaultEdfRecordingInfo instance that will be copied
+     * @param recordingInfo DefaultEdfConfig instance that will be copied
      */
-    public DefaultEdfRecordingInfo(EdfRecordingInfo recordingInfo) {
+    public DefaultEdfConfig(EdfConfig recordingInfo) {
         this(recordingInfo.getNumberOfSignals());
         durationOfDataRecord = recordingInfo.getDurationOfDataRecord();
         for (int i = 0; i < recordingInfo.getNumberOfSignals(); i++) {
@@ -353,9 +353,7 @@ public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
         setNumberOfSamplesInEachDataRecord(signalNumber, numberOfSamplesInEachDataRecord.intValue());
     }
 
-
-    @Override
-    public String toString() {
+    public String toString_() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("\nPatient identification = " + getPatientIdentification());
@@ -374,4 +372,27 @@ public class DefaultEdfRecordingInfo extends EdfRecordingInfo {
         }
         return sb.toString();
     }
+
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append("\nPatient identification = " + getPatientIdentification());
+        sb.append("\nRecording identification = " + getRecordingIdentification());
+        sb.append("\nDuration of DataRecords = " + getDurationOfDataRecord());
+        sb.append("\nNumber of signals = " + getNumberOfSignals());
+        for (int i = 0; i < getNumberOfSignals(); i++) {
+            sb.append("\n  " + i + " label: " + getLabel(i)
+                    + "; number of samples: " + getNumberOfSamplesInEachDataRecord(i)
+                    + "; frequency: "+  Math.round(getSampleFrequency(i))
+                    + "; dig min: " + getDigitalMin(i) + "; dig max: " + getDigitalMax(i)
+                    + "; phys min: " + getPhysicalMin(i) + "; phys max: " + getPhysicalMax(i)
+                    + "; prefiltering: " + getPrefiltering(i)
+                    + "; transducer: " + getTransducer(i)
+                    + "; dimension: " + getPhysicalDimension(i));
+        }
+        return sb.toString();
+    }
+
 }

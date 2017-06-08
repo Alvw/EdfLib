@@ -61,7 +61,7 @@ import java.text.MessageFormat;
  * <a href="https://www.biosemi.com/faq/file_format.htm">BioSemi or BDF file format</a>
  *
  */
-public abstract class EdfRecordingInfo {
+public abstract class EdfConfig {
 
     /**
      * Return the number of measuring channels (signals).
@@ -146,7 +146,6 @@ public abstract class EdfRecordingInfo {
      * @return frequency of the samples (number of samples per second) belonging to the signal with the given number
      */
     public double getSampleFrequency(int signalNumber) {
-        System.out.println();
         return getNumberOfSamplesInEachDataRecord(signalNumber) / getDurationOfDataRecord();
     }
 

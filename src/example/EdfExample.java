@@ -4,7 +4,7 @@ import com.biorecorder.edflib.*;
 import com.biorecorder.edflib.filters.EdfJoiner;
 import com.biorecorder.edflib.filters.EdfSignalsFilter;
 import com.biorecorder.edflib.filters.EdfSignalsRemover;
-import com.biorecorder.edflib.HeaderInfo;
+import com.biorecorder.edflib.HeaderConfig;
 import com.biorecorder.edflib.filters.signalfilters.HighPassFilter;
 import com.biorecorder.edflib.filters.signalfilters.MovingAverageFilter;
 
@@ -22,17 +22,17 @@ public class EdfExample {
         File originalFile = new File(recordsDir, "ekg.bdf");
 
         EdfFileReader originalFileReader = new EdfFileReader(originalFile);
-        HeaderInfo headerInfo = originalFileReader.getHeader();
+        HeaderConfig headerConfig = originalFileReader.getHeader();
         // Print some header info from original file
-        System.out.println(headerInfo);
+        System.out.println(headerConfig);
 
 /*****************************************************************************************
  *    Read «DIGITAL» DataRecords one by one and write them to the new file ekgcopy1.bdf as it is
  *****************************************************************************************/
         File resultantFile1 = new File(recordsDir, "ekgcopy1.bdf");
-        EdfFileWriter fileWriter1 = new EdfFileWriter(resultantFile1, headerInfo);
+        EdfFileWriter fileWriter1 = new EdfFileWriter(resultantFile1, headerConfig);
 
-        int originalDataRecordLength = headerInfo.getDataRecordLength();
+        int originalDataRecordLength = headerConfig.getDataRecordLength();
         int[] intBuffer1 = new int[originalDataRecordLength];
         while (originalFileReader.availableDataRecords() > 0) {
             // read digital DataRecord from the original file
@@ -42,6 +42,7 @@ public class EdfExample {
         }
         fileWriter1.close();
 
+        System.out.println();
         System.out.println("Test1: simple copy file record by record.");
         EdfFileReader resultantFileReader = new EdfFileReader(resultantFile1);
 
@@ -69,7 +70,7 @@ public class EdfExample {
  *     Test Physical-Digital converter.
  *****************************************************************************************/
         File resultantFile2 = new File(recordsDir, "ekgcopy2.bdf");
-        EdfFileWriter fileWriter2 = new EdfFileWriter(resultantFile2, headerInfo);
+        EdfFileWriter fileWriter2 = new EdfFileWriter(resultantFile2, headerConfig);
 
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -106,11 +107,11 @@ public class EdfExample {
  *     write them to the new file ekgcopy3.bdf
  *****************************************************************************************/
         File resultantFile3 = new File(recordsDir, "ekgcopy3.bdf");
-        EdfFileWriter fileWriter3 = new EdfFileWriter(resultantFile3, headerInfo);
+        EdfFileWriter fileWriter3 = new EdfFileWriter(resultantFile3, headerConfig);
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
-        doubleBuffer1 = new double[headerInfo.getNumberOfSamplesInEachDataRecord(0)];
-        double[] doubleBuffer2 = new double[headerInfo.getNumberOfSamplesInEachDataRecord(1)];
+        doubleBuffer1 = new double[headerConfig.getNumberOfSamplesInEachDataRecord(0)];
+        double[] doubleBuffer2 = new double[headerConfig.getNumberOfSamplesInEachDataRecord(1)];
 
         while (originalFileReader.availableSamples(0) > 0) {
             // read physical samples belonging to signal 0 from the original file
@@ -150,10 +151,10 @@ public class EdfExample {
  *****************************************************************************************/
 
         File resultantFile4 = new File(recordsDir, "ekg_joined.bdf");
-        EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4, headerInfo.getFileType());
+        EdfFileWriter fileWriter4 = new EdfFileWriter(resultantFile4, headerConfig.getFileType());
         int numberOfRecordsToJoin = 5;
         EdfJoiner joiner = new EdfJoiner(numberOfRecordsToJoin, fileWriter4);
-        joiner.setRecordingInfo(headerInfo);
+        joiner.setConfig(headerConfig);
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
         doubleBuffer1 = new double[originalDataRecordLength];
@@ -205,7 +206,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant joined Edf-file:");
-        System.out.println(joiner.getResultantRecordingInfo());
+        System.out.println(joiner.getResultantConfig());
 
 
 /*****************************************************************************************
@@ -215,10 +216,10 @@ public class EdfExample {
  *****************************************************************************************/
 
         File resultantFile5 = new File(recordsDir, "ekg_1channel.bdf");
-        EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5, headerInfo.getFileType());
+        EdfFileWriter fileWriter5 = new EdfFileWriter(resultantFile5, headerConfig.getFileType());
         EdfSignalsRemover signalsRemover = new EdfSignalsRemover(fileWriter5);
         signalsRemover.removeSignal(0);
-        signalsRemover.setRecordingInfo(headerInfo);
+        signalsRemover.setConfig(headerConfig);
         doubleBuffer1 = new double[originalDataRecordLength];
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -231,11 +232,12 @@ public class EdfExample {
         }
         signalsRemover.close();
 
+        System.out.println();
         System.out.println("Test5: copy file with removing data from channel 0");
         resultantFileReader = new EdfFileReader(resultantFile5);
         originalFileReader.reset();
         i = 0;
-        intBuffer1 = new int[headerInfo.getNumberOfSamplesInEachDataRecord(1)];
+        intBuffer1 = new int[headerConfig.getNumberOfSamplesInEachDataRecord(1)];
         intBuffer2 = new int[resultantFileReader.getHeader().getDataRecordLength()];
         while (resultantFileReader.availableDataRecords() > 0) {
             // read samples belonging to signal 0 from the original file
@@ -253,7 +255,7 @@ public class EdfExample {
 
         // Print some header info from resultant file
         System.out.println("Header info of the resultant Edf-file with removed channel:");
-        System.out.println(signalsRemover.getResultantRecordingInfo());
+        System.out.println(signalsRemover.getResultantConfig());
 
 /*****************************************************************************************
  *     EdfSignalsFilter usage example. Read data, apply two filters to
@@ -263,12 +265,12 @@ public class EdfExample {
  *     and write the resultant clean records to ekg_filtered.bdf
  *****************************************************************************************/
         File resultantFile6 = new File(recordsDir, "ekg_filtered.bdf");
-        EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6, headerInfo.getFileType());
+        EdfFileWriter fileWriter6 = new EdfFileWriter(resultantFile6, headerConfig.getFileType());
         EdfSignalsFilter signalsFilter = new EdfSignalsFilter(fileWriter6);
-        signalsFilter.addSignalFilter(0, new HighPassFilter(1, headerInfo.getSampleFrequency(0)));
+        signalsFilter.addSignalFilter(0, new HighPassFilter(1, headerConfig.getSampleFrequency(0)));
         signalsFilter.addSignalFilter(0, new MovingAverageFilter(10));
 
-        signalsFilter.setRecordingInfo(headerInfo);
+        signalsFilter.setConfig(headerConfig);
 
         // set DataRecord and signals positions to 0;
         originalFileReader.reset();
@@ -284,8 +286,9 @@ public class EdfExample {
         signalsFilter.close();
 
         // Print some header info from resultant file after filtering
+        System.out.println();
         System.out.println("Header info of the resultant filtered Edf-file:");
-        System.out.println(signalsFilter.getResultantRecordingInfo());
+        System.out.println(signalsFilter.getResultantConfig());
 
         originalFileReader.close();
     }

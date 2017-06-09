@@ -704,6 +704,7 @@ public class HeaderConfig extends DefaultEdfConfig {
                     + "; transducer: " + getTransducer(i)
                     + "; dimension: " + getPhysicalDimension(i));
         }
+        sb.append("\n");
         return sb.toString();
     }
 
@@ -778,7 +779,6 @@ public class HeaderConfig extends DefaultEdfConfig {
         headerConfigBdf.setRecordingStartDateTime(1972, 6, 23, 23, 23, 50);
         // print header info
         System.out.println(headerConfigEdf);
-        System.out.println();
         System.out.println(headerConfigBdf);
     }
 }

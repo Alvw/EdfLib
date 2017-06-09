@@ -392,6 +392,7 @@ public class DefaultEdfConfig extends EdfConfig {
                     + "; transducer: " + getTransducer(i)
                     + "; dimension: " + getPhysicalDimension(i));
         }
+        sb.append("\n");
         return sb.toString();
     }
 

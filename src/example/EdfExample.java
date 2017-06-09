@@ -207,7 +207,8 @@ public class EdfExample {
         // Print some header info from resultant file
         System.out.println("Header info of the resultant joined Edf-file:");
         System.out.println(joiner.getResultantConfig());
-
+        System.out.println("number of received records: "+joiner.getNumberOfReceivedDataRecords());
+        System.out.println("number of written records: "+joiner.getNumberOfWrittenDataRecords());
 
 /*****************************************************************************************
  *     Test EdfSignalsRemover. Reads data records from original file,

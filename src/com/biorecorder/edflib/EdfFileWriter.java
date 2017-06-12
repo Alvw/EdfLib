@@ -43,7 +43,7 @@ public class EdfFileWriter extends EdfWriter {
     private FileType fileType;
     private long startTime;
     private long stopTime;
-    private double durationOfDataRecord;
+    private double actualDurationOfDataRecord;
     private boolean isDurationOfDataRecordsComputable;
     private FileOutputStream fileOutputStream;
     private volatile boolean isClosed = false;
@@ -98,6 +98,14 @@ public class EdfFileWriter extends EdfWriter {
     @Override
     public synchronized void setConfig(EdfConfig recordingInfo) {
        this.edfConfig = new HeaderConfig(recordingInfo, fileType);
+    }
+
+    /**
+     * Gets the Edf/Bdf file where this writer writes data
+     * @return Edf/Bdf file where this writer writes data
+     */
+    public File getFile() {
+        return file;
     }
 
     /**
@@ -164,11 +172,11 @@ public class EdfFileWriter extends EdfWriter {
             String errMsg = MessageFormat.format("Error while writing data to the file: {0}. Check available HD space.", file);
             throw new EdfRuntimeException(errMsg, e);
         }
+        sampleCounter += digitalSamples.length;
         stopTime = System.currentTimeMillis();
         if (getNumberOfReceivedDataRecords() > 0) {
-            durationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfReceivedDataRecords();
+            actualDurationOfDataRecord = (stopTime - startTime) * 0.001 / getNumberOfReceivedDataRecords();
         }
-        sampleCounter += digitalSamples.length;
     }
 
     /**
@@ -180,20 +188,19 @@ public class EdfFileWriter extends EdfWriter {
         if(isClosed) {
             return;
         }
+        isClosed = true;
         HeaderConfig config = (HeaderConfig) this.edfConfig;
         if (config.getNumberOfDataRecords() == -1) {
             config.setNumberOfDataRecords(getNumberOfReceivedDataRecords());
         }
-        if (isDurationOfDataRecordsComputable && durationOfDataRecord > 0) {
-            config.setDurationOfDataRecord(durationOfDataRecord);
+        if (isDurationOfDataRecordsComputable && actualDurationOfDataRecord > 0) {
+            config.setDurationOfDataRecord(actualDurationOfDataRecord);
         }
         FileChannel channel = fileOutputStream.getChannel();
-
         try {
             channel.position(0);
             fileOutputStream.write(config.createFileHeader());
             fileOutputStream.close();
-            isClosed = true;
         } catch (IOException e) {
             String errMsg = MessageFormat.format("Error while closing the file: {0}.", file);
             new EdfRuntimeException(errMsg, e);
@@ -212,7 +219,7 @@ public class EdfFileWriter extends EdfWriter {
         stringBuilder.append("Start recording time = " + startTime + " (" + dateFormat.format(new Date(startTime)) + ") \n");
         stringBuilder.append("Stop recording time = " + stopTime + " (" + dateFormat.format(new Date(stopTime)) + ") \n");
         stringBuilder.append("Number of data records = " + getNumberOfReceivedDataRecords() + "\n");
-        stringBuilder.append("Actual duration of a data record = " + durationOfDataRecord);
+        stringBuilder.append("Actual duration of a data record = " + actualDurationOfDataRecord);
         return stringBuilder.toString();
     }
 
